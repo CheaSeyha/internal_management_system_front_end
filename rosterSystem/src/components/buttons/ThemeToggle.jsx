@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react';
 
 const ThemeToggle = () => {
   const [darkMode, setDarkMode] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   // Initialize theme from localStorage or system preference
   useEffect(() => {
+    setIsMounted(true);
     const savedTheme = localStorage.getItem('theme');
     const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     
@@ -15,8 +17,10 @@ const ThemeToggle = () => {
     }
   }, []);
 
-  // Apply theme class and save to localStorage when changed
+  // Apply theme class when changed
   useEffect(() => {
+    if (!isMounted) return;
+    
     if (darkMode) {
       document.documentElement.setAttribute('data-theme', 'dark');
       localStorage.setItem('theme', 'dark');
@@ -24,11 +28,18 @@ const ThemeToggle = () => {
       document.documentElement.setAttribute('data-theme', 'light');
       localStorage.setItem('theme', 'light');
     }
-  }, [darkMode]);
+  }, [darkMode, isMounted]);
 
   const handleToggle = () => {
     setDarkMode(!darkMode);
   };
+
+  // Prevent rendering until mounted to avoid hydration mismatch
+  if (!isMounted) {
+    return (
+      <div className="h-8 w-8"></div> // Placeholder with same dimensions
+    );
+  }
 
   return (
     <label className="swap swap-rotate">

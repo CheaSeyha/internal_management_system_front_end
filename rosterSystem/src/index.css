@@ -1,0 +1,23 @@
+@import "tailwindcss";
+@plugin "daisyui";
+body{
+  background-color: var(--color-background);
+}
+/* styles/theme.css */
+:root {
+  /* Light theme defaults */
+  --color-background: hsl(0, 0%, 100%);
+  --color-text: hsl(0, 0%, 0%);
+}
+
+[data-theme="dark"] {
+  /* Dark theme overrides */
+  --color-background: #1D2427;
+  --color-text: hsl(0, 0%, 100%);
+}
+
+/* theme.pcss */
+@theme {
+  --color-background: var(--color-background);
+  --color-text: var(--color-text);
+}

@@ -43,7 +43,7 @@ export default function MonthYearSelector() {
   }, []);
 
   return (
-    <div className="relative inline-block">
+    <div className="relative inline-block w-full sm:w-fit">
       <button
         ref={buttonRef}
         onClick={() => setShowPicker(!showPicker)}

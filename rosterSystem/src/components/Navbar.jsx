@@ -9,7 +9,7 @@ function Navbar() {
           <button className="bg-[#106D6D] transition-all tra cursor-pointer p-2 active:scale-90">
             <Menu size={24} />
           </button>
-          <p className="font-bold">NWC IT ROSTER SYSTEM</p>
+          <p className="font-bold">TEST</p>
         </div>
         <section className="user-profile flex w-fit h-full items-center gap-5">
           <ThemeToggle />

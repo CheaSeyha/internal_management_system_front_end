@@ -1,7 +1,8 @@
 import React from "react";
 import nwc_logo from "../../../assets/logo/nwc logo.png";
-import staffcard from "../../../assets/image/STAFF.png";
-function VIPCard({name,block,id,image}) {
+import vipIcon from "../../../assets/logo/vip.png";
+import VIPCARD from "../../../assets/image/VIPCARD.png";
+function VIPCard({name,block,id}) {
   return (
     <>
       <div className="w-[9cm] bg-white h-[6cm] relative">
@@ -13,22 +14,22 @@ function VIPCard({name,block,id,image}) {
                 NEW WORLD CASINO-HOTEL
               </p>
             </div>
-            <div className="permission text-[#fa5d5d] text-2xl font-bold ransform scale-x-71 scale-y-100 absolute top-[1.25cm] left-[1.74cm] w-full">
+            <div className="permission text-[#fa5d5d] text-2xl font-bold ransform scale-x-71 scale-y-100 absolute top-[1.25cm] left-[2.03cm] w-full">
               <p>Permission Card In/Out</p>
-              <div className="line w-[77%] h-[4px] rounded-full bg-blue-600"></div>
+              <div className="line w-[77%] h-[4px] rounded-full bg-blue-600 pl-1"></div>
             </div>
             {/* card infor and picture  */}
-            <div className="container-card-inforw-full flex gap-3 text-black font-bold">
-              <div className="image-card w-[85px] h-[100px] border border-blue-500 ml-3 mt-5">
+            <div className="image-card w-[135px] h-[100px] absolute left-0 top-[2.1cm]">
                 <img
-                  src={image}
+                  src={vipIcon}
                   className="w-full h-full object-cover"
                   alt=""
                 />
               </div>
+            <div className="container-card-inforw-full flex gap-3 text-black font-bold pl-[3.3cm]">
               <div class="infor pt-5">
                 <p class="leading-tight">Name : {name}</p>
-                <p class="leading-tight">Position : Staff</p>
+                <p class="leading-tight">Position :</p>
                 <p class="leading-tight">Block : {block}</p>
                 <p class="leading-tight">ID No: {id==="" ? "00001" : id}</p>
                 <p class="leading-tight">Date Expire : Dec 31,2025</p>
@@ -47,7 +48,7 @@ function VIPCard({name,block,id,image}) {
         </div>
 
         <div className="staff_card absolute opacity-50 ">
-          {/* <img src={VIPCard} className="z-50" alt="" /> */}
+          {/* <img src={VIPCARD} className="z-50" alt="" /> */}
         </div>
       </div>
     </>

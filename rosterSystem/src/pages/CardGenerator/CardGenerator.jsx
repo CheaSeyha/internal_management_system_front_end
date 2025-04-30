@@ -1,4 +1,3 @@
-// Updated MultiUploadForm with Crop Support
 import React, { useState, useEffect, useCallback } from "react";
 import Cropper from "react-easy-crop";
 import { getCroppedImg } from "../../utils/cropImage";
@@ -82,10 +81,19 @@ export default function CardGenerator() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!currentEntry.name || !currentEntry.imageFile) {
-      return alert("Name and Image are required.");
+    
+    // Only require image for Staff and Delivery cards
+    const requiresImage = !["VIP Card", "Car Card"].includes(currentEntry.cardType);
+    if (!currentEntry.name || (requiresImage && !currentEntry.imageFile)) {
+      return alert(requiresImage ? "Name and Image are required." : "Name is required.");
     }
-    setEntries((prev) => [...prev, currentEntry]);
+    
+    // For VIP/Car cards, clear any existing image
+    const entryToAdd = !requiresImage
+      ? { ...currentEntry, imageFile: null, imagePreviewUrl: null }
+      : currentEntry;
+      
+    setEntries((prev) => [...prev, entryToAdd]);
     setCurrentEntry({
       name: "",
       block: "",
@@ -101,16 +109,15 @@ export default function CardGenerator() {
       {cropModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
           <div className="bg-base-200 p-4 rounded-lg shadow-xl w-full max-w-lg">
-            {/* Previev image  */}
             <div className="relative h-80 bg-black">
               <div
                 className="absolute inset-0"
                 style={{
                   filter: `
-                      brightness(${brightness}%)
-                      contrast(${contrast}%)
-                      saturate(${saturation}%)
-                    `,
+                    brightness(${brightness}%)
+                    contrast(${contrast}%)
+                    saturate(${saturation}%)
+                  `,
                 }}
               >
                 <Cropper
@@ -124,9 +131,8 @@ export default function CardGenerator() {
                 />
               </div>
             </div>
-            {/* Range Control  */}
+            
             <div className="mt-6 space-y-5">
-              {/* Zoom Control */}
               <div className="flex flex-col gap-1">
                 <div className="flex justify-between items-center">
                   <label className="label-text font-medium text-sm">Zoom</label>
@@ -145,7 +151,6 @@ export default function CardGenerator() {
                 />
               </div>
 
-              {/* Brightness Control */}
               <div className="flex flex-col gap-1">
                 <div className="flex justify-between items-center">
                   <label className="label-text font-medium text-sm">
@@ -166,7 +171,6 @@ export default function CardGenerator() {
                 />
               </div>
 
-              {/* Contrast Control */}
               <div className="flex flex-col gap-1">
                 <div className="flex justify-between items-center">
                   <label className="label-text font-medium text-sm">
@@ -187,7 +191,6 @@ export default function CardGenerator() {
                 />
               </div>
 
-              {/* Saturation Control */}
               <div className="flex flex-col gap-1">
                 <div className="flex justify-between items-center">
                   <label className="label-text font-medium text-sm">
@@ -208,7 +211,7 @@ export default function CardGenerator() {
                 />
               </div>
             </div>
-            {/* Control Button  */}
+            
             <div className="flex justify-between gap-2 mt-4">
               <button
                 className="btn btn-error flex-1"
@@ -241,26 +244,28 @@ export default function CardGenerator() {
         className="bg-base-200 rounded-xl p-6 shadow-lg"
       >
         <h2 className="text-2xl font-bold mb-4 text-center">Add New Entry</h2>
-        <div
-          className="flex flex-col md:flex-row gap-6"
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-        >
-          <div className="flex-1 border-2 border-dashed border-gray-400 rounded-lg p-4 flex items-center justify-center">
-            {currentEntry.imagePreviewUrl ? (
-              <img
-                src={currentEntry.imagePreviewUrl}
-                alt="Preview"
-                className="w-[80%] h-[100%] object-contain"
-              />
-            ) : (
-              <p className="text-center text-gray-500">
-                Drag & drop or Ctrl+V to paste image
-              </p>
-            )}
-          </div>
+        <div className="flex flex-col md:flex-row gap-6">
+          {currentEntry.cardType !== "VIP Card" && currentEntry.cardType !== "Car Card" && (
+            <div 
+              className="flex-1 border-2 border-dashed border-gray-400 rounded-lg p-4 flex items-center justify-center"
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+            >
+              {currentEntry.imagePreviewUrl ? (
+                <img
+                  src={currentEntry.imagePreviewUrl}
+                  alt="Preview"
+                  className="w-[80%] h-[100%] object-contain"
+                />
+              ) : (
+                <p className="text-center text-gray-500">
+                  Drag & drop or Ctrl+V to paste image
+                </p>
+              )}
+            </div>
+          )}
 
-          <div className="flex-1 space-y-4">
+          <div className={`space-y-4 ${["VIP Card", "Car Card"].includes(currentEntry.cardType) ? "w-full" : "flex-1"}`}>
             <div className="form-control">
               <label className="label">
                 <span className="label-text">Name</span>
@@ -270,6 +275,7 @@ export default function CardGenerator() {
                 value={currentEntry.name}
                 onChange={handleInputChange}
                 className="input input-bordered w-full"
+                required
               />
             </div>
             <div className="form-control">
@@ -329,7 +335,6 @@ export default function CardGenerator() {
             </button>
           </div>
 
-          {/* Regular view */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 non-print">
             {entries.map((entry, index) => (
               <div key={index}>
@@ -347,12 +352,23 @@ export default function CardGenerator() {
                     id={entry.id}
                     image={entry.imagePreviewUrl}
                   />
+                ) : entry.cardType === "VIP Card" ? (
+                  <VIPCard
+                    name={entry.name}
+                    block={entry.block}
+                    id={entry.id}
+                  />
+                ) : entry.cardType === "Car Card" ? (
+                  <VIPCard
+                    name={entry.name}
+                    block={entry.block}
+                    id={entry.id}
+                  />
                 ) : null}
               </div>
             ))}
           </div>
 
-          {/* Print-optimized view (hidden on screen, visible only when printing) */}
           <div className="hidden print:block">
             <div className="grid grid-cols-2 gap-8 p-10">
               {entries.map((entry, index) => (
@@ -376,7 +392,12 @@ export default function CardGenerator() {
                       name={entry.name}
                       block={entry.block}
                       id={entry.id}
-                      image={entry.imagePreviewUrl}
+                    />
+                  ) : entry.cardType === "Car Card" ? (
+                    <VIPCard
+                      name={entry.name}
+                      block={entry.block}
+                      id={entry.id}
                     />
                   ) : null}
                 </div>

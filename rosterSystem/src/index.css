@@ -39,3 +39,21 @@ body{
     -webkit-text-stroke: 0.8px rgb(152, 0, 253);
   }
 }
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print\:block, .print\:block * {
+    visibility: visible;
+  }
+  .print\:block {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  .non-print {
+    display: none;
+  }
+}

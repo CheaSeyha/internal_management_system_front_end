@@ -4,6 +4,7 @@ import Cropper from "react-easy-crop";
 import { getCroppedImg } from "../../utils/cropImage";
 import StaffCard from "./components/StaffCard";
 import DeliveryCard from "./components/DeliveryCard";
+import VIPCard from "./components/VIPCard";
 
 export default function CardGenerator() {
   const [currentEntry, setCurrentEntry] = useState({
@@ -14,6 +15,9 @@ export default function CardGenerator() {
     imageFile: null,
     imagePreviewUrl: null,
   });
+  const [brightness, setBrightness] = useState(100);
+  const [contrast, setContrast] = useState(100);
+  const [saturation, setSaturation] = useState(100);
 
   const [entries, setEntries] = useState([]);
   const [cropModalOpen, setCropModalOpen] = useState(false);
@@ -62,7 +66,12 @@ export default function CardGenerator() {
   }, []);
 
   const applyCrop = async () => {
-    const cropped = await getCroppedImg(rawImage.url, croppedAreaPixels);
+    const cropped = await getCroppedImg(rawImage.url, croppedAreaPixels, {
+      brightness,
+      contrast,
+      saturation,
+    });
+
     setCurrentEntry((prev) => ({
       ...prev,
       imagePreviewUrl: cropped.url,
@@ -92,22 +101,134 @@ export default function CardGenerator() {
       {cropModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
           <div className="bg-base-200 p-4 rounded-lg shadow-xl w-full max-w-lg">
+            {/* Previev image  */}
             <div className="relative h-80 bg-black">
-              <Cropper
-                image={rawImage.url}
-                crop={crop}
-                zoom={zoom}
-                aspect={85 / 100}
-                onCropChange={setCrop}
-                onZoomChange={setZoom}
-                onCropComplete={onCropComplete}
-              />
+              <div
+                className="absolute inset-0"
+                style={{
+                  filter: `
+                      brightness(${brightness}%)
+                      contrast(${contrast}%)
+                      saturate(${saturation}%)
+                    `,
+                }}
+              >
+                <Cropper
+                  image={rawImage.url}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={85 / 100}
+                  onCropChange={setCrop}
+                  onZoomChange={setZoom}
+                  onCropComplete={onCropComplete}
+                />
+              </div>
             </div>
-            <div className="flex justify-end mt-4 gap-2">
-              <button onClick={() => setCropModalOpen(false)} className="btn">
+            {/* Range Control  */}
+            <div className="mt-6 space-y-5">
+              {/* Zoom Control */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between items-center">
+                  <label className="label-text font-medium text-sm">Zoom</label>
+                  <span className="text-sm font-mono bg-base-200 px-2 py-1 rounded">
+                    {zoom.toFixed(1)}x
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={1}
+                  max={3}
+                  step={0.1}
+                  value={zoom}
+                  onChange={(e) => setZoom(parseFloat(e.target.value))}
+                  className="range range-primary range-sm"
+                />
+              </div>
+
+              {/* Brightness Control */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between items-center">
+                  <label className="label-text font-medium text-sm">
+                    Brightness
+                  </label>
+                  <span className="text-sm font-mono bg-base-200 px-2 py-1 rounded">
+                    {brightness}%
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={50}
+                  max={150}
+                  step={1}
+                  value={brightness}
+                  onChange={(e) => setBrightness(parseInt(e.target.value))}
+                  className="range range-warning range-sm"
+                />
+              </div>
+
+              {/* Contrast Control */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between items-center">
+                  <label className="label-text font-medium text-sm">
+                    Contrast
+                  </label>
+                  <span className="text-sm font-mono bg-base-200 px-2 py-1 rounded">
+                    {contrast}%
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={50}
+                  max={150}
+                  step={1}
+                  value={contrast}
+                  onChange={(e) => setContrast(parseInt(e.target.value))}
+                  className="range range-secondary range-sm"
+                />
+              </div>
+
+              {/* Saturation Control */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between items-center">
+                  <label className="label-text font-medium text-sm">
+                    Saturation
+                  </label>
+                  <span className="text-sm font-mono bg-base-200 px-2 py-1 rounded">
+                    {saturation}%
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={200}
+                  step={1}
+                  value={saturation}
+                  onChange={(e) => setSaturation(parseInt(e.target.value))}
+                  className="range range-accent range-sm"
+                />
+              </div>
+            </div>
+            {/* Control Button  */}
+            <div className="flex justify-between gap-2 mt-4">
+              <button
+                className="btn btn-error flex-1"
+                onClick={() => {
+                  setBrightness(100);
+                  setContrast(100);
+                  setSaturation(100);
+                }}
+              >
+                Reset Adjustments
+              </button>
+
+              <button
+                onClick={() => setCropModalOpen(false)}
+                className="btn btn-warning flex-1"
+              >
                 Cancel
               </button>
-              <button onClick={applyCrop} className="btn btn-primary">
+
+              <button onClick={applyCrop} className="btn btn-primary flex-1">
                 Crop & Save
               </button>
             </div>
@@ -198,8 +319,18 @@ export default function CardGenerator() {
 
       {entries.length > 0 && (
         <div className="space-y-4">
-          <h3 className="text-xl font-semibold">All Card</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex justify-between items-center">
+            <h3 className="text-xl font-semibold">All Cards</h3>
+            <button
+              onClick={() => window.print()}
+              className="btn btn-primary print:hidden"
+            >
+              Print All Cards
+            </button>
+          </div>
+
+          {/* Regular view */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 non-print">
             {entries.map((entry, index) => (
               <div key={index}>
                 {entry.cardType === "Staff" ? (
@@ -219,6 +350,38 @@ export default function CardGenerator() {
                 ) : null}
               </div>
             ))}
+          </div>
+
+          {/* Print-optimized view (hidden on screen, visible only when printing) */}
+          <div className="hidden print:block">
+            <div className="grid grid-cols-2 gap-8 p-10">
+              {entries.map((entry, index) => (
+                <div key={`print-${index}`} className="break-inside-avoid">
+                  {entry.cardType === "Staff" ? (
+                    <StaffCard
+                      name={entry.name}
+                      block={entry.block}
+                      id={entry.id}
+                      image={entry.imagePreviewUrl}
+                    />
+                  ) : entry.cardType === "Delivery" ? (
+                    <DeliveryCard
+                      name={entry.name}
+                      block={entry.block}
+                      id={entry.id}
+                      image={entry.imagePreviewUrl}
+                    />
+                  ) : entry.cardType === "VIP Card" ? (
+                    <VIPCard
+                      name={entry.name}
+                      block={entry.block}
+                      id={entry.id}
+                      image={entry.imagePreviewUrl}
+                    />
+                  ) : null}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}

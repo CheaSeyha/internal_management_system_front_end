@@ -1,33 +1,49 @@
-export const getCroppedImg = (imageSrc, croppedAreaPixels) => {
+export const getCroppedImg = (imageSrc, pixelCrop, filters = {}) => {
     return new Promise((resolve, reject) => {
       const image = new Image();
+      image.crossOrigin = "anonymous";
       image.src = imageSrc;
+  
       image.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = croppedAreaPixels.width;
-        canvas.height = croppedAreaPixels.height;
-        const ctx = canvas.getContext('2d');
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+  
+        canvas.width = pixelCrop.width;
+        canvas.height = pixelCrop.height;
+  
+        // Apply filters using canvas context
+        const {
+          brightness = 100,
+          contrast = 100,
+          saturation = 100,
+        } = filters;
+  
+        ctx.filter = `
+          brightness(${brightness}%)
+          contrast(${contrast}%)
+          saturate(${saturation}%)
+        `;
   
         ctx.drawImage(
           image,
-          croppedAreaPixels.x,
-          croppedAreaPixels.y,
-          croppedAreaPixels.width,
-          croppedAreaPixels.height,
+          pixelCrop.x,
+          pixelCrop.y,
+          pixelCrop.width,
+          pixelCrop.height,
           0,
           0,
-          croppedAreaPixels.width,
-          croppedAreaPixels.height
+          pixelCrop.width,
+          pixelCrop.height
         );
   
         canvas.toBlob((blob) => {
-          if (!blob) return reject(new Error('Canvas is empty'));
+          const file = new File([blob], "cropped.jpeg", { type: "image/jpeg" });
           const url = URL.createObjectURL(blob);
-          const file = new File([blob], 'cropped.jpg', { type: 'image/jpeg' });
           resolve({ file, url });
-        }, 'image/jpeg', 1);
+        }, "image/jpeg");
       };
-      image.onerror = (err) => reject(err);
+  
+      image.onerror = reject;
     });
   };
   

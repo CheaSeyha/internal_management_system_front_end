@@ -4,7 +4,6 @@ import staffcard from "../../../assets/image/STAFF.png";
 function StaffCard({name,block,id,image}) {
   return (
     <>
-      <div>StaffCard</div>
       <div className="w-[9cm] bg-white h-[6cm] relative">
         <div className="card-outline absolute w-full h-full p-[2px] flex justify-center items-center">
           <div className="main-card w-[100%] h-[100%] rounded-[14px] border-[#ffff00] border-[3px] outline outline-[#1e0030] multi-border">
@@ -37,7 +36,7 @@ function StaffCard({name,block,id,image}) {
             </div>
             {/* Address  */}
             <div className="container-address flex justify-center items-center h-[40px]">
-              <div className="address-infor bg-[#0b2754] absolute text-[9px] px-1 rounded-[3px] ransform scale-x-105 font-bold">
+              <div className="address-infor bg-[#0b2754] text-white  absolute text-[9px] px-1 rounded-[3px] ransform scale-x-105 font-bold">
                 <p className="">
                   National Road 1, Bavet Commune, Bavet City, Svay Rieng
                   Province

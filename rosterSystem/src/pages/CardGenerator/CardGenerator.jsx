@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Cropper from "react-easy-crop";
 import { getCroppedImg } from "../../utils/cropImage";
-import StaffCard from "./components/StaffCard";
-import DeliveryCard from "./components/DeliveryCard";
-import VIPCard from "./components/VIPCard";
+import VIP from "./components/VIP";
 
 export default function CardGenerator() {
   const [currentEntry, setCurrentEntry] = useState({
@@ -81,18 +79,22 @@ export default function CardGenerator() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     // Only require image for Staff and Delivery cards
-    const requiresImage = !["VIP Card", "Car Card"].includes(currentEntry.cardType);
+    const requiresImage = !["VIP Card", "Car Card"].includes(
+      currentEntry.cardType
+    );
     if (!currentEntry.name || (requiresImage && !currentEntry.imageFile)) {
-      return alert(requiresImage ? "Name and Image are required." : "Name is required.");
+      return alert(
+        requiresImage ? "Name and Image are required." : "Name is required."
+      );
     }
-    
+
     // For VIP/Car cards, clear any existing image
     const entryToAdd = !requiresImage
       ? { ...currentEntry, imageFile: null, imagePreviewUrl: null }
       : currentEntry;
-      
+
     setEntries((prev) => [...prev, entryToAdd]);
     setCurrentEntry({
       name: "",
@@ -131,7 +133,7 @@ export default function CardGenerator() {
                 />
               </div>
             </div>
-            
+
             <div className="mt-6 space-y-5">
               <div className="flex flex-col gap-1">
                 <div className="flex justify-between items-center">
@@ -211,7 +213,7 @@ export default function CardGenerator() {
                 />
               </div>
             </div>
-            
+
             <div className="flex justify-between gap-2 mt-4">
               <button
                 className="btn btn-error flex-1"
@@ -245,27 +247,34 @@ export default function CardGenerator() {
       >
         <h2 className="text-2xl font-bold mb-4 text-center">Add New Entry</h2>
         <div className="flex flex-col md:flex-row gap-6">
-          {currentEntry.cardType !== "VIP Card" && currentEntry.cardType !== "Car Card" && (
-            <div 
-              className="flex-1 border-2 border-dashed border-gray-400 rounded-lg p-4 flex items-center justify-center"
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-            >
-              {currentEntry.imagePreviewUrl ? (
-                <img
-                  src={currentEntry.imagePreviewUrl}
-                  alt="Preview"
-                  className="w-[80%] h-[100%] object-contain"
-                />
-              ) : (
-                <p className="text-center text-gray-500">
-                  Drag & drop or Ctrl+V to paste image
-                </p>
-              )}
-            </div>
-          )}
+          {currentEntry.cardType !== "VIP Card" &&
+            currentEntry.cardType !== "Car Card" && (
+              <div
+                className="flex-1 border-2 border-dashed border-gray-400 rounded-lg p-4 flex items-center justify-center"
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+              >
+                {currentEntry.imagePreviewUrl ? (
+                  <img
+                    src={currentEntry.imagePreviewUrl}
+                    alt="Preview"
+                    className="w-[80%] h-[100%] object-contain"
+                  />
+                ) : (
+                  <p className="text-center text-gray-500">
+                    Drag & drop or Ctrl+V to paste image
+                  </p>
+                )}
+              </div>
+            )}
 
-          <div className={`space-y-4 ${["VIP Card", "Car Card"].includes(currentEntry.cardType) ? "w-full" : "flex-1"}`}>
+          <div
+            className={`space-y-4 ${
+              ["VIP Card", "Car Card"].includes(currentEntry.cardType)
+                ? "w-full"
+                : "flex-1"
+            }`}
+          >
             <div className="form-control">
               <label className="label">
                 <span className="label-text">Name</span>
@@ -322,7 +331,6 @@ export default function CardGenerator() {
           </div>
         </div>
       </form>
-
       {entries.length > 0 && (
         <div className="space-y-4">
           <div className="flex justify-between items-center">
@@ -335,71 +343,33 @@ export default function CardGenerator() {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 non-print">
+          <div className="grid grid-cols-2 space-x-1 space-y-1 non-print">
             {entries.map((entry, index) => (
-              <div key={index}>
-                {entry.cardType === "Staff" ? (
-                  <StaffCard
-                    name={entry.name}
-                    block={entry.block}
-                    id={entry.id}
-                    image={entry.imagePreviewUrl}
-                  />
-                ) : entry.cardType === "Delivery" ? (
-                  <DeliveryCard
-                    name={entry.name}
-                    block={entry.block}
-                    id={entry.id}
-                    image={entry.imagePreviewUrl}
-                  />
-                ) : entry.cardType === "VIP Card" ? (
-                  <VIPCard
-                    name={entry.name}
-                    block={entry.block}
-                    id={entry.id}
-                  />
-                ) : entry.cardType === "Car Card" ? (
-                  <VIPCard
-                    name={entry.name}
-                    block={entry.block}
-                    id={entry.id}
-                  />
-                ) : null}
-              </div>
+              <VIP
+                block={entry.block}
+                cardType={entry.cardType}
+                id={entry.id}
+                image={entry.imagePreviewUrl}
+                name={entry.name}
+                platNumber={""}
+                key={index}
+              />
             ))}
           </div>
 
           <div className="hidden print:block">
-            <div className="grid grid-cols-2 gap-8 p-10">
+            <div className="grid grid-cols-2 space-x-1 space-y-1 gap-1">
               {entries.map((entry, index) => (
                 <div key={`print-${index}`} className="break-inside-avoid">
-                  {entry.cardType === "Staff" ? (
-                    <StaffCard
-                      name={entry.name}
-                      block={entry.block}
-                      id={entry.id}
-                      image={entry.imagePreviewUrl}
-                    />
-                  ) : entry.cardType === "Delivery" ? (
-                    <DeliveryCard
-                      name={entry.name}
-                      block={entry.block}
-                      id={entry.id}
-                      image={entry.imagePreviewUrl}
-                    />
-                  ) : entry.cardType === "VIP Card" ? (
-                    <VIPCard
-                      name={entry.name}
-                      block={entry.block}
-                      id={entry.id}
-                    />
-                  ) : entry.cardType === "Car Card" ? (
-                    <VIPCard
-                      name={entry.name}
-                      block={entry.block}
-                      id={entry.id}
-                    />
-                  ) : null}
+                  <VIP
+                    block={entry.block}
+                    cardType={entry.cardType}
+                    id={entry.id}
+                    image={entry.imagePreviewUrl}
+                    name={entry.name}
+                    platNumber={""}
+                    key={index}
+                  />
                 </div>
               ))}
             </div>

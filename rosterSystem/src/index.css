@@ -1,5 +1,18 @@
 @import "tailwindcss";
 @plugin "daisyui";
+@font-face {
+  font-family: 'cardFont1';
+  src: url('./assets//fonts/News706BT-BoldC.otf');
+}
+@font-face {
+  font-family: 'cardFont2';
+  src: url('./assets//fonts/swiss-721-bt-black-condensed.ttf');
+}
+@font-face {
+  font-family: 'News 706 BT';
+  src: url('./assets/fonts/News 706 BT');
+}
+
 body{
   background-color: var(--color-background);
 }
@@ -18,6 +31,10 @@ body{
 
 /* theme.pcss */
 @theme {
+  --font-cardFont1: cardFont1,'News706BT-BoldC';
+  --font-cardFont2: cardFont2,'swiss-721-bt-black-condensed';
+  --font-News706BT: News706BT,'News 706 BT';
+
   --color-background: var(--color-background);
   --color-text: var(--color-text);
 }
@@ -36,7 +53,7 @@ body{
 
 @layer utilities {
   .text-stroke {
-    -webkit-text-stroke: 0.8px rgb(152, 0, 253);
+    -webkit-text-stroke: 1.3px #fafd00;
   }
 }
 

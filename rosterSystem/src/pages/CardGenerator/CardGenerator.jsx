@@ -247,6 +247,7 @@ export default function CardGenerator() {
       >
         <h2 className="text-2xl font-bold mb-4 text-center">Add New Entry</h2>
         <div className="flex flex-col md:flex-row gap-6">
+          {/* Show Image  */}
           {currentEntry.cardType !== "VIP Card" &&
             currentEntry.cardType !== "Car Card" && (
               <div
@@ -277,7 +278,11 @@ export default function CardGenerator() {
           >
             <div className="form-control">
               <label className="label">
-                <span className="label-text">Name</span>
+                <span className="label-text">
+                  {currentEntry.cardType === "Car Card"
+                    ? "Plat Number"
+                    : "Name"}
+                </span>
               </label>
               <input
                 name="name"
@@ -298,7 +303,11 @@ export default function CardGenerator() {
                 className="input input-bordered w-full"
               />
             </div>
-            <div className="form-control">
+            <div
+              className={`form-control ${
+                currentEntry.cardType === "Car Card" ? "hidden" : "block"
+              }`}
+            >
               <label className="label">
                 <span className="label-text">ID</span>
               </label>
@@ -326,7 +335,7 @@ export default function CardGenerator() {
               </select>
             </div>
             <button type="submit" className="btn btn-primary w-full mt-4">
-              Add Entry
+              Done
             </button>
           </div>
         </div>
@@ -343,32 +352,38 @@ export default function CardGenerator() {
             </button>
           </div>
 
-          <div className="grid grid-cols-2 space-x-1 space-y-1 non-print">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 non-print place-items-center">
             {entries.map((entry, index) => (
-              <VIP
-                block={entry.block}
-                cardType={entry.cardType}
-                id={entry.id}
-                image={entry.imagePreviewUrl}
-                name={entry.name}
-                platNumber={""}
+              <div
                 key={index}
-              />
+                className={entry.cardType === "Car Card" ? "md:col-span-2" : ""}
+              >
+                <VIP
+                  block={entry.block}
+                  cardType={entry.cardType}
+                  id={entry.id}
+                  image={entry.imagePreviewUrl}
+                  name={entry.name}
+                />
+              </div>
             ))}
           </div>
 
           <div className="hidden print:block">
-            <div className="grid grid-cols-2 space-x-1 space-y-1 gap-1">
+            <div className="grid grid-cols-1 print:grid-cols-2 gap-4">
               {entries.map((entry, index) => (
-                <div key={`print-${index}`} className="break-inside-avoid">
+                <div
+                  key={`print-${index}`}
+                  className={`break-inside-avoid ${
+                    entry.cardType === "Car Card" ? "print:col-span-2" : ""
+                  }`}
+                >
                   <VIP
                     block={entry.block}
                     cardType={entry.cardType}
                     id={entry.id}
                     image={entry.imagePreviewUrl}
                     name={entry.name}
-                    platNumber={""}
-                    key={index}
                   />
                 </div>
               ))}

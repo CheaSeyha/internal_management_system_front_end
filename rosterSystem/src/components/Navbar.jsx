@@ -1,12 +1,12 @@
 import React from "react";
 import { User, Menu } from "lucide-react";
 import ThemeToggle from "./buttons/ThemeToggle";
-function Navbar() {
+function Navbar({openSideBar}) {
   return (
     <nav className="bg-[#106D6D] h-[55px]">
       <div className="logo-company-name h-full flex items-center justify-between text-white px-5 py-2">
         <div className="side-logo flex items-center gap-5">
-          <button className="bg-[#106D6D] transition-all tra cursor-pointer p-2 active:scale-90">
+          <button onClick={openSideBar} className="bg-[#106D6D] transition-all tra cursor-pointer p-2 active:scale-90">
             <Menu size={24} />
           </button>
           <p className="font-bold">TEST</p>

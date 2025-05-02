@@ -21,12 +21,14 @@ body{
   /* Light theme defaults */
   --color-background: hsl(0, 0%, 100%);
   --color-text: hsl(0, 0%, 0%);
+  --color-sidebar: #ffffff;
 }
 
 [data-theme="dark"] {
   /* Dark theme overrides */
   --color-background: #1D2427;
   --color-text: hsl(0, 0%, 100%);
+  --color-sidebar: #2b353a;
 }
 
 /* theme.pcss */
@@ -36,6 +38,7 @@ body{
   --font-News706BT: News706BT,'News 706 BT';
 
   --color-background: var(--color-background);
+  --color-sidebar: var(--color-sidebar);
   --color-text: var(--color-text);
 }
 

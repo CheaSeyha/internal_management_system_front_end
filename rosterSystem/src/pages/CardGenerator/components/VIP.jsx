@@ -5,12 +5,12 @@ import deliverycard from "../../../assets/CardTamplete/DELIVERY.png";
 import carcard from "../../../assets/CardTamplete/CAR.png";
 import carcard1 from "../../../assets/CardTamplete/CAR1.png";
 import { Trash } from "lucide-react";
-function VIP({ name, block, id, image, cardType }) {
+function VIP({ name, block, id, image, cardType, onRemove }) {
   return (
     <>
       <div className="container-card relative bg-black">
         <div className="absolute inset-0 z-50 flex items-center justify-center opacity-0 hover:opacity-100 transition-all delay-100 backdrop-blur-sm">
-          <button className="btn btn-error" onClick={()=>alert(name)}>
+          <button className="btn btn-error" onClick={() => onRemove(name)}>
             <Trash />
           </button>
         </div>

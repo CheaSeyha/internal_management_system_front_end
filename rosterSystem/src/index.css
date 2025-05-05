@@ -22,6 +22,7 @@ body{
   --color-background: hsl(0, 0%, 100%);
   --color-text: hsl(0, 0%, 0%);
   --color-sidebar: #ffffff;
+  --color-sidebarActive: #c7c7c7;
 }
 
 [data-theme="dark"] {
@@ -29,6 +30,7 @@ body{
   --color-background: #1D2427;
   --color-text: hsl(0, 0%, 100%);
   --color-sidebar: #2b353a;
+  --color-sidebarActive: #46565e;
 }
 
 /* theme.pcss */
@@ -40,6 +42,7 @@ body{
   --color-background: var(--color-background);
   --color-sidebar: var(--color-sidebar);
   --color-text: var(--color-text);
+  --color-sidebarActive: var(--color-sidebarActive);
 }
 
 .multi-border::before {

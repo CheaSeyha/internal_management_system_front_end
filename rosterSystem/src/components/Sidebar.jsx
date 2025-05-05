@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Home,
   Users,
@@ -11,35 +11,40 @@ import {
   FileText,
   Plus,
   UserCog,
-  FileSearch
-} from 'lucide-react';
-
+  FileSearch,
+} from "lucide-react";
+import { useLocation } from "react-router-dom";
 const Sidebar = ({ isOpenSidebar }) => {
   const [expandedMenus, setExpandedMenus] = useState({
     users: false,
     projects: false,
-    settings: false
+    settings: false,
   });
 
   const handleSummaryClick = (menu) => {
     setExpandedMenus((prev) => ({
       ...prev,
-      [menu]: !prev[menu]
+      [menu]: !prev[menu],
     }));
   };
+  const location = useLocation();
 
   return (
-    <div className={`bg-base-200 text-base-content absolute z-50 transition-all delay-100 ${isOpenSidebar ? "translate-x-0" : "translate-x-[-256px]"} w-64 h-screen`}>
+    <div
+      className={`bg-base-200 text-base-content absolute z-50 transition-all delay-100 ${
+        isOpenSidebar ? "translate-x-0" : "translate-x-[-256px]"
+      } w-64 h-screen shadow-2xs`}
+    >
       <ul className="menu p-4 w-full">
-        <li className='w-[100%]'>
-          <Link to="/" className="active">
+        <li className="w-[100%]">
+          <Link to="/" className={`active ${location.pathname === "/" ? "bg-sidebarActive" : ""}`}>
             <Home size={18} />
             Roster Form
           </Link>
         </li>
 
         <li>
-          <Link to="/CardGenerator">
+          <Link to="/CardGenerator" className={`active ${location.pathname === "/CardGenerator" ? "bg-sidebarActive" : ""}`}>
             <FileText size={18} />
             Card Generator
           </Link>
@@ -47,13 +52,21 @@ const Sidebar = ({ isOpenSidebar }) => {
 
         <li>
           <details>
-            <summary onClick={() => handleSummaryClick('users')}>
+            <summary onClick={() => handleSummaryClick("users")}>
               <Users size={18} />
               Users
             </summary>
             <ul>
-              <li><a><Plus size={16} /> Add User</a></li>
-              <li><a><UserCog size={16} /> Manage Users</a></li>
+              <li>
+                <a>
+                  <Plus size={16} /> Add User
+                </a>
+              </li>
+              <li>
+                <a>
+                  <UserCog size={16} /> Manage Users
+                </a>
+              </li>
             </ul>
           </details>
         </li>
@@ -67,14 +80,20 @@ const Sidebar = ({ isOpenSidebar }) => {
 
         <li>
           <details>
-            <summary onClick={() => handleSummaryClick('settings')}>
+            <summary onClick={() => handleSummaryClick("settings")}>
               <Settings size={18} />
               Settings
             </summary>
-            <ul className='transition-all delay-75'>
-              <li><a>Account Settings</a></li>
-              <li><a>Privacy</a></li>
-              <li><a>Notifications</a></li>
+            <ul className="transition-all delay-75">
+              <li>
+                <a>Account Settings</a>
+              </li>
+              <li>
+                <a>Privacy</a>
+              </li>
+              <li>
+                <a>Notifications</a>
+              </li>
             </ul>
           </details>
         </li>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback,useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Cropper from "react-easy-crop";
 import { getCroppedImg } from "../../utils/cropImage";
 import VIP from "./components/VIP";
@@ -29,6 +29,13 @@ export default function CardGenerator() {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setCurrentEntry((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Function to remove entry by name
+  const removeEntryByName = (nameToRemove) => {
+    setEntries((prevEntries) =>
+      prevEntries.filter((entry) => entry.name !== nameToRemove)
+    );
   };
 
   const handleImageFile = (file) => {
@@ -355,14 +362,18 @@ export default function CardGenerator() {
           </button>
         </div>
 
-        <div className="grid grid-cols-2 place-items-center w-fit gap-3 p-5" ref={contentRef}> 
-
+        <div
+          className="grid grid-cols-2 place-items-center w-fit gap-3 p-5"
+          ref={contentRef}
+        >
           {entries.map((entry, index) => (
             <div
               key={index}
               className={entry.cardType === "Car Card" ? "col-span-2" : ""}
             >
               <VIP
+                key={entry.name}
+                onRemove={removeEntryByName}
                 block={entry.block}
                 cardType={entry.cardType}
                 id={entry.id}
@@ -372,8 +383,6 @@ export default function CardGenerator() {
             </div>
           ))}
         </div>
-
-        
       </div>
     </div>
   );

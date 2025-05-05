@@ -3,7 +3,8 @@ import Cropper from "react-easy-crop";
 import { getCroppedImg } from "../../utils/cropImage";
 import VIP from "./components/VIP";
 import { useReactToPrint } from "react-to-print";
-
+import { toPng, toJpeg } from "html-to-image";
+import { ImageDown, Printer } from "lucide-react";
 export default function CardGenerator() {
   const contentRef = useRef(null);
   const reactToPrintFn = useReactToPrint({ contentRef });
@@ -25,6 +26,31 @@ export default function CardGenerator() {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+
+  // Function to save a single card as image
+  const saveCardAsImage = async (index) => {
+    const element = document.getElementById(`card-${index}`);
+    if (!element) return;
+
+    try {
+      const dataUrl = await toPng(element);
+      const link = document.createElement("a");
+      link.download = `${entries[index].name || `card-${index}`}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (error) {
+      console.error("Error saving image:", error);
+    }
+  };
+
+  // Function to save all cards
+  const saveAllCardsAsImages = async () => {
+    for (let i = 0; i < entries.length; i++) {
+      await saveCardAsImage(i);
+      // Small delay between saves to avoid issues
+      await new Promise((resolve) => setTimeout(resolve, 300));
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -350,40 +376,47 @@ export default function CardGenerator() {
           </div>
         </div>
       </form>
-
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h3 className="text-xl font-semibold">All Cards</h3>
-          <button
-            onClick={reactToPrintFn}
-            className="btn btn-primary print:hidden"
-          >
-            Print All Cards
-          </button>
-        </div>
-
-        <div
-          className="grid grid-cols-2 place-items-center w-fit gap-3 p-5"
-          ref={contentRef}
-        >
-          {entries.map((entry, index) => (
-            <div
-              key={index}
-              className={entry.cardType === "Car Card" ? "col-span-2" : ""}
-            >
-              <VIP
-                key={entry.name}
-                onRemove={removeEntryByName}
-                block={entry.block}
-                cardType={entry.cardType}
-                id={entry.id}
-                image={entry.imagePreviewUrl}
-                name={entry.name}
-              />
+      {entries.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="text-xl font-semibold">All Cards</h3>
+            <div className="btn-container space-x-2">
+              <button
+                onClick={saveAllCardsAsImages}
+                className="btn bg-[#6dbb06]"
+              >
+                <ImageDown size={18} /> Export As Image
+              </button>
+              <button onClick={reactToPrintFn} className="btn bg-[#2dc1fc]">
+                <Printer size={18} /> Print All Cards
+              </button>
             </div>
-          ))}
+          </div>
+
+          <div
+            className="grid grid-cols-2 place-items-center w-full gap-3 p-5"
+            ref={contentRef}
+          >
+            {entries.map((entry, index) => (
+              <div
+                key={index}
+                className={entry.cardType === "Car Card" ? "col-span-2" : ""}
+                id={`card-${index}`}
+              >
+                <VIP
+                  key={entry.name}
+                  onRemove={removeEntryByName}
+                  block={entry.block}
+                  cardType={entry.cardType}
+                  id={entry.id}
+                  image={entry.imagePreviewUrl}
+                  name={entry.name}
+                />
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

@@ -9,9 +9,9 @@ function VIP({ name, block, id, image, cardType, onRemove }) {
   return (
     <>
       <div className="container-card relative bg-black">
-        <div className="absolute inset-0 z-50 flex items-center justify-center opacity-0 hover:opacity-100 transition-all delay-100 backdrop-blur-sm">
-          <button className="btn btn-error" onClick={() => onRemove(name)}>
-            <Trash />
+        <div className="absolute inset-0 z-50 flex items-center justify-center opacity-0 hover:opacity-100 transition-all delay-100 backdrop-blur-sm bg-[#05050596]">
+          <button className="btn bg-red-500 border-none" onClick={() => onRemove(name)}>
+            <Trash color="white"/>
           </button>
         </div>
         {/* Delivery Card */}

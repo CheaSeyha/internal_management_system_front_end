@@ -60,20 +60,3 @@ body{
   }
 }
 
-@media print {
-  body * {
-    visibility: hidden;
-  }
-  .print\:block, .print\:block * {
-    visibility: visible;
-  }
-  .print\:block {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-  }
-  .non-print {
-    display: none;
-  }
-}

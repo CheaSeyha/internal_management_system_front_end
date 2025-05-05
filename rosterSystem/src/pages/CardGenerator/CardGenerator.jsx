@@ -1,9 +1,12 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback,useRef } from "react";
 import Cropper from "react-easy-crop";
 import { getCroppedImg } from "../../utils/cropImage";
 import VIP from "./components/VIP";
+import { useReactToPrint } from "react-to-print";
 
 export default function CardGenerator() {
+  const contentRef = useRef(null);
+  const reactToPrintFn = useReactToPrint({ contentRef });
   const [currentEntry, setCurrentEntry] = useState({
     name: "",
     block: "",
@@ -340,57 +343,38 @@ export default function CardGenerator() {
           </div>
         </div>
       </form>
-      {entries.length > 0 && (
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="text-xl font-semibold">All Cards</h3>
-            <button
-              onClick={() => window.print()}
-              className="btn btn-primary print:hidden"
-            >
-              Print All Cards
-            </button>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 non-print place-items-center">
-            {entries.map((entry, index) => (
-              <div
-                key={index}
-                className={entry.cardType === "Car Card" ? "md:col-span-2" : ""}
-              >
-                <VIP
-                  block={entry.block}
-                  cardType={entry.cardType}
-                  id={entry.id}
-                  image={entry.imagePreviewUrl}
-                  name={entry.name}
-                />
-              </div>
-            ))}
-          </div>
-
-          <div className="hidden print:block">
-            <div className="grid grid-cols-1 print:grid-cols-2 gap-4">
-              {entries.map((entry, index) => (
-                <div
-                  key={`print-${index}`}
-                  className={`break-inside-avoid ${
-                    entry.cardType === "Car Card" ? "print:col-span-2" : ""
-                  }`}
-                >
-                  <VIP
-                    block={entry.block}
-                    cardType={entry.cardType}
-                    id={entry.id}
-                    image={entry.imagePreviewUrl}
-                    name={entry.name}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h3 className="text-xl font-semibold">All Cards</h3>
+          <button
+            onClick={reactToPrintFn}
+            className="btn btn-primary print:hidden"
+          >
+            Print All Cards
+          </button>
         </div>
-      )}
+
+        <div className="grid grid-cols-2 place-items-center w-fit gap-3 p-5" ref={contentRef}> 
+
+          {entries.map((entry, index) => (
+            <div
+              key={index}
+              className={entry.cardType === "Car Card" ? "col-span-2" : ""}
+            >
+              <VIP
+                block={entry.block}
+                cardType={entry.cardType}
+                id={entry.id}
+                image={entry.imagePreviewUrl}
+                name={entry.name}
+              />
+            </div>
+          ))}
+        </div>
+
+        
+      </div>
     </div>
   );
 }

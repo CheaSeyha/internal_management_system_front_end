@@ -383,11 +383,11 @@ export default function CardGenerator() {
             <div className="btn-container space-x-2">
               <button
                 onClick={saveAllCardsAsImages}
-                className="btn bg-[#6dbb06]"
+                className="btn bg-[#6dbb06] text-white"
               >
                 <ImageDown size={18} /> Export As Image
               </button>
-              <button onClick={reactToPrintFn} className="btn bg-[#2dc1fc]">
+              <button onClick={reactToPrintFn} className="btn bg-[#2dc1fc] text-white">
                 <Printer size={18} /> Print All Cards
               </button>
             </div>
@@ -400,7 +400,7 @@ export default function CardGenerator() {
             {entries.map((entry, index) => (
               <div
                 key={index}
-                className={entry.cardType === "Car Card" ? "col-span-2" : ""}
+                className={entry.cardType === "Car Card" ? "col-span-2 mt-6" : ""}
                 id={`card-${index}`}
               >
                 <VIP

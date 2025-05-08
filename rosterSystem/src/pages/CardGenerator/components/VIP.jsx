@@ -6,21 +6,46 @@ import carcard from "../../../assets/CardTamplete/CAR.png";
 import carcard1 from "../../../assets/CardTamplete/CAR1.png";
 import { Trash } from "lucide-react";
 function VIP({ name, block, id, image, cardType, onRemove }) {
+  const getFontSizeClassStaff = (fontLength) => {
+    if (fontLength >= 23) return "text-[10px] top-[2.36cm]"; // 12px
+    if (fontLength >= 20) return "text-[13px] top-[2.26cm]"; // 14px
+    if (fontLength >= 18) return "text-[14px] top-[2.25cm]"; // 16px
+    return "text-[18px] top-[2.14cm]"; // 18px
+  };
+  const getFontSizeClassDelivery = (fontLength) => {
+    if (fontLength >= 23) return "text-[10px] top-[2.38cm]"; // 12px
+    if (fontLength >= 20) return "text-[13px] top-[2.29cm]"; // 14px
+    if (fontLength >= 18) return "text-[14px] top-[2.28cm]"; // 16px
+    return "text-[18px] top-[2.15cm]"; // 18px
+  };
+  const getFontSizeClassVIP = (fontLength) => {
+    if (fontLength >= 23) return "text-[11px] top-[2.3cm]"; // 12px
+    if (fontLength >= 20) return "text-[13px] top-[2.26cm]"; // 14px
+    if (fontLength >= 18) return "text-[14px] top-[2.21cm]"; // 16px
+    return "text-[18px] top-[2.11cm]"; // 18px
+  };
   return (
     <>
-      <div className="container-card relative bg-black">
-        <div className="absolute inset-0 z-50 flex items-center justify-center opacity-0 hover:opacity-100 transition-all delay-100 backdrop-blur-sm bg-[#05050596]">
-          <button className="btn bg-red-500 border-none" onClick={() => onRemove(name)}>
-            <Trash color="white"/>
+      <div className="container-card relative">
+        <div className="absolute rounded-2xl inset-0 z-2 flex items-center justify-center opacity-0 hover:opacity-100 transition-all delay-100 backdrop-blur-sm bg-[#05050596]">
+          <button
+            className="btn bg-red-500 border-none"
+            onClick={() => onRemove(name)}
+          >
+            <Trash color="white" />
           </button>
         </div>
         {/* Delivery Card */}
         {cardType === "Delivery" && (
-          <main className="deliverycard relative font-cardFont2 w-[9cm] h-[6cm] text-black bg-white">
+          <main className="deliverycard relative font-cardFont2 w-[9cm] h-[6cm] text-black">
             <div className="image-profile w-[2.5cm] border-[1.5px] border-blue-500 h-[3cm] absolute top-[2cm] left-[0.5cm]">
               <img src={image} className="w-full h-full object-cover" alt="" />
             </div>
-            <p className="forName absolute text-[18px] top-[2.16cm] left-[5.14cm] uppercase">
+            <p
+              className={`forName absolute ${getFontSizeClassDelivery(
+                name.length
+              )} left-[5.21cm]`}
+            >
               {name}
             </p>
             <p className="forBlock absolute text-[18px] top-[3.26cm] left-[5.14cm]">
@@ -37,11 +62,15 @@ function VIP({ name, block, id, image, cardType, onRemove }) {
 
         {/* Staff Card */}
         {cardType === "Staff" && (
-          <main className="relative font-cardFont2 w-[9cm] h-[6cm] text-black bg-white">
+          <main className="relative font-cardFont2 w-[9cm] h-[6cm] text-black">
             <div className="image-profile w-[2.5cm] border-[1.5px] border-yellow-300 h-[3cm] absolute top-[2cm] left-[0.5cm]">
               <img src={image} className="w-full h-full object-cover" alt="" />
             </div>
-            <p className="forName absolute text-[18px] top-[2.14cm] left-[5.21cm]">
+            <p
+              className={`forName absolute ${getFontSizeClass(
+                name.length
+              )} left-[5.21cm]`}
+            >
               {name}
             </p>
             <p className="staffcard forBlock absolute text-[18px] top-[3.26cm] left-[5.21cm]">
@@ -58,8 +87,12 @@ function VIP({ name, block, id, image, cardType, onRemove }) {
 
         {/* VIP Card */}
         {cardType === "VIP Card" && (
-          <main className="vipcard relative font-cardFont2 w-[9cm] h-[6cm] text-black bg-white">
-            <p className="forName absolute text-[18px] top-[2.11cm] left-[5.25cm]">
+          <main className="vipcard relative font-cardFont2 w-[9cm] h-[6cm] text-black">
+            <p
+              className={`forName absolute ${getFontSizeClassVIP(
+                name.length
+              )} left-[5.21cm]`}
+            >
               {name}
             </p>
             <p className="staffcard forBlock absolute text-[18px] top-[3.21cm] left-[5.25cm]">
@@ -76,7 +109,7 @@ function VIP({ name, block, id, image, cardType, onRemove }) {
 
         {/* Car Card */}
         {cardType === "Car Card" && (
-          <main className="carcard relative font-cardFont1 w-[20cm] h-[13.34cm] text-black bg-white">
+          <main className="carcard relative font-cardFont1 w-[20cm] h-[13.34cm] text-black">
             <p className="plat-number uppercase absolute text-[2.9cm] text-[#0d07fd] top-[6.57cm] left-[4.79cm] text-stroke">
               {name}
             </p>

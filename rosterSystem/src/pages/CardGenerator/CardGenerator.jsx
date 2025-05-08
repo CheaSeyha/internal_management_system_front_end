@@ -31,28 +31,28 @@ export default function CardGenerator() {
   const saveCardAsImage = async (index) => {
     const element = document.getElementById(`card-${index}`);
     if (!element) return;
-  
+
     try {
       // Get the actual dimensions of your card
       const width = element.offsetWidth;
       const height = element.offsetHeight;
-      
+
       // Scale up for better quality (2x or 3x)
       const scale = 2;
-      
+
       const dataUrl = await toPng(element, {
         width: width * scale,
         height: height * scale,
         style: {
           transform: `scale(${scale})`,
-          transformOrigin: 'top left',
+          transformOrigin: "top left",
           width: `${width}px`,
-          height: `${height}px`
+          height: `${height}px`,
         },
         quality: 1, // Maximum quality
-        pixelRatio: scale // Handle high DPI screens
+        pixelRatio: scale, // Handle high DPI screens
       });
-      
+
       const link = document.createElement("a");
       link.download = `${entries[index].name || `card-${index}`}.png`;
       link.href = dataUrl;
@@ -61,7 +61,7 @@ export default function CardGenerator() {
       console.error("Error saving image:", error);
     }
   };
-  
+
   // Function to save all cards with better quality
   const saveAllCardsAsImages = async () => {
     for (let i = 0; i < entries.length; i++) {
@@ -139,7 +139,7 @@ export default function CardGenerator() {
     const requiresImage = !["VIP Card", "Car Card"].includes(
       currentEntry.cardType
     );
-    if (!currentEntry.name || (requiresImage && !currentEntry.imageFile)) {
+    if (!currentEntry.name || (requiresImage && !currentEntry.imageFile || !currentEntry.name)) {
       return alert(
         requiresImage ? "Name and Image are required." : "Name is required."
       );
@@ -164,7 +164,7 @@ export default function CardGenerator() {
   return (
     <div className="max-w-4xl mx-auto p-4 space-y-6">
       {cropModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 overflow-auto">
           <div className="bg-base-200 p-4 rounded-lg shadow-xl w-full max-w-lg">
             <div className="relative h-80 bg-black">
               <div
@@ -333,9 +333,25 @@ export default function CardGenerator() {
           >
             <div className="form-control">
               <label className="label">
+                <span className="label-text">Card Type</span>
+              </label>
+              <select
+                name="cardType"
+                value={currentEntry.cardType}
+                onChange={handleInputChange}
+                className="select select-bordered w-full"
+              >
+                <option>Staff</option>
+                <option>Delivery</option>
+                <option>Car Card</option>
+                <option>VIP Card</option>
+              </select>
+            </div>
+            <div className="form-control">
+              <label className="label">
                 <span className="label-text">
                   {currentEntry.cardType === "Car Card"
-                    ? "Plat Number"
+                    ? "Plate Number"
                     : "Name"}
                 </span>
               </label>
@@ -373,22 +389,6 @@ export default function CardGenerator() {
                 className="input input-bordered w-full"
               />
             </div>
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">Card Type</span>
-              </label>
-              <select
-                name="cardType"
-                value={currentEntry.cardType}
-                onChange={handleInputChange}
-                className="select select-bordered w-full"
-              >
-                <option>Staff</option>
-                <option>Delivery</option>
-                <option>Car Card</option>
-                <option>VIP Card</option>
-              </select>
-            </div>
             <button type="submit" className="btn btn-primary w-full mt-4">
               Done
             </button>
@@ -406,7 +406,10 @@ export default function CardGenerator() {
               >
                 <ImageDown size={18} /> Export As Image
               </button>
-              <button onClick={reactToPrintFn} className="btn bg-[#2dc1fc] text-white">
+              <button
+                onClick={reactToPrintFn}
+                className="btn bg-[#2dc1fc] text-white"
+              >
                 <Printer size={18} /> Print All Cards
               </button>
             </div>
@@ -419,7 +422,9 @@ export default function CardGenerator() {
             {entries.map((entry, index) => (
               <div
                 key={index}
-                className={entry.cardType === "Car Card" ? "col-span-2 mt-6" : ""}
+                className={
+                  entry.cardType === "Car Card" ? "col-span-2 mt-6" : ""
+                }
                 id={`card-${index}`}
               >
                 <VIP

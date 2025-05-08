@@ -6,7 +6,7 @@ import carcard from "../../../assets/CardTamplete/CAR.png";
 import carcard1 from "../../../assets/CardTamplete/CAR1.png";
 import { Trash } from "lucide-react";
 function VIP({ name, block, id, image, cardType, onRemove }) {
-  const getFontSizeClassStaff = (fontLength) => {
+  const getFontSizeStaff = (fontLength) => {
     if (fontLength >= 23) return "text-[10px] top-[2.36cm]"; // 12px
     if (fontLength >= 20) return "text-[13px] top-[2.26cm]"; // 14px
     if (fontLength >= 18) return "text-[14px] top-[2.25cm]"; // 16px
@@ -67,7 +67,7 @@ function VIP({ name, block, id, image, cardType, onRemove }) {
               <img src={image} className="w-full h-full object-cover" alt="" />
             </div>
             <p
-              className={`forName absolute ${getFontSizeClass(
+              className={`forName absolute ${getFontSizeStaff(
                 name.length
               )} left-[5.21cm]`}
             >

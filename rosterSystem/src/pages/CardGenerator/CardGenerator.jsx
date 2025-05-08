@@ -31,9 +31,28 @@ export default function CardGenerator() {
   const saveCardAsImage = async (index) => {
     const element = document.getElementById(`card-${index}`);
     if (!element) return;
-
+  
     try {
-      const dataUrl = await toPng(element);
+      // Get the actual dimensions of your card
+      const width = element.offsetWidth;
+      const height = element.offsetHeight;
+      
+      // Scale up for better quality (2x or 3x)
+      const scale = 2;
+      
+      const dataUrl = await toPng(element, {
+        width: width * scale,
+        height: height * scale,
+        style: {
+          transform: `scale(${scale})`,
+          transformOrigin: 'top left',
+          width: `${width}px`,
+          height: `${height}px`
+        },
+        quality: 1, // Maximum quality
+        pixelRatio: scale // Handle high DPI screens
+      });
+      
       const link = document.createElement("a");
       link.download = `${entries[index].name || `card-${index}`}.png`;
       link.href = dataUrl;
@@ -42,8 +61,8 @@ export default function CardGenerator() {
       console.error("Error saving image:", error);
     }
   };
-
-  // Function to save all cards
+  
+  // Function to save all cards with better quality
   const saveAllCardsAsImages = async () => {
     for (let i = 0; i < entries.length; i++) {
       await saveCardAsImage(i);

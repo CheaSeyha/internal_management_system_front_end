@@ -1,10 +1,12 @@
 import React, { useEffect } from "react";
 import roster_data from "../../../data/roster_data.json";
+
 function RosterTable() {
   function getCurrentMonthDays() {
     const date = new Date();
     const currentYear = date.getFullYear();
     const currentMonth = date.getMonth();
+    const currentDay = date.getDate(); // Get current day of the month
 
     // Get the number of days in the current month
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
@@ -16,10 +18,14 @@ function RosterTable() {
     for (let day = 1; day <= daysInMonth; day++) {
       const currentDate = new Date(currentYear, currentMonth, day);
       const dayIndex = currentDate.getDay(); // 0 (Sun) to 6 (Sat)
-      days.push({ day_name: dayNames[dayIndex] });
+      days.push({ 
+        day_name: dayNames[dayIndex],
+        day_number: day,
+        is_current: day === currentDay // Add flag for current day
+      });
     }
 
-    return { days };
+    return { days, currentDay };
   }
 
   // Example usage:
@@ -64,8 +70,8 @@ function RosterTable() {
               {currentMonthDays.days.map((data, index) => (
                 <th
                   key={index}
-                  className={`border ${
-                    data.day_name == "Sun" ? "bg-red-600" : ""
+                  className={`border ${data.day_name == "Sun" ? "bg-red-600" : ""} ${
+                    data.is_current ? "bg-gray-600 text-white" : ""
                   }`}
                 >
                   {data.day_name}
@@ -74,7 +80,7 @@ function RosterTable() {
                 </th>
               ))}
               <th className="border bg-red-600">OFF</th>
-              <th className="border ">Balance</th>
+              <th className="border">Balance</th>
               <th className="border bg-[#919191]">UPL</th>
             </tr>
           </thead>

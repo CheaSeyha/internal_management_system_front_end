@@ -4,7 +4,12 @@ import { getCroppedImg } from "../../utils/cropImage";
 import VIP from "./components/VIP";
 import { useReactToPrint } from "react-to-print";
 import { toPng, toJpeg } from "html-to-image";
-import { ImageDown, Printer } from "lucide-react";
+import {
+  ImageDown,
+  Printer,
+  ChevronsRightLeft,
+  ChevronsLeftRight,
+} from "lucide-react";
 export default function CardGenerator() {
   const contentRef = useRef(null);
   const reactToPrintFn = useReactToPrint({ contentRef });
@@ -27,6 +32,12 @@ export default function CardGenerator() {
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
 
+  const [noSpace, setNoSpace] = useState(true);
+
+  const setNoSpaceCard = () => {
+    setNoSpace((prevNoSpace) => !prevNoSpace);
+    console.log(!noSpace);
+  };
   // Function to save a single card as image
   const saveCardAsImage = async (index) => {
     const element = document.getElementById(`card-${index}`);
@@ -139,7 +150,11 @@ export default function CardGenerator() {
     const requiresImage = !["VIP Card", "Car Card"].includes(
       currentEntry.cardType
     );
-    if (!currentEntry.name || (requiresImage && !currentEntry.imageFile || !currentEntry.name)) {
+    if (
+      !currentEntry.name ||
+      (requiresImage && !currentEntry.imageFile) ||
+      !currentEntry.name
+    ) {
       return alert(
         requiresImage ? "Name and Image are required." : "Name is required."
       );
@@ -400,6 +415,25 @@ export default function CardGenerator() {
           <div className="flex justify-between items-center">
             <h3 className="text-xl font-semibold">All Cards</h3>
             <div className="btn-container space-x-2">
+              <label className="swap bg-accent w-[40px] h-[40px] rounded-full active:scale-105">
+                {/* Hidden checkbox controlled by noSpace state */}
+                <input
+                  type="checkbox"
+                  checked={noSpace}
+                  onChange={setNoSpaceCard}
+                />
+
+                {/* Icon when noSpace is true (checked) */}
+                <div className="swap-on">
+                  <ChevronsLeftRight />
+                </div>
+
+                {/* Icon when noSpace is false (unchecked) */}
+                <div className="swap-off">
+                  
+                  <ChevronsRightLeft />
+                </div>
+              </label>
               <button
                 onClick={saveAllCardsAsImages}
                 className="btn bg-[#6dbb06] text-white"
@@ -416,14 +450,18 @@ export default function CardGenerator() {
           </div>
 
           <div
-            className="grid grid-cols-2 place-items-center w-full gap-3 p-5"
+            className={`flex flex-wrap justify-center ${
+              noSpace ? "" : "gap-5"
+            } p-5 w-full`}
             ref={contentRef}
           >
             {entries.map((entry, index) => (
               <div
                 key={index}
                 className={
-                  entry.cardType === "Car Card" ? "col-span-2 mt-6" : ""
+                  entry.cardType === "Car Card"
+                    ? "w-fullflex justify-center border rounded-2xl p-5" // Full width for car cards
+                    : "w-auto" // Auto width for others (or specify a fixed width)
                 }
                 id={`card-${index}`}
               >

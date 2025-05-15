@@ -9,6 +9,7 @@ import {
   Printer,
   ChevronsRightLeft,
   ChevronsLeftRight,
+  BrushCleaning 
 } from "lucide-react";
 export default function CardGenerator() {
   const contentRef = useRef(null);
@@ -374,7 +375,7 @@ export default function CardGenerator() {
                 name="name"
                 value={currentEntry.name}
                 onChange={handleInputChange}
-                className="input input-bordered w-full"
+                className="input input-bordered w-full uppercase"
                 required
               />
             </div>
@@ -386,7 +387,7 @@ export default function CardGenerator() {
                 name="block"
                 value={currentEntry.block}
                 onChange={handleInputChange}
-                className="input input-bordered w-full"
+                className="input input-bordered w-full uppercase"
               />
             </div>
             <div
@@ -430,10 +431,10 @@ export default function CardGenerator() {
 
                 {/* Icon when noSpace is false (unchecked) */}
                 <div className="swap-off">
-                  
                   <ChevronsRightLeft />
                 </div>
               </label>
+              <button className="btn bg-[#853ef8] text-white"> Clear</button>
               <button
                 onClick={saveAllCardsAsImages}
                 className="btn bg-[#6dbb06] text-white"
@@ -448,7 +449,6 @@ export default function CardGenerator() {
               </button>
             </div>
           </div>
-
           <div
             className={`flex flex-wrap justify-center ${
               noSpace ? "" : "gap-5"

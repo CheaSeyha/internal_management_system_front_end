@@ -101,7 +101,7 @@ function VIP({ name, block, id, image, cardType, onRemove }) {
             <div className="image-tamplete w-full h-full">
               <img src={staffcard} alt="" />
             </div>
-          </main>
+          </main> 
         )}
 
         {/* VIP Card */}

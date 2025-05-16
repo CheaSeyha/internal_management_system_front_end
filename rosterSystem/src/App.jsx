@@ -2,11 +2,14 @@ import React, { useState } from "react";
 import Navbar from "./components/Navbar";
 import RosterForm from "./pages/RosterForm/RosterForm";
 import CardGenerator from "./pages/CardGenerator/CardGenerator";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom"; // Add useLocation import
 import Sidebar from "./components/Sidebar";
-function App() {
+import { AnimatePresence } from "framer-motion";
+import AnimatedPage from "./framerComponent/AnimatedPage";
 
-  const [isOpenSidebar,setOpenSideBar] = useState(false);
+function App() {
+  const [isOpenSidebar, setOpenSideBar] = useState(false);
+  const location = useLocation(); // Add this line
 
   const openSidebar = () => {
     setOpenSideBar(!isOpenSidebar);
@@ -15,15 +18,28 @@ function App() {
   return (
     <>
       <main className="relative">
-        <Navbar 
-          openSideBar={openSidebar}
-        />
-        <Sidebar isOpenSidebar={isOpenSidebar}/>
-        {/* <RosterForm/> */}
-        <Routes>
-          <Route path="/" element={<RosterForm />} />
-          <Route path="/CardGenerator" element={<CardGenerator />} />
-        </Routes>
+        <Navbar openSideBar={openSidebar} />
+        <Sidebar isOpenSidebar={isOpenSidebar} openSideBar={openSidebar}/>
+        <AnimatePresence mode="wait">
+          <Routes location={location} key={location.pathname}>
+            <Route
+              path="/"
+              element={
+                <AnimatedPage>
+                  <RosterForm />
+                </AnimatedPage>
+              }
+            />
+            <Route
+              path="/CardGenerator"
+              element={
+                <AnimatedPage>
+                  <CardGenerator />
+                </AnimatedPage>
+              }
+            />
+          </Routes>
+        </AnimatePresence>
       </main>
     </>
   );

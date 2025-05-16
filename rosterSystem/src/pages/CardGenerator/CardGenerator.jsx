@@ -9,7 +9,7 @@ import {
   Printer,
   ChevronsRightLeft,
   ChevronsLeftRight,
-  BrushCleaning 
+  CopyX
 } from "lucide-react";
 export default function CardGenerator() {
   const contentRef = useRef(null);
@@ -35,9 +35,13 @@ export default function CardGenerator() {
 
   const [noSpace, setNoSpace] = useState(true);
 
+  //clear all cards
+  const clearAllCards = () =>{
+   setEntries([])
+  }
+
   const setNoSpaceCard = () => {
     setNoSpace((prevNoSpace) => !prevNoSpace);
-    console.log(!noSpace);
   };
   // Function to save a single card as image
   const saveCardAsImage = async (index) => {
@@ -316,7 +320,7 @@ export default function CardGenerator() {
         onSubmit={handleSubmit}
         className="bg-base-200 rounded-xl p-6 shadow-lg"
       >
-        <h2 className="text-2xl font-bold mb-4 text-center">Add New Entry</h2>
+        <h2 className="text-2xl font-bold mb-4 text-center">Card Generator</h2>
         <div className="flex flex-col md:flex-row gap-6">
           {/* Show Image  */}
           {currentEntry.cardType !== "VIP Card" &&
@@ -413,42 +417,45 @@ export default function CardGenerator() {
       </form>
       {entries.length > 0 && (
         <div className="space-y-4">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center bg-gray-800 p-5 rounded-lg">
             <h3 className="text-xl font-semibold">All Cards</h3>
             <div className="btn-container space-x-2">
               <label className="swap bg-accent w-[40px] h-[40px] rounded-full active:scale-105">
                 {/* Hidden checkbox controlled by noSpace state */}
                 <input
+                  id="nospcace"
                   type="checkbox"
                   checked={noSpace}
                   onChange={setNoSpaceCard}
                 />
 
                 {/* Icon when noSpace is true (checked) */}
-                <div className="swap-on">
-                  <ChevronsLeftRight />
+                <div className="swap-on text-white">
+                  <ChevronsLeftRight /> 
                 </div>
 
                 {/* Icon when noSpace is false (unchecked) */}
-                <div className="swap-off">
+                <div className="swap-off text-white">
                   <ChevronsRightLeft />
                 </div>
               </label>
-              <button className="btn bg-[#853ef8] text-white"> Clear</button>
+              <button onClick={clearAllCards} id="nospace" className="btn bg-[#853ef8] text-white"><CopyX size={18}/> Clear</button>
               <button
                 onClick={saveAllCardsAsImages}
                 className="btn bg-[#6dbb06] text-white"
               >
-                <ImageDown size={18} /> Export As Image
+                <ImageDown size={18} /> Export
               </button>
               <button
                 onClick={reactToPrintFn}
                 className="btn bg-[#2dc1fc] text-white"
               >
-                <Printer size={18} /> Print All Cards
+                <Printer size={18} /> Print
               </button>
             </div>
           </div>
+
+          {/* Preview and print the card layout  */}
           <div
             className={`flex flex-wrap justify-center ${
               noSpace ? "" : "gap-5"

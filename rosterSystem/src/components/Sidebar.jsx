@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Home,
@@ -14,7 +14,9 @@ import {
   FileSearch,
 } from "lucide-react";
 import { useLocation } from "react-router-dom";
-const Sidebar = ({ isOpenSidebar }) => {
+import { motion, AnimatePresence } from "framer-motion";
+
+const Sidebar = ({ isOpenSidebar, openSideBar }) => {
   const [expandedMenus, setExpandedMenus] = useState({
     users: false,
     projects: false,
@@ -27,58 +29,93 @@ const Sidebar = ({ isOpenSidebar }) => {
       [menu]: !prev[menu],
     }));
   };
+
   const location = useLocation();
 
+  // Animation variants for the sidebar
+  const sidebarVariants = {
+    open: {
+      x: 0,
+      transition: {
+        type: "spring",
+        damping: 25,
+        stiffness: 300,
+      },
+    },
+    closed: {
+      x: -256,
+      transition: {
+        type: "spring",
+        damping: 25,
+        stiffness: 300,
+        delay: 0.15, // Slight delay when closing
+      },
+    },
+  };
+
+  // Animation variants for menu items
+  const menuItemVariants = {
+    open: {
+      opacity: 1,
+      y: 0,
+      transition: { type: "spring", stiffness: 300, damping: 24 },
+    },
+    closed: {
+      opacity: 0,
+      y: 20,
+      transition: { duration: 0.2 },
+    },
+  };
+
+
+  const subMenuItemVariants = {
+    open: {
+      opacity: 1,
+      y: 10,
+      transition: { type: "spring", stiffness: 300, damping: 24 },
+    },
+    closed: {
+      opacity: 0,
+      y: 10,
+      transition: { duration: 0.2 },
+    },
+  };
+
   return (
-    <div
-      className={`bg-base-200 text-base-content absolute z-50 transition-all delay-100 ${
-        isOpenSidebar ? "translate-x-0" : "translate-x-[-256px]"
-      } w-64 h-screen shadow-2xs`}
+    <motion.div
+      className="bg-base-200 text-base-content absolute z-50 w-64 h-screen shadow-2xs"
+      initial="closed"
+      animate={isOpenSidebar ? "open" : "closed"}
+      variants={sidebarVariants}
     >
-      <ul className="menu p-4 w-full">
-        <li className="w-[100%]">
-          <Link to="/" className={`active ${location.pathname === "/" ? "bg-sidebarActive" : ""}`}>
+      <motion.ul className="menu p-4 w-full">
+        <motion.li variants={menuItemVariants} className="w-[100%]">
+          <Link
+            onClick={openSideBar}
+            to="/"
+            className={`active ${
+              location.pathname === "/" ? "bg-sidebarActive" : ""
+            }`}
+          >
             <Home size={18} />
             Roster Form
           </Link>
-        </li>
+        </motion.li>
 
-        <li>
-          <Link to="/CardGenerator" className={`active ${location.pathname === "/CardGenerator" ? "bg-sidebarActive" : ""}`}>
+        <motion.li variants={menuItemVariants}>
+          <Link
+            onClick={openSideBar}
+            to="/CardGenerator"
+            className={`active ${
+              location.pathname === "/CardGenerator" ? "bg-sidebarActive" : ""
+            }`}
+          >
             <FileText size={18} />
             Card Generator
           </Link>
-        </li>
+        </motion.li>
 
-        <li>
-          <details>
-            <summary onClick={() => handleSummaryClick("users")}>
-              <Users size={18} />
-              Users
-            </summary>
-            <ul>
-              <li>
-                <a>
-                  <Plus size={16} /> Add User
-                </a>
-              </li>
-              <li>
-                <a>
-                  <UserCog size={16} /> Manage Users
-                </a>
-              </li>
-            </ul>
-          </details>
-        </li>
-
-        <li>
-          <a>
-            <Calendar size={18} />
-            Calendar
-          </a>
-        </li>
-
-        <li>
+        <motion.li variants={menuItemVariants}>
           <details>
             <summary onClick={() => handleSummaryClick("settings")}>
               <Settings size={18} />
@@ -96,9 +133,9 @@ const Sidebar = ({ isOpenSidebar }) => {
               </li>
             </ul>
           </details>
-        </li>
-      </ul>
-    </div>
+        </motion.li>
+      </motion.ul>
+    </motion.div>
   );
 };
 

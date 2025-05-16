@@ -103,7 +103,7 @@ function RosterTable() {
                 {data.shift.map((shift, j) => (
                   <td
                     key={j}
-                    className={`border border-black px-1 text-white ${getShiftColor(
+                    className={`border border-black px-1 ${shift === 7 ? "text-white" : "text-black"} ${getShiftColor(
                       shift
                     )}`}
                   >

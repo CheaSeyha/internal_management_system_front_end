@@ -142,7 +142,7 @@ function VIP({ name, block, id, image, cardType, onRemove }) {
               {name}
             </p>
 
-            <p className="staffcard forBlock absolute text-[13px] text-blue-400 top-[12.46cm] left-[15.25cm]">
+            <p className="staffcard uppercase forBlock absolute text-[13px] text-blue-400 top-[12.46cm] left-[15.25cm]">
               {block}
             </p>
             <div className="image-tamplete w-full h-full">

@@ -9,7 +9,7 @@ import {
   Printer,
   ChevronsRightLeft,
   ChevronsLeftRight,
-  CopyX
+  CopyX,
 } from "lucide-react";
 export default function CardGenerator() {
   const contentRef = useRef(null);
@@ -36,9 +36,9 @@ export default function CardGenerator() {
   const [noSpace, setNoSpace] = useState(true);
 
   //clear all cards
-  const clearAllCards = () =>{
-   setEntries([])
-  }
+  const clearAllCards = () => {
+    setEntries([]);
+  };
 
   const setNoSpaceCard = () => {
     setNoSpace((prevNoSpace) => !prevNoSpace);
@@ -352,10 +352,11 @@ export default function CardGenerator() {
             }`}
           >
             <div className="form-control">
-              <label className="label">
+              <label htmlFor="cardtype" className="label">
                 <span className="label-text">Card Type</span>
               </label>
               <select
+                id="cardtype"
                 name="cardType"
                 value={currentEntry.cardType}
                 onChange={handleInputChange}
@@ -368,7 +369,7 @@ export default function CardGenerator() {
               </select>
             </div>
             <div className="form-control">
-              <label className="label">
+              <label htmlFor="name" className="label">
                 <span className="label-text">
                   {currentEntry.cardType === "Car Card"
                     ? "Plate Number"
@@ -376,7 +377,9 @@ export default function CardGenerator() {
                 </span>
               </label>
               <input
+                autoComplete="username"
                 name="name"
+                id="name"
                 value={currentEntry.name}
                 onChange={handleInputChange}
                 className="input input-bordered w-full uppercase"
@@ -384,11 +387,12 @@ export default function CardGenerator() {
               />
             </div>
             <div className="form-control">
-              <label className="label">
+              <label htmlFor="block" className="label">
                 <span className="label-text">Block</span>
               </label>
               <input
                 name="block"
+                id="block"
                 value={currentEntry.block}
                 onChange={handleInputChange}
                 className="input input-bordered w-full uppercase"
@@ -399,11 +403,12 @@ export default function CardGenerator() {
                 currentEntry.cardType === "Car Card" ? "hidden" : "block"
               }`}
             >
-              <label className="label">
+              <label htmlFor="id" className="label">
                 <span className="label-text">ID</span>
               </label>
               <input
                 name="id"
+                id="id"
                 value={currentEntry.id}
                 onChange={handleInputChange}
                 className="input input-bordered w-full"
@@ -415,59 +420,68 @@ export default function CardGenerator() {
           </div>
         </div>
       </form>
-      {entries.length > 0 && (
-        <div className="space-y-4">
-          <div className="flex justify-between items-center bg-gray-800 p-5 rounded-lg">
-            <h3 className="text-xl font-semibold">All Cards</h3>
-            <div className="btn-container space-x-2">
-              <label className="swap bg-accent w-[40px] h-[40px] rounded-full active:scale-105">
-                {/* Hidden checkbox controlled by noSpace state */}
-                <input
-                  id="nospcace"
-                  type="checkbox"
-                  checked={noSpace}
-                  onChange={setNoSpaceCard}
-                />
+      {/* Preview card layout  */}
+      <div className="space-y-4">
+        <div className="flex justify-between items-center bg-sidebarActive p-5 rounded-lg">
+          <h3 className="text-xl font-semibold">All Cards</h3>
+          <div className="btn-container space-x-2">
+            <label className="swap bg-accent w-[40px] h-[40px] rounded-full active:scale-105">
+              {/* Hidden checkbox controlled by noSpace state */}
+              <input
+                id="nospcace"
+                type="checkbox"
+                checked={noSpace}
+                onChange={setNoSpaceCard}
+              />
 
-                {/* Icon when noSpace is true (checked) */}
-                <div className="swap-on text-white">
-                  <ChevronsLeftRight /> 
-                </div>
+              {/* Icon when noSpace is true (checked) */}
+              <div className="swap-on text-white">
+                <ChevronsLeftRight size={18} />
+              </div>
 
-                {/* Icon when noSpace is false (unchecked) */}
-                <div className="swap-off text-white">
-                  <ChevronsRightLeft />
-                </div>
-              </label>
-              <button onClick={clearAllCards} id="nospace" className="btn bg-[#853ef8] text-white"><CopyX size={18}/> Clear</button>
-              <button
-                onClick={saveAllCardsAsImages}
-                className="btn bg-[#6dbb06] text-white"
-              >
-                <ImageDown size={18} /> Export
-              </button>
-              <button
-                onClick={reactToPrintFn}
-                className="btn bg-[#2dc1fc] text-white"
-              >
-                <Printer size={18} /> Print
-              </button>
-            </div>
+              {/* Icon when noSpace is false (unchecked) */}
+              <div className="swap-off text-white">
+                <ChevronsRightLeft size={18} />
+              </div>
+            </label>
+            <button
+              onClick={clearAllCards}
+              id="nospace"
+              className="btn border-none bg-[#853ef8] text-white"
+            >
+              <CopyX size={18} /> Clear
+            </button>
+            <button
+            disabled={entries.length === 0}
+              onClick={saveAllCardsAsImages}
+              className="btn bg-[#6dbb06] text-white border-none"
+            >
+              <ImageDown size={18} /> Export
+            </button>
+            <button
+              disabled={entries.length === 0}
+              onClick={reactToPrintFn}
+              className="btn bg-[#2dc1fc] text-white border-none"
+            >
+              <Printer size={18} /> Print
+            </button>
           </div>
+        </div>
 
-          {/* Preview and print the card layout  */}
-          <div
-            className={`flex flex-wrap justify-center ${
-              noSpace ? "" : "gap-5"
-            } p-5 w-full`}
-            ref={contentRef}
-          >
-            {entries.map((entry, index) => (
+        {/* Preview and print the card layout  */}
+        <div
+          className={`flex flex-wrap justify-center ${
+            noSpace ? "" : "gap-5"
+          } p-5 w-full`}
+          ref={contentRef}
+        >
+          {entries.length > 0 &&
+            entries.map((entry, index) => (
               <div
                 key={index}
                 className={
                   entry.cardType === "Car Card"
-                    ? "w-fullflex justify-center border rounded-2xl p-5" // Full width for car cards
+                    ? "w-fullflex justify-center py-5" // Full width for car cards
                     : "w-auto" // Auto width for others (or specify a fixed width)
                 }
                 id={`card-${index}`}
@@ -483,9 +497,8 @@ export default function CardGenerator() {
                 />
               </div>
             ))}
-          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

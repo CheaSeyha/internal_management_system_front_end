@@ -44,6 +44,7 @@ const ThemeToggle = () => {
   return (
     <label className="swap swap-rotate">
       <input 
+      id='darkmode'
         type="checkbox" 
         onChange={handleToggle}
         checked={darkMode}

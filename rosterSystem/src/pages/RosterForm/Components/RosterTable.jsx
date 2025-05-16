@@ -18,10 +18,10 @@ function RosterTable() {
     for (let day = 1; day <= daysInMonth; day++) {
       const currentDate = new Date(currentYear, currentMonth, day);
       const dayIndex = currentDate.getDay(); // 0 (Sun) to 6 (Sat)
-      days.push({ 
+      days.push({
         day_name: dayNames[dayIndex],
         day_number: day,
-        is_current: day === currentDay // Add flag for current day
+        is_current: day === currentDay, // Add flag for current day
       });
     }
 
@@ -55,63 +55,64 @@ function RosterTable() {
   return (
     <>
       <div className="overflow-x-auto mt-5">
-        <table className="table bg-[#FEFF02] rounded-none text-center">
+        <table className="table-auto w-auto bg-[#FEFF02] rounded-none text-center">
           {/* head */}
-          <thead className="">
-            <tr className="border border-white text-[#353535]">
-              <th className="border w-fit">NO</th>
-              <th className="border">ID</th>
-              <th className="border sticky md:relative top-0 left-0 bg-[#FEFF02] outline xl:outline-none">
+          <thead>
+            <tr className="border border-white text-[#353535] whitespace-nowrap">
+              <th className="border px-2">NO</th>{" "}
+              {/* px-2 for minimal padding */}
+              <th className="border px-2">ID</th>
+              <th className="border px-2 outline outline-black sticky left-0 bg-[#FEFF02] z-10">
                 Name
               </th>
-              <th className="border">Department</th>
-              <th className="border">Position</th>
-              <th className="border">Sex</th>
+              <th className="border px-2">Department</th>
+              <th className="border px-2">Position</th>
+              <th className="border px-2">Sex</th>
               {currentMonthDays.days.map((data, index) => (
                 <th
                   key={index}
-                  className={`border ${data.day_name == "Sun" ? "bg-red-600" : ""} ${
-                    data.is_current ? "bg-gray-600 text-white" : ""
-                  }`}
+                  className={`border${
+                    data.day_name === "Sun" ? "bg-red-600" : ""
+                  } ${data.is_current ? "bg-gray-600 text-white" : ""}`}
                 >
-                  {data.day_name}
-                  <br />
-                  {index + 1}
+                  <div className="flex flex-col w-full">
+                    <span className="border-b w-full  px-2">{data.day_name}</span>
+                    <span>{index + 1}</span>
+                  </div>
                 </th>
               ))}
-              <th className="border bg-red-600">OFF</th>
-              <th className="border">Balance</th>
-              <th className="border bg-[#919191]">UPL</th>
+              <th className="border px-2 bg-red-600">OFF</th>
+              <th className="border px-2">Balance</th>
+              <th className="border px-2 bg-[#919191]">UPL</th>
             </tr>
           </thead>
-          <tbody className="text-white ">
-            {/* row 1 */}
+          <tbody className="text-white">
             {roster_data.staff_data.map((data, index) => (
               <tr
                 key={data.id}
-                className="border border-black bg-[#ffffff] text-black"
+                className="border border-black bg-white text-black whitespace-nowrap h-[40px]"
               >
-                <th className="border border-black">{index + 1}</th>
-                <td className="border border-black">{data.id}</td>
-                <td className="border sticky md:relative top-0 left-0 bg-[#ffffff] outline outline-black xl:outline-none">
+                <td className="border border-black px-2">{index + 1}</td>
+                <td className="border border-black px-2">{data.id}</td>
+                <td className="border border-black outline outline-black px-2 sticky left-0 bg-white z-10">
                   {data.staff_name}
                 </td>
-                <td className="border border-black">{data.department}</td>
-                <td className="border border-black">{data.position}</td>
-                <td className="border border-black">{data.sex}</td>
+                <td className="border border-black px-2">{data.department}</td>
+                <td className="border border-black px-2">{data.position}</td>
+                <td className="border border-black px-2">{data.sex}</td>
                 {data.shift.map((shift, j) => (
                   <td
                     key={j}
-                    className={`border border-black text-white ${getShiftColor(
+                    className={`border border-black px-1 text-white ${getShiftColor(
                       shift
                     )}`}
                   >
                     {shift}
                   </td>
                 ))}
-                <td className="border border-black">{data.off}</td>
-                <td className="border border-black">{data.balace}</td>
-                <td className="border border-black">{data.upl}</td>
+                <td className="border border-black px-2">{data.off}</td>
+                <td className="border border-black px-2">{data.balace}</td>
+                <td className="border border-black px-2">{data.upl}</td>
               </tr>
             ))}
           </tbody>

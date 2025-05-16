@@ -52,7 +52,7 @@ function ControlButton() {
           <legend className="fieldset-legend">Departments</legend>
           <select
             defaultValue="Show Departmens "
-            className="select bg-[#2F82FF]"
+            className="select bg-[#2F82FF] w-full"
           >
             <option>Show All</option>
             <option>IT</option>
@@ -67,7 +67,7 @@ function ControlButton() {
           <legend className="fieldset-legend">Edit Roster</legend>
           <select
             defaultValue="Edit Roster"
-            className="select border-none bg-[#099740]"
+            className="select border-none w-full bg-[#099740]"
             onChange={handleRosterSelectChange}
           >
             <option>Select Type</option>

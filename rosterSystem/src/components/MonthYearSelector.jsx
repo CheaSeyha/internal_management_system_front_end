@@ -47,7 +47,7 @@ export default function MonthYearSelector() {
       <button
         ref={buttonRef}
         onClick={() => setShowPicker(!showPicker)}
-        className="input input-border px-4 py-2 rounded mb-1 flex items-center gap-2 shrink-0 text-text"
+        className="input input-border px-4 py-2 rounded mb-1 flex items-center gap-2 shrink-0 text-text w-full"
       >
         <CalendarDays size={20} />
         {months[selectedDate.getMonth()]} {selectedDate.getFullYear()}

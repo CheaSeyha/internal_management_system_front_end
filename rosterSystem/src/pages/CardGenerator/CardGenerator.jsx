@@ -452,7 +452,7 @@ export default function CardGenerator() {
               <CopyX size={18} /> Clear
             </button>
             <button
-            disabled={entries.length === 0}
+              disabled={entries.length === 0}
               onClick={saveAllCardsAsImages}
               className="btn bg-[#6dbb06] text-white border-none"
             >
@@ -470,33 +470,30 @@ export default function CardGenerator() {
 
         {/* Preview and print the card layout  */}
         <div
-          className={`flex flex-wrap justify-center ${
-            noSpace ? "" : "gap-5"
-          } p-5 w-full`}
+          className="flex flex-wrap justify-center gap-0 p-5 w-full" // gap-0 as baseline
           ref={contentRef}
         >
-          {entries.length > 0 &&
-            entries.map((entry, index) => (
-              <div
-                key={index}
-                className={
-                  entry.cardType === "Car Card"
-                    ? "w-fullflex justify-center py-5" // Full width for car cards
-                    : "w-auto" // Auto width for others (or specify a fixed width)
-                }
-                id={`card-${index}`}
-              >
-                <VIP
-                  key={entry.name}
-                  onRemove={removeEntryByName}
-                  block={entry.block}
-                  cardType={entry.cardType}
-                  id={entry.id}
-                  image={entry.imagePreviewUrl}
-                  name={entry.name}
-                />
-              </div>
-            ))}
+          {entries.map((entry, index) => (
+            <div
+              key={index}
+              className={
+                entry.cardType === "Car Card"
+                  ? "w-full flex justify-center py-5"
+                  : `w-auto ${noSpace ? "-mx-[0.7px] -my-[2px]" : "mx-2 my-2"}` // Negative horizontal margin
+              }
+              id={`card-${index}`}
+            >
+              <VIP
+                key={entry.name}
+                onRemove={removeEntryByName}
+                block={entry.block}
+                cardType={entry.cardType}
+                id={entry.id}
+                image={entry.imagePreviewUrl}
+                name={entry.name}
+              />
+            </div>
+          ))}
         </div>
       </div>
     </div>

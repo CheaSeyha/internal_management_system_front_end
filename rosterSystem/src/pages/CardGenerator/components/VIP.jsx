@@ -50,7 +50,7 @@ function VIP({ name, block, id, image, cardType, onRemove }) {
             >
               <p
                 ref={nameRef}
-                className="forName uppercase"
+                className="forName"
                 style={{
                   fontSize: `${fontSizeName}px`,
                   lineHeight: `${fontSizeName + lineHight}px`, // prevents vertical jump
@@ -83,7 +83,7 @@ function VIP({ name, block, id, image, cardType, onRemove }) {
             >
               <p
                 ref={nameRef}
-                className="forName uppercase"
+                className="forName"
                 style={{
                   fontSize: `${fontSizeName}px`,
                   lineHeight: `${fontSizeName + lineHight}px`, // prevents vertical jump
@@ -113,7 +113,7 @@ function VIP({ name, block, id, image, cardType, onRemove }) {
             >
               <p
                 ref={nameRef}
-                className="forName uppercase"
+                className="forName"
                 style={{
                   fontSize: `${fontSizeName}px`,
                   lineHeight: `${fontSizeName + lineHight}px`, // prevents vertical jump
@@ -138,11 +138,11 @@ function VIP({ name, block, id, image, cardType, onRemove }) {
         {/* Car Card */}
         {cardType === "Car Card" && (
           <main className="carcard relative font-cardFont1 w-[20cm] h-[13.34cm] text-black">
-            <p className="plat-number uppercase absolute text-[2.9cm] text-[#0d07fd] top-[6.57cm] left-[4.79cm] text-stroke text-right direction-rtl">
+            <p className="plat-number absolute text-[2.9cm] text-[#0d07fd] top-[6.57cm] left-[4.79cm] text-stroke text-right direction-rtl">
               {name}
             </p>
 
-            <p className="staffcard uppercase forBlock absolute text-[13px] text-blue-400 top-[12.46cm] left-[15.25cm]">
+            <p className="staffcard forBlock absolute text-[13px] text-blue-400 top-[12.46cm] left-[15.25cm]">
               {block}
             </p>
             <div className="image-tamplete w-full h-full">

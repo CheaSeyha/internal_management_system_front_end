@@ -478,8 +478,8 @@ export default function CardGenerator() {
               key={index}
               className={
                 entry.cardType === "Car Card"
-                  ? "w-full flex justify-center py-5"
-                  : `w-auto ${noSpace ? "-mx-[0.7px] -my-[2px]" : "mx-2 my-2"}` // Negative horizontal margin
+                  ? "w-full flex justify-center py-4"
+                  : `w-auto ${noSpace ? "-mx-[1.1px] -my-[2px]" : "mx-2 my-2"}` // Negative horizontal margin
               }
               id={`card-${index}`}
             >

@@ -4,8 +4,8 @@ import staffcard from "../../../assets/CardTamplete/STAFF.png";
 import deliverycard from "../../../assets/CardTamplete/DELIVERY.png";
 import carcard from "../../../assets/CardTamplete/CAR.png";
 import carcard1 from "../../../assets/CardTamplete/CAR1.png";
-import { Trash } from "lucide-react";
-function VIP({ name, block, id, image, cardType, onRemove }) {
+import { Trash,Edit  } from "lucide-react";
+function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
   const [fontSizeName, setFontSizeName] = useState(16); // Starting font size
   const nameRef = useRef();
   const [lineHight, setLineHight] = useState(0);
@@ -30,12 +30,18 @@ function VIP({ name, block, id, image, cardType, onRemove }) {
   return (
     <>
       <div className="container-card relative ">
-        <div className="absolute inset-0 z-2 flex items-center rounded-2xl justify-center opacity-0 hover:opacity-100 transition-all delay-100 backdrop-blur-sm ">
+        <div className="absolute inset-0 z-2 flex items-center rounded-2xl justify-center opacity-0 hover:opacity-100 transition-all delay-100 backdrop-blur-sm gap-2">
           <button
-            className="btn bg-red-500 border-none"
+            className="btn bg-red-500 border-none group"
             onClick={() => onRemove(name)}
           >
-            <Trash color="white" />
+            <Trash  color="white" className="group-hover:mb-2 delay-75 transition-all" />
+          </button>
+          <button
+            className="btn bg-blue-500 border-none group"
+            onClick={() => onEdit(index)}
+          >
+            <Edit color="white" className="group-hover:mb-2 delay-75 transition-all"/>
           </button>
         </div>
         {/* Delivery Card */}
@@ -101,7 +107,7 @@ function VIP({ name, block, id, image, cardType, onRemove }) {
             <div className="image-tamplete w-full h-full">
               <img src={staffcard} alt="" />
             </div>
-          </main> 
+          </main>
         )}
 
         {/* VIP Card */}

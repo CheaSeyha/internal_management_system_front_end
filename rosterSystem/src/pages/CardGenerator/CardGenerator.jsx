@@ -32,7 +32,7 @@ export default function CardGenerator() {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
-
+  const [editingIndex, setEditingIndex] = useState(null);
   const [noSpace, setNoSpace] = useState(true);
 
   //clear all cards
@@ -151,26 +151,28 @@ export default function CardGenerator() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Only require image for Staff and Delivery cards
-    const requiresImage = !["VIP Card", "Car Card"].includes(
-      currentEntry.cardType
-    );
-    if (
-      !currentEntry.name ||
-      (requiresImage && !currentEntry.imageFile) ||
-      !currentEntry.name
-    ) {
+    const requiresImage = !["VIP Card", "Car Card"].includes(currentEntry.cardType);
+    if (!currentEntry.name || (requiresImage && !currentEntry.imageFile)) {
       return alert(
         requiresImage ? "Name and Image are required." : "Name is required."
       );
     }
 
-    // For VIP/Car cards, clear any existing image
     const entryToAdd = !requiresImage
       ? { ...currentEntry, imageFile: null, imagePreviewUrl: null }
       : currentEntry;
 
-    setEntries((prev) => [...prev, entryToAdd]);
+    if (editingIndex !== null) {
+      // Update existing entry
+      setEntries(prev => prev.map((entry, i) =>
+        i === editingIndex ? entryToAdd : entry
+      ))
+      setEditingIndex(null);
+    } else {
+      // Add new entry
+      setEntries(prev => [...prev, entryToAdd]);
+    }
+
     setCurrentEntry({
       name: "",
       block: "",
@@ -181,6 +183,29 @@ export default function CardGenerator() {
     });
   };
 
+  // Add a cancel edit function
+  const cancelEdit = () => {
+    setEditingIndex(null);
+    setCurrentEntry({
+      name: "",
+      block: "",
+      id: "",
+      cardType: "Staff",
+      imageFile: null,
+      imagePreviewUrl: null,
+    });
+  };
+  const handleEdit = (index) => {
+    // Check if there are unsaved changes in currentEntry
+    if (currentEntry.name || currentEntry.imageFile) {
+      if (!window.confirm("You have unsaved changes. Do you want to discard them and edit this card?")) {
+        return;
+      }
+    }
+
+    setCurrentEntry(entries[index]);
+    setEditingIndex(index);
+  };
   return (
     <div className="max-w-4xl mx-auto p-4 space-y-6">
       {cropModalOpen && (
@@ -345,11 +370,10 @@ export default function CardGenerator() {
             )}
 
           <div
-            className={`space-y-4 ${
-              ["VIP Card", "Car Card"].includes(currentEntry.cardType)
-                ? "w-full"
-                : "flex-1"
-            }`}
+            className={`space-y-4 ${["VIP Card", "Car Card"].includes(currentEntry.cardType)
+              ? "w-full"
+              : "flex-1"
+              }`}
           >
             <div className="form-control">
               <label htmlFor="cardtype" className="label">
@@ -399,9 +423,8 @@ export default function CardGenerator() {
               />
             </div>
             <div
-              className={`form-control ${
-                currentEntry.cardType === "Car Card" ? "hidden" : "block"
-              }`}
+              className={`form-control ${currentEntry.cardType === "Car Card" ? "hidden" : "block"
+                }`}
             >
               <label htmlFor="id" className="label">
                 <span className="label-text">ID</span>
@@ -415,8 +438,18 @@ export default function CardGenerator() {
               />
             </div>
             <button type="submit" className="btn btn-primary w-full mt-4">
-              Done
+              {editingIndex !== null ? "Update" : "Done"}
             </button>
+
+            {editingIndex !== null && (
+              <button
+                type="button"
+                onClick={cancelEdit}
+                className="btn btn-error w-full mt-2"
+              >
+                Cancel Edit
+              </button>
+            )}
           </div>
         </div>
       </form>
@@ -479,13 +512,15 @@ export default function CardGenerator() {
               className={
                 entry.cardType === "Car Card"
                   ? "w-full flex justify-center py-4"
-                  : `w-auto ${noSpace ? "-mx-[1.1px] -my-[2px]" : "mx-2 my-2"}` // Negative horizontal margin
+                  : `w-auto ${noSpace ? "-mx-[1.1px] -my-[2px]" : "mx-2 my-2"}`
               }
               id={`card-${index}`}
             >
               <VIP
                 key={entry.name}
                 onRemove={removeEntryByName}
+                onEdit={handleEdit}
+                index={index}
                 block={entry.block}
                 cardType={entry.cardType}
                 id={entry.id}

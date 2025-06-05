@@ -388,6 +388,7 @@ export default function CardGenerator() {
               >
                 <option>Staff</option>
                 <option>Delivery</option>
+                <option>TukTuk</option>
                 <option>Car Card</option>
                 <option>VIP Card</option>
               </select>

@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import vipcard from "../../../assets/CardTamplete/VIP.png";
 import staffcard from "../../../assets/CardTamplete/STAFF.png";
 import deliverycard from "../../../assets/CardTamplete/DELIVERY.png";
-import carcard from "../../../assets/CardTamplete/CAR.png";
+import tuktuk from "../../../assets/CardTamplete/TUKTUK.png";
 import carcard1 from "../../../assets/CardTamplete/CAR1.png";
 import { Trash,Edit  } from "lucide-react";
 function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
@@ -73,6 +73,39 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
             </p>
             <div className="image-tamplete w-full h-full">
               <img src={deliverycard} alt="" />
+            </div>
+          </main>
+        )}
+
+        {/* TukTuk Card */}
+        {cardType === "TukTuk" && (
+          <main className="deliverycard relative font-cardFont2 w-[9cm] h-[6cm] text-black">
+            <div className="image-profile w-[2.5cm] border-[1.5px] border-blue-500 h-[3cm] absolute top-[2cm] left-[0.5cm]">
+              <img src={image} className="w-full h-full object-cover" alt="" />
+            </div>
+            <div
+              className="absolute top-[2.21cm] left-[5.15cm] flex items-end"
+              style={{ height: "20px" }} // Fixed height container
+            >
+              <p
+                ref={nameRef}
+                className="forName"
+                style={{
+                  fontSize: `${fontSizeName}px`,
+                  lineHeight: `${fontSizeName + lineHight}px`, // prevents vertical jump
+                }}
+              >
+                {name}
+              </p>
+            </div>
+            <p className="forBlock absolute text-[18px] top-[3.26cm] left-[5.14cm]">
+              {block}
+            </p>
+            <p className="forID absolute text-[18px] top-[3.84cm] left-[5.14cm]">
+              {id}
+            </p>
+            <div className="image-tamplete w-full h-full">
+              <img src={tuktuk} alt="" />
             </div>
           </main>
         )}

@@ -10,7 +10,10 @@ import {
   ChevronsRightLeft,
   ChevronsLeftRight,
   CopyX,
+  Columns2,
+  Rows2,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 export default function CardGenerator() {
   const contentRef = useRef(null);
   const reactToPrintFn = useReactToPrint({ contentRef });
@@ -39,6 +42,15 @@ export default function CardGenerator() {
   const clearAllCards = () => {
     setEntries([]);
   };
+
+  const [changeLayout, setLayout] = useState(() => {
+    const saved = localStorage.getItem("cardgen-layout");
+    return saved === null ? true : saved === "true";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("cardgen-layout", changeLayout);
+  }, [changeLayout]);
 
   const setNoSpaceCard = () => {
     setNoSpace((prevNoSpace) => !prevNoSpace);
@@ -148,10 +160,20 @@ export default function CardGenerator() {
     setCropModalOpen(false);
   };
 
+  const nameInputRef = useRef(null);
+
+  useEffect(() => {
+    if (editingIndex !== null && nameInputRef.current) {
+      nameInputRef.current.focus();
+    }
+  }, [editingIndex]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const requiresImage = !["VIP Card", "Car Card"].includes(currentEntry.cardType);
+    const requiresImage = !["VIP Card", "Car Card"].includes(
+      currentEntry.cardType
+    );
     if (!currentEntry.name || (requiresImage && !currentEntry.imageFile)) {
       return alert(
         requiresImage ? "Name and Image are required." : "Name is required."
@@ -164,13 +186,13 @@ export default function CardGenerator() {
 
     if (editingIndex !== null) {
       // Update existing entry
-      setEntries(prev => prev.map((entry, i) =>
-        i === editingIndex ? entryToAdd : entry
-      ))
+      setEntries((prev) =>
+        prev.map((entry, i) => (i === editingIndex ? entryToAdd : entry))
+      );
       setEditingIndex(null);
     } else {
       // Add new entry
-      setEntries(prev => [...prev, entryToAdd]);
+      setEntries((prev) => [...prev, entryToAdd]);
     }
 
     setCurrentEntry({
@@ -198,7 +220,11 @@ export default function CardGenerator() {
   const handleEdit = (index) => {
     // Check if there are unsaved changes in currentEntry
     if (currentEntry.name || currentEntry.imageFile) {
-      if (!window.confirm("You have unsaved changes. Do you want to discard them and edit this card?")) {
+      if (
+        !window.confirm(
+          "You have unsaved changes. Do you want to discard them and edit this card?"
+        )
+      ) {
         return;
       }
     }
@@ -206,8 +232,15 @@ export default function CardGenerator() {
     setCurrentEntry(entries[index]);
     setEditingIndex(index);
   };
+  // {`${changeLayout} ?  :
   return (
-    <div className="max-w-4xl mx-auto p-4 space-y-6">
+    <div
+      className={
+        changeLayout
+          ? "max-w-4xl mx-auto p-4 space-y-6"
+          : "grid grid-cols-1 lg:grid-cols-2 gap-5 p-5"
+      }
+    >
       {cropModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 overflow-auto">
           <div className="bg-base-200 p-4 rounded-lg shadow-xl w-full max-w-lg">
@@ -341,11 +374,55 @@ export default function CardGenerator() {
         </div>
       )}
 
-      <form
+      <motion.form
+        layout
         onSubmit={handleSubmit}
-        className="bg-base-200 rounded-xl p-6 shadow-lg"
+        className="bg-base-200 rounded-xl p-6 shadow-lg h-fit"
+        transition={{ type: "spring", stiffness: 500, damping: 40 }}
       >
-        <h2 className="text-2xl font-bold mb-4 text-center">Card Generator</h2>
+        <div className="relative w-fit m-auto mb-4">
+          <motion.div
+            // Animate the gradient background for the glow
+            animate={{
+              background: [
+                "linear-gradient(90deg, #ef4444, #3b82f6, #f59e0b)",
+                "linear-gradient(90deg, #f59e0b, #ef4444, #3b82f6)",
+                "linear-gradient(90deg, #3b82f6, #f59e0b, #ef4444)",
+                "linear-gradient(90deg, #ef4444, #3b82f6, #f59e0b)",
+              ],
+            }}
+            transition={{
+              duration: 4,
+              repeat: Infinity,
+              ease: "linear",
+            }}
+            className="absolute inset-0 blur-[20px] opacity-50 pointer-events-none rounded-lg z-0"
+            style={{
+              background: "linear-gradient(90deg, #ef4444, #3b82f6, #f59e0b)",
+            }}
+          />
+          <motion.h2
+            className="relative text-3xl font-bold text-center w-fit m-auto z-10 bg-clip-text text-transparent"
+            animate={{
+              background: [
+                "linear-gradient(90deg, #ef4444, #3b82f6, #f59e0b)",
+                "linear-gradient(90deg, #f59e0b, #ef4444, #3b82f6)",
+                "linear-gradient(90deg, #3b82f6, #f59e0b, #ef4444)",
+                "linear-gradient(90deg, #ef4444, #3b82f6, #f59e0b)",
+              ],
+              backgroundClip: "text",
+              color: "transparent",
+              backgroundSize: "200% 200%",
+            }}
+            transition={{
+              duration: 4,
+              repeat: Infinity,
+              ease: "linear",
+            }}
+          >
+            Card Generator
+          </motion.h2>
+        </div>
         <div className="flex flex-col md:flex-row gap-6">
           {/* Show Image  */}
           {currentEntry.cardType !== "VIP Card" &&
@@ -370,10 +447,11 @@ export default function CardGenerator() {
             )}
 
           <div
-            className={`space-y-4 ${["VIP Card", "Car Card"].includes(currentEntry.cardType)
-              ? "w-full"
-              : "flex-1"
-              }`}
+            className={`space-y-4 ${
+              ["VIP Card", "Car Card"].includes(currentEntry.cardType)
+                ? "w-full"
+                : "flex-1"
+            }`}
           >
             <div className="form-control">
               <label htmlFor="cardtype" className="label">
@@ -409,6 +487,7 @@ export default function CardGenerator() {
                 onChange={handleInputChange}
                 className="input input-bordered w-full uppercase"
                 required
+                ref={nameInputRef}
               />
             </div>
             <div className="form-control">
@@ -424,8 +503,9 @@ export default function CardGenerator() {
               />
             </div>
             <div
-              className={`form-control ${currentEntry.cardType === "Car Card" ? "hidden" : "block"
-                }`}
+              className={`form-control ${
+                currentEntry.cardType === "Car Card" ? "hidden" : "block"
+              }`}
             >
               <label htmlFor="id" className="label">
                 <span className="label-text">ID</span>
@@ -453,13 +533,17 @@ export default function CardGenerator() {
             )}
           </div>
         </div>
-      </form>
+      </motion.form>
       {/* Preview card layout  */}
-      <div className="space-y-4">
+      <motion.div
+        layout
+        className="space-y-4"
+        transition={{ type: "spring", stiffness: 500, damping: 40 }}
+      >
         <div className="flex justify-between items-center bg-sidebarActive p-5 rounded-lg">
           <h3 className="text-xl font-semibold">All Cards</h3>
           <div className="btn-container space-x-2">
-            <label className="swap bg-accent w-[40px] h-[40px] rounded-full active:scale-105">
+            <label className="swap bg-[#f508a6] hover:bg-[#990367] w-[40px] h-[40px] rounded-full active:scale-105 transition-all duration-200">
               {/* Hidden checkbox controlled by noSpace state */}
               <input
                 id="nospcace"
@@ -478,24 +562,44 @@ export default function CardGenerator() {
                 <ChevronsRightLeft size={18} />
               </div>
             </label>
+            {/* Chane layout view  */}
+            <label className="swap bg-[#2dc1fc] hover:bg-[#1e7699] w-[40px] h-[40px] rounded-full active:scale-105 transition-all duration-200">
+              {/* Hidden checkbox controlled by noSpace state */}
+              <input
+                id="nospcace"
+                type="checkbox"
+                checked={changeLayout}
+                onChange={() => setLayout((prev) => !prev)}
+              />
+
+              {/* Icon when noSpace is true (checked) */}
+              <div className="swap-on text-white">
+                <Columns2 size={18} />
+              </div>
+
+              {/* Icon when noSpace is false (unchecked) */}
+              <div className="swap-off text-white">
+                <Rows2 size={18} />
+              </div>
+            </label>
             <button
               onClick={clearAllCards}
               id="nospace"
-              className="btn border-none bg-[#853ef8] text-white"
+              className="btn border-none bg-[#853ef8] text-white hover:bg-[#6630bd]"
             >
               <CopyX size={18} /> Clear
             </button>
             <button
               disabled={entries.length === 0}
               onClick={saveAllCardsAsImages}
-              className="btn bg-[#6dbb06] text-white border-none"
+              className="btn bg-[#6dbb06] text-white border-none hover:bg-[#427203]"
             >
               <ImageDown size={18} /> Export
             </button>
             <button
               disabled={entries.length === 0}
               onClick={reactToPrintFn}
-              className="btn bg-[#2dc1fc] text-white border-none"
+              className="btn bg-[#2dc1fc] text-white border-none hover:bg-[#1a8bbd]"
             >
               <Printer size={18} /> Print
             </button>
@@ -507,31 +611,40 @@ export default function CardGenerator() {
           className="flex flex-wrap justify-center gap-0 p-5 w-full" // gap-0 as baseline
           ref={contentRef}
         >
-          {entries.map((entry, index) => (
-            <div
-              key={index}
-              className={
-                entry.cardType === "Car Card"
-                  ? "w-full flex justify-center py-4"
-                  : `w-auto ${noSpace ? "-mx-[1.1px] -my-[2px]" : "mx-2 my-2"}`
-              }
-              id={`card-${index}`}
-            >
-              <VIP
+          <AnimatePresence>
+            {entries.map((entry, index) => (
+              <motion.div
                 key={entry.name}
-                onRemove={removeEntryByName}
-                onEdit={handleEdit}
-                index={index}
-                block={entry.block}
-                cardType={entry.cardType}
-                id={entry.id}
-                image={entry.imagePreviewUrl}
-                name={entry.name}
-              />
-            </div>
-          ))}
+                layout
+                initial={{ opacity: 0, y: 40, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -40, scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                className={
+                  entry.cardType === "Car Card"
+                    ? "w-full flex justify-center py-4"
+                    : `w-auto ${
+                        noSpace ? "-mx-[1.1px] -my-[2px]" : "mx-2 my-2"
+                      }`
+                }
+                id={`card-${index}`}
+              >
+                <VIP
+                  key={entry.name}
+                  onRemove={removeEntryByName}
+                  onEdit={handleEdit}
+                  index={index}
+                  block={entry.block}
+                  cardType={entry.cardType}
+                  id={entry.id}
+                  image={entry.imagePreviewUrl}
+                  name={entry.name}
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

@@ -485,7 +485,7 @@ export default function CardGenerator() {
                 id="name"
                 value={currentEntry.name}
                 onChange={handleInputChange}
-                className="input input-bordered w-full uppercase"
+                className="input input-bordered w-full"
                 required
                 ref={nameInputRef}
               />
@@ -499,7 +499,7 @@ export default function CardGenerator() {
                 id="block"
                 value={currentEntry.block}
                 onChange={handleInputChange}
-                className="input input-bordered w-full uppercase"
+                className="input input-bordered w-full"
               />
             </div>
             <div

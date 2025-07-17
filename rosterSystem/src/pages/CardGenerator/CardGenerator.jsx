@@ -465,6 +465,7 @@ export default function CardGenerator() {
                 className="select select-bordered w-full"
               >
                 <option>Staff</option>
+                <option>Construction</option>
                 <option>Delivery</option>
                 <option>TukTuk</option>
                 <option>Car Card</option>
@@ -502,9 +503,10 @@ export default function CardGenerator() {
                 className="input input-bordered w-full"
               />
             </div>
+
             <div
               className={`form-control ${
-                currentEntry.cardType === "Car Card" ? "hidden" : "block"
+                currentEntry.cardType === "Car Card" || currentEntry.cardType === "Construction" ? "hidden" : "block"
               }`}
             >
               <label htmlFor="id" className="label">

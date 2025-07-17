@@ -4,7 +4,8 @@ import staffcard from "../../../assets/CardTamplete/STAFF.png";
 import deliverycard from "../../../assets/CardTamplete/DELIVERY.png";
 import tuktuk from "../../../assets/CardTamplete/TUKTUK.png";
 import carcard1 from "../../../assets/CardTamplete/CAR1.png";
-import { Trash,Edit  } from "lucide-react";
+import construction from "../../../assets/CardTamplete/CONSTRUCTION.png";
+import { Trash, Edit } from "lucide-react";
 function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
   const [fontSizeName, setFontSizeName] = useState(16); // Starting font size
   const nameRef = useRef();
@@ -27,6 +28,16 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
     }
   }, [name, fontSizeName]); // Watch both name and fontSizeName
 
+  const getDate = new Date();
+  const monthName = getDate.toLocaleString("default", { month: "long" });
+  const getDayMonthYear =
+    getDate.getDate() +
+    " " +
+    monthName.toLocaleUpperCase() +
+    " " +
+    getDate.getFullYear();
+
+
   return (
     <>
       <div className="container-card relative ">
@@ -35,13 +46,19 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
             className="btn bg-red-500 border-none group"
             onClick={() => onRemove(name)}
           >
-            <Trash  color="white" className="group-hover:mb-2 delay-75 transition-all" />
+            <Trash
+              color="white"
+              className="group-hover:mb-2 delay-75 transition-all"
+            />
           </button>
           <button
             className="btn bg-blue-500 border-none group"
             onClick={() => onEdit(index)}
           >
-            <Edit color="white" className="group-hover:mb-2 delay-75 transition-all"/>
+            <Edit
+              color="white"
+              className="group-hover:mb-2 delay-75 transition-all"
+            />
           </button>
         </div>
         {/* Delivery Card */}
@@ -139,6 +156,42 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
             </p>
             <div className="image-tamplete w-full h-full">
               <img src={staffcard} alt="" />
+            </div>
+          </main>
+        )}
+
+        {/* Construction Card */}
+        {cardType === "Construction" && (
+          <main className="relative font-cardFont2 w-[9cm] h-[6cm] text-black">
+            <div className="image-profile w-[2.5cm] border-[1.5px] border-yellow-300 h-[3cm] absolute top-[2cm] left-[0.3cm]">
+              <img src={image} className="w-full h-full object-cover" alt="" />
+            </div>
+            <div
+              className="absolute top-[2.29cm] left-[4.86cm] flex items-end"
+              style={{ height: "20px" }} // Fixed height container
+            >
+              <p
+                ref={nameRef}
+                className="forName"
+                style={{
+                  fontSize: `${fontSizeName}px`,
+                  lineHeight: `${fontSizeName + lineHight}px`, // prevents vertical jump
+                }}
+              >
+                {name}
+              </p>
+            </div>
+            <p className="staffcard forBlock absolute text-[16px] top-[3.30cm] left-[4.86cm]">
+              {block}
+            </p>
+            <p className="forID absolute text-[18px] top-[3.74cm] left-[4.86cm]">
+              {id}
+            </p>
+            <p className="forDate absolute text-[16px] top-[4.33cm] left-[4.86cm]">
+              {getDayMonthYear}
+            </p>
+            <div className="image-tamplete w-full h-full">
+              <img src={construction} alt="" />
             </div>
           </main>
         )}

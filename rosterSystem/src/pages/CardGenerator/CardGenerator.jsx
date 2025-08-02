@@ -4,6 +4,7 @@ import { getCroppedImg } from "../../utils/cropImage";
 import VIP from "./components/VIP";
 import { useReactToPrint } from "react-to-print";
 import { toPng, toJpeg } from "html-to-image";
+import {Select} from '@radix-ui/react-select'
 import {
   ImageDown,
   Printer,
@@ -377,7 +378,7 @@ export default function CardGenerator() {
       <motion.form
         layout
         onSubmit={handleSubmit}
-        className="bg-base-200 rounded-xl p-6 shadow-lg h-fit"
+        className="rounded-xl p-6 shadow-lg h-fit bg-sidebar"
         transition={{ type: "spring", stiffness: 500, damping: 40 }}
       >
         <div className="relative w-fit m-auto mb-4">
@@ -542,7 +543,7 @@ export default function CardGenerator() {
         className="space-y-4"
         transition={{ type: "spring", stiffness: 500, damping: 40 }}
       >
-        <div className="flex justify-between items-center bg-sidebarActive p-5 rounded-lg">
+        <div className="flex justify-between items-center p-5 rounded-lg bg-sidebar">
           <h3 className="text-xl font-semibold">All Cards</h3>
           <div className="btn-container space-x-2">
             <label className="swap bg-[#f508a6] hover:bg-[#990367] w-[40px] h-[40px] rounded-full active:scale-105 transition-all duration-200">

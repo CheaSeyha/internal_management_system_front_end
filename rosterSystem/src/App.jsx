@@ -1,47 +1,41 @@
-import React, { useState } from "react";
-import Navbar from "./components/Navbar";
-import RosterForm from "./pages/RosterForm/RosterForm";
-import CardGenerator from "./pages/CardGenerator/CardGenerator";
-import { Routes, Route, useLocation } from "react-router-dom"; // Add useLocation import
-import Sidebar from "./components/Sidebar";
+import { Routes, Route, useLocation } from "react-router-dom";
+import Layout from "./layout";
+import { ThemeProvider } from "./components/theme-provider";
 import { AnimatePresence } from "framer-motion";
 import AnimatedPage from "./framerComponent/AnimatedPage";
+import CardGenerator from "./pages/CardGenerator/CardGenerator";
+import AllCards from "./pages/CardGenerator/AllCards";
 
 function App() {
-  const [isOpenSidebar, setOpenSideBar] = useState(false);
-  const location = useLocation(); // Add this line
-
-  const openSidebar = () => {
-    setOpenSideBar(!isOpenSidebar);
-  };
+  const location = useLocation(); // Get the current location
 
   return (
-    <>
-      <main className="relative">
-        <Navbar openSideBar={openSidebar} />
-        <Sidebar isOpenSidebar={isOpenSidebar} openSideBar={openSidebar}/>
-        <AnimatePresence mode="wait">
-          <Routes location={location} key={location.pathname}>
-            <Route
-              path="/"
-              element={
-                <AnimatedPage>
-                  <RosterForm />
-                </AnimatedPage>
-              }
-            />
-            <Route
-              path="/CardGenerator"
-              element={
-                <AnimatedPage>
-                  <CardGenerator />
-                </AnimatedPage>
-              }
-            />
-          </Routes>
-        </AnimatePresence>
-      </main>
-    </>
+    <ThemeProvider>
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={<Layout />}>
+            <Route path="cards">
+              <Route
+                path="card-generator"
+                element={
+                  <AnimatedPage>
+                    <CardGenerator />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="all-cards"
+                element={
+                  <AnimatedPage>
+                    <AllCards />
+                  </AnimatedPage>
+                }
+              />
+            </Route>
+          </Route>
+        </Routes>
+      </AnimatePresence>
+    </ThemeProvider>
   );
 }
 

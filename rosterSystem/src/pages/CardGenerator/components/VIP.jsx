@@ -7,10 +7,11 @@ import carcard1 from "../../../assets/CardTamplete/CAR1.png";
 import construction from "../../../assets/CardTamplete/CONSTRUCTION.png";
 import { Trash, Edit } from "lucide-react";
 function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
-  const [fontSizeName, setFontSizeName] = useState(16); // Starting font size
+  const [fontSizeName, setFontSizeName] = useState(18); // Starting font size
   const nameRef = useRef();
   const [lineHight, setLineHight] = useState(0);
   useEffect(() => {
+    if(cardType === "Construction" ) setFontSizeName(16)
     if (name.length >= 20) {
       setLineHight(2);
       console.log(lineHight);
@@ -36,7 +37,6 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
     monthName.toLocaleUpperCase() +
     " " +
     getDate.getFullYear();
-
 
   return (
     <>
@@ -183,9 +183,6 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
             </div>
             <p className="staffcard forBlock absolute text-[16px] top-[3.30cm] left-[4.86cm]">
               {block}
-            </p>
-            <p className="forID absolute text-[18px] top-[3.74cm] left-[4.86cm]">
-              {id}
             </p>
             <p className="forDate absolute text-[16px] top-[4.33cm] left-[4.86cm]">
               {getDayMonthYear}

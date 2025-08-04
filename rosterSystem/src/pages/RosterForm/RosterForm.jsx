@@ -10,7 +10,7 @@ function RosterForm() {
 
   return (
     <>
-      <div className="w-full h-full px-5 md:px-[80px] mt-5">
+      <div className="w-full h-full ">
         <h1 className="font-bold text-2xl sticky">IT ROSTER FOR {monthName}</h1>
         {/* Custom cursor element */}
         {/* Button Control */}

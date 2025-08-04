@@ -41,12 +41,8 @@ import { NavLink } from "react-router-dom";
 
 function AllCards() {
   return (
-    <main className="w-full p-5 space-y-5">
-      {/* Tittle  */}
-      <nav className="w-full flex items-center gap-2">
-        <WalletCards className="text-blue-700 text-2xl" />
-        <h1 className="text-lg font-bold">All Access Cards</h1>
-      </nav>
+    <main className="w-full space-y-5">
+
       {/* Search And Filter Button  */}
       <section className="w-fit flex gap-2">
         <div className="relative w-full max-w-sm">

@@ -2,9 +2,18 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import Cropper from "react-easy-crop";
 import { getCroppedImg } from "../../utils/cropImage";
 import VIP from "./components/VIP";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { useReactToPrint } from "react-to-print";
 import { toPng, toJpeg } from "html-to-image";
-import {Select} from '@radix-ui/react-select'
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+} from "@/components/ui/select";
 import {
   ImageDown,
   Printer,
@@ -404,6 +413,12 @@ export default function CardGenerator() {
           />
           <motion.h2
             className="relative text-3xl font-bold text-center w-fit m-auto z-10 bg-clip-text text-transparent"
+            initial={{
+              background: "linear-gradient(90deg, #ef4444, #3b82f6, #f59e0b)",
+              backgroundClip: "text",
+              color: "rgba(0,0,0,0)", // Use rgba(0,0,0,0) instead of "transparent"
+              backgroundSize: "200% 200%",
+            }}
             animate={{
               background: [
                 "linear-gradient(90deg, #ef4444, #3b82f6, #f59e0b)",
@@ -412,7 +427,7 @@ export default function CardGenerator() {
                 "linear-gradient(90deg, #ef4444, #3b82f6, #f59e0b)",
               ],
               backgroundClip: "text",
-              color: "transparent",
+              color: "rgba(0,0,0,0)", // Consistent with initial value
               backgroundSize: "200% 200%",
             }}
             transition={{
@@ -455,24 +470,37 @@ export default function CardGenerator() {
             }`}
           >
             <div className="form-control">
-              <label htmlFor="cardtype" className="label">
+              <label htmlFor="cardtype-select-trigger" className="label">
                 <span className="label-text">Card Type</span>
               </label>
-              <select
-                id="cardtype"
+              <Select
                 name="cardType"
                 value={currentEntry.cardType}
-                onChange={handleInputChange}
-                className="select select-bordered w-full"
+                onValueChange={(value) =>
+                  handleInputChange({
+                    target: {
+                      name: "cardType",
+                      value: value,
+                    },
+                  })
+                }
               >
-                <option>Staff</option>
-                <option>Construction</option>
-                <option>Delivery</option>
-                <option>TukTuk</option>
-                <option>Car Card</option>
-                <option>VIP Card</option>
-              </select>
+                <SelectTrigger className="w-full" id="cardtype-select-trigger">
+                  <SelectValue placeholder="Select a type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value="Staff">Staff</SelectItem>
+                    <SelectItem value="Construction">Construction</SelectItem>
+                    <SelectItem value="Delivery">Delivery</SelectItem>
+                    <SelectItem value="TukTuk">TukTuk</SelectItem>
+                    <SelectItem value="Car Card">Car Card</SelectItem>
+                    <SelectItem value="VIP Card">VIP Card</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
             </div>
+
             <div className="form-control">
               <label htmlFor="name" className="label">
                 <span className="label-text">
@@ -481,7 +509,7 @@ export default function CardGenerator() {
                     : "Name"}
                 </span>
               </label>
-              <input
+              <Input
                 autoComplete="username"
                 name="name"
                 id="name"
@@ -496,7 +524,7 @@ export default function CardGenerator() {
               <label htmlFor="block" className="label">
                 <span className="label-text">Block</span>
               </label>
-              <input
+              <Input
                 name="block"
                 id="block"
                 value={currentEntry.block}
@@ -507,13 +535,16 @@ export default function CardGenerator() {
 
             <div
               className={`form-control ${
-                currentEntry.cardType === "Car Card" || currentEntry.cardType === "Construction" ? "hidden" : "block"
+                currentEntry.cardType === "Car Card" ||
+                currentEntry.cardType === "Construction"
+                  ? "hidden"
+                  : "block"
               }`}
             >
               <label htmlFor="id" className="label">
                 <span className="label-text">ID</span>
               </label>
-              <input
+              <Input
                 name="id"
                 id="id"
                 value={currentEntry.id}
@@ -521,18 +552,21 @@ export default function CardGenerator() {
                 className="input input-bordered w-full"
               />
             </div>
-            <button type="submit" className="btn btn-primary w-full mt-4">
+            <Button
+              type="submit"
+              className="w-full bg-blue-500 mt-4 text-white"
+            >
               {editingIndex !== null ? "Update" : "Done"}
-            </button>
+            </Button>
 
             {editingIndex !== null && (
-              <button
+              <Button
                 type="button"
                 onClick={cancelEdit}
-                className="btn btn-error w-full mt-2"
+                className="w-full bg-red-500 mt-2 text-white"
               >
                 Cancel Edit
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -546,66 +580,69 @@ export default function CardGenerator() {
         <div className="flex justify-between items-center p-5 rounded-lg bg-sidebar">
           <h3 className="text-xl font-semibold">All Cards</h3>
           <div className="btn-container space-x-2">
-            <label className="swap bg-[#f508a6] hover:bg-[#990367] w-[40px] h-[40px] rounded-full active:scale-105 transition-all duration-200">
-              {/* Hidden checkbox controlled by noSpace state */}
+            {/* Toggle noSpace */}
+            <label
+              htmlFor="toggle-no-space"
+              className="swap bg-[#f508a6] hover:bg-[#990367] w-[40px] h-[40px] rounded-full active:scale-105 transition-all duration-200"
+            >
               <input
-                id="nospcace"
+                id="toggle-no-space"
                 type="checkbox"
                 checked={noSpace}
                 onChange={setNoSpaceCard}
+                className="hidden"
               />
 
-              {/* Icon when noSpace is true (checked) */}
               <div className="swap-on text-white">
                 <ChevronsLeftRight size={18} />
               </div>
-
-              {/* Icon when noSpace is false (unchecked) */}
               <div className="swap-off text-white">
                 <ChevronsRightLeft size={18} />
               </div>
             </label>
-            {/* Chane layout view  */}
-            <label className="swap bg-[#2dc1fc] hover:bg-[#1e7699] w-[40px] h-[40px] rounded-full active:scale-105 transition-all duration-200">
-              {/* Hidden checkbox controlled by noSpace state */}
+
+            {/* Toggle layout */}
+            <label
+              htmlFor="toggle-layout"
+              className="swap bg-[#2dc1fc] hover:bg-[#1e7699] w-[40px] h-[40px] rounded-full active:scale-105 transition-all duration-200"
+            >
               <input
-                id="nospcace"
+                id="toggle-layout"
                 type="checkbox"
                 checked={changeLayout}
                 onChange={() => setLayout((prev) => !prev)}
+                className="hidden"
               />
 
-              {/* Icon when noSpace is true (checked) */}
               <div className="swap-on text-white">
                 <Columns2 size={18} />
               </div>
-
-              {/* Icon when noSpace is false (unchecked) */}
               <div className="swap-off text-white">
                 <Rows2 size={18} />
               </div>
             </label>
-            <button
+
+            <Button
               onClick={clearAllCards}
               id="nospace"
               className="btn border-none bg-[#853ef8] text-white hover:bg-[#6630bd]"
             >
               <CopyX size={18} /> Clear
-            </button>
-            <button
+            </Button>
+            <Button
               disabled={entries.length === 0}
               onClick={saveAllCardsAsImages}
               className="btn bg-[#6dbb06] text-white border-none hover:bg-[#427203]"
             >
               <ImageDown size={18} /> Export
-            </button>
-            <button
+            </Button>
+            <Button
               disabled={entries.length === 0}
               onClick={reactToPrintFn}
               className="btn bg-[#2dc1fc] text-white border-none hover:bg-[#1a8bbd]"
             >
               <Printer size={18} /> Print
-            </button>
+            </Button>
           </div>
         </div>
 

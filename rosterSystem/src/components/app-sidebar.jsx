@@ -2,7 +2,8 @@ import * as React from "react";
 import {
   GalleryVerticalEnd,
   IdCard,
-  HouseWifi 
+  HouseWifi,
+  CalendarDays,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -22,7 +23,8 @@ const data = {
   user: {
     name: "RONAL PLAOK",
     email: "plaokNalDo235@plaok.com",
-    avatar: "https://hips.hearstapps.com/hmg-prod/images/cristiano-ronaldo-of-portugal-during-the-uefa-nations-news-photo-1748359673.pjpeg?crop=0.610xw:0.917xh;0.317xw,0.0829xh&resize=640:*",
+    avatar:
+      "https://hips.hearstapps.com/hmg-prod/images/cristiano-ronaldo-of-portugal-during-the-uefa-nations-news-photo-1748359673.pjpeg?crop=0.610xw:0.917xh;0.317xw,0.0829xh&resize=640:*",
   },
   teams: [
     {
@@ -32,6 +34,11 @@ const data = {
     },
   ],
   navMain: [
+    {
+      title: "Roster",
+      url: "", // main path
+      icon: CalendarDays,
+    },
     {
       title: "Card Access",
       url: "cards", // main path
@@ -50,17 +57,17 @@ const data = {
     },
     {
       title: "Internet",
-      url: "cards", // main path
-      icon: HouseWifi ,
+      url: "internet", // main path
+      icon: HouseWifi,
       isActive: false,
       items: [
         {
           title: "All Customers",
-          url: "all", // ✅ full path
+          url: "all-customers", // ✅ full path
         },
         {
           title: "All ISP",
-          url: "card", // ✅ full path
+          url: "all-isp", // ✅ full path
         },
       ],
     },

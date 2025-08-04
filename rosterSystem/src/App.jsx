@@ -7,6 +7,9 @@ import CardGenerator from "./pages/CardGenerator/CardGenerator";
 import AllCards from "./pages/CardGenerator/AllCards";
 import Login from "./pages/Auth/Login";
 import { Toaster } from "@/components/ui/sonner";
+import AllCustomer from "./pages/Internet/AllCustomer";
+import AllISP from "./pages/Internet/AllISP";
+import RosterForm from "./pages/RosterForm/RosterForm";
 function App() {
   const location = useLocation(); // Get the current location
 
@@ -18,7 +21,16 @@ function App() {
             <Route path="login" element={<Login />} />
           </Route>
 
-          <Route path="/" element={<Layout />}>
+          <Route element={<Layout />}>
+            <Route
+              path="/"
+              element={
+                <AnimatedPage>
+                  <RosterForm />
+                </AnimatedPage>
+              }
+            />
+            {/* Card Access Route  */}
             <Route path="cards">
               <Route
                 path="card-generator"
@@ -33,6 +45,25 @@ function App() {
                 element={
                   <AnimatedPage>
                     <AllCards />
+                  </AnimatedPage>
+                }
+              />
+            </Route>
+            {/* Internet Route  */}
+            <Route path="internet">
+              <Route
+                path="all-customers"
+                element={
+                  <AnimatedPage>
+                    <AllCustomer />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="all-isp"
+                element={
+                  <AnimatedPage>
+                    <AllISP />
                   </AnimatedPage>
                 }
               />

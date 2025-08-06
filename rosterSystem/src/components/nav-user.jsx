@@ -26,9 +26,29 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { NavLink } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
+import axios from "../api/axios";
+import { toast } from "sonner";
+import { ca } from "zod/v4/locales";
 
 export function NavUser({ user }) {
   const { isMobile } = useSidebar();
+  const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      const res = await axios.post("/logout");
+      logout();
+      if (res.success) {
+        toast.success("Logged out successfully");
+        window.location.href = "/auth/login"; // Redirect to login page
+      }
+      
+    } catch (err) {
+      console.error("Logout failed:", err);
+      toast.error("Failed to log out");
+    }
+  };
 
   return (
     <SidebarMenu>
@@ -69,7 +89,7 @@ export function NavUser({ user }) {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <NavLink to={"auth/login"}>
+            <NavLink to={"auth/login"} onClick={handleLogout}>
               <DropdownMenuItem>
                 <LogOut />
                 Log out

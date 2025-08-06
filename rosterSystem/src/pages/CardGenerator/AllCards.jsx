@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   WalletCards,
   Funnel,
@@ -22,7 +22,6 @@ import {
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -32,17 +31,86 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
 import { NavLink } from "react-router-dom";
+import axios from "../../api/axios";
+import LoadingSpinner from "../../components/LoadingSpinner";
 
-function AllCards() {
+// ==================== SecureImage Component with DaisyUI Skeleton ====================
+const imageCache = {}; // simple in-memory cache
+
+function SecureImage({ url, alt, className }) {
+  const [src, setSrc] = useState(imageCache[url] || null);
+  const [loading, setLoading] = useState(!imageCache[url]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchImage = async () => {
+      try {
+        setLoading(true);
+        const res = await axios.get(url, { responseType: "blob" });
+        const blobUrl = URL.createObjectURL(res.data);
+        imageCache[url] = blobUrl; // cache for next time
+        if (isMounted) setSrc(blobUrl);
+      } catch (err) {
+        console.error("Failed to load image:", err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    if (url && !imageCache[url]) fetchImage();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [url]);
+
   return (
-    <main className="w-full space-y-5">
+    <div className={`w-full h-full ${className}`}>
+      {loading ? (
+        <div className="skeleton w-full h-full rounded-full" />
+      ) : (
+        <img
+          src={src || "/placeholder.png"}
+          alt={alt}
+          className="w-full h-full object-cover rounded-full"
+        />
+      )}
+    </div>
+  );
+}
 
+// ==================== Main Component ====================
+function AllCards() {
+  const [getCards, setGetCards] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchCards = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get("/cards");
+      console.log("Fetched cards:", response.data);
+      setGetCards(response.data.data || []);
+    } catch (error) {
+      console.error("Error fetching cards:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCards();
+  }, []);
+
+  return loading ? (
+    <LoadingSpinner/>
+  ) : (
+    <main className="w-full space-y-5">
       {/* Search And Filter Button  */}
       <section className="w-fit flex gap-2">
         <div className="relative w-full max-w-sm">
@@ -51,7 +119,7 @@ function AllCards() {
             size={18}
           />
           <Input
-            id={"search"}
+            id="search"
             placeholder="Search, ID, Name..."
             className="pl-10"
           />
@@ -77,7 +145,7 @@ function AllCards() {
         </NavLink>
       </section>
 
-      {/* tbale data  */}
+      {/* Table data */}
       <main className="overflow-hidden rounded-md border">
         <Table>
           <TableHeader className="bg-accent rounded-md">
@@ -94,38 +162,46 @@ function AllCards() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow>
-              <TableCell className="w-[80px]">
-                <Checkbox />
-              </TableCell>
-              <TableCell className="font-medium">00234</TableCell>
-              <TableCell className="font-medium">
-                <div className="w-[30px] rounded-full overflow-hidden">
-                  <img src="https://img.daisyui.com/images/profile/demo/spiderperson@192.webp" />
-                </div>
-              </TableCell>
-              <TableCell>Construction</TableCell>
-              <TableCell>X2</TableCell>
-              <TableCell>SA MAO</TableCell>
-              <TableCell>
-                <DropdownMenu>
-                  <DropdownMenuTrigger>
-                    <Ellipsis />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-blue-500">
-                      <Pencil className="text-blue-500" />
-                      Update
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="text-red-500">
-                      <Trash className="text-red-500" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TableCell>
-            </TableRow>
+            {getCards.map((card) => (
+              <TableRow key={card.id}>
+                <TableCell className="w-[80px]">
+                  <Checkbox />
+                </TableCell>
+                <TableCell className="font-medium">
+                  {card.card_type_id}
+                </TableCell>
+                <TableCell className="font-medium">
+                  <div className="w-[30px] h-[30px] rounded-full overflow-hidden">
+                    <SecureImage
+                      url={card.profile_image_url}
+                      alt={card.card_name}
+                      className="w-full h-full"
+                    />
+                  </div>
+                </TableCell>
+                <TableCell>{card.card_type}</TableCell>
+                <TableCell>{card.block}</TableCell>
+                <TableCell>{card.card_name}</TableCell>
+                <TableCell>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger>
+                      <Ellipsis />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem className="text-blue-500">
+                        <Pencil className="text-blue-500" />
+                        Update
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="text-red-500">
+                        <Trash className="text-red-500" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </main>

@@ -18,6 +18,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import axios from "../../api/axios";
+import useAuth from "../../auth/useAuth";
 
 // Form validation schema
 const formSchema = z.object({
@@ -27,6 +29,7 @@ const formSchema = z.object({
 });
 
 export function Login() {
+  const { login, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -40,31 +43,41 @@ export function Login() {
     },
   });
 
+  useEffect(() => {
+    if (loading) return; // Wait until auth state is loaded
+
+    if (isAuthenticated) {
+      navigate("/", { replace: true }); // Add replace to prevent back navigation
+      toast.info("Redirecting to dashboard...");
+    }
+  }, [isAuthenticated, loading, navigate]);
+
   async function onSubmit(values) {
     setIsLoading(true);
 
     try {
-      const toastId = toast.loading("Logging in...");
+      // login request
+      const response = await axios.post("/login", {
+        email: values.email,
+        password: values.password,
+      });
 
-      // Mock API call - replace with your actual authentication
-      const response = await new Promise((resolve) =>
-        setTimeout(() => resolve({ ok: true }), 1500)
-      );
-
-      if (!response.ok) throw new Error("Login failed");
-
-      // Handle remember me functionality
-      if (values.rememberMe) {
-        localStorage.setItem("rememberedEmail", values.email);
-      } else {
-        localStorage.removeItem("rememberedEmail");
+      if (response.data.success) {
+        console.log(response.data);
+        login(
+          response.data.data.user,
+          response.data.data.access_token,
+          values.rememberMe
+        );
+        navigate("/");
+        toast.success("login successful", {
+          description: "Welcome back!",
+        });
+        setIsLoading(false);
       }
-
-      toast.success("Login successful", { id: toastId });
-      navigate("/dashboard");
     } catch (error) {
       toast.error("Login failed", {
-        description: error.message || "Invalid credentials",
+        description: error?.response?.data?.message || error.message,
       });
     } finally {
       setIsLoading(false);
@@ -115,10 +128,11 @@ export function Login() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel htmlFor="password">Password</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input
+                        id="password"
                         placeholder="••••••"
                         type={showPassword ? "text" : "password"}
                         autoComplete="current-password"

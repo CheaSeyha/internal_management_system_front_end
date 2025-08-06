@@ -59,7 +59,7 @@ function RosterTable() {
           {/* head */}
           <thead>
             <tr className="border border-white text-[#353535] whitespace-nowrap">
-              <th className="border px-2">NO</th>{" "}
+              <th className="border px-2">NO</th>
               {/* px-2 for minimal padding */}
               <th className="border px-2">ID</th>
               <th className="border px-2 outline outline-black sticky left-0 bg-[#FEFF02] z-10">

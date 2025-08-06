@@ -10,6 +10,7 @@ import { Toaster } from "@/components/ui/sonner";
 import AllCustomer from "./pages/Internet/AllCustomer";
 import AllISP from "./pages/Internet/AllISP";
 import RosterForm from "./pages/RosterForm/RosterForm";
+import ProtectedRoute from "./auth/ProtectedRoute";
 function App() {
   const location = useLocation(); // Get the current location
 
@@ -21,7 +22,13 @@ function App() {
             <Route path="login" element={<Login />} />
           </Route>
 
-          <Route element={<Layout />}>
+          <Route
+            element={
+              <ProtectedRoute>
+                <Layout />
+              </ProtectedRoute>
+            }
+          >
             <Route
               path="/"
               element={

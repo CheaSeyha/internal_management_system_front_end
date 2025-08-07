@@ -24,6 +24,7 @@ import {
   Rows2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import axios from "../../api/axios";
 export default function CardGenerator() {
   const contentRef = useRef(null);
   const reactToPrintFn = useReactToPrint({ contentRef });
@@ -178,7 +179,7 @@ export default function CardGenerator() {
     }
   }, [editingIndex]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const requiresImage = !["VIP Card", "Car Card"].includes(
@@ -203,6 +204,28 @@ export default function CardGenerator() {
     } else {
       // Add new entry
       setEntries((prev) => [...prev, entryToAdd]);
+
+      try {
+        // Save to server
+        const formData = new FormData();
+        formData.append("card_name", currentEntry.name);
+        formData.append("block", currentEntry.block);
+        formData.append("card_type", currentEntry.cardType);
+        if (currentEntry.imageFile) {
+          formData.append("profile_image", currentEntry.imageFile);
+        }
+
+        await axios.post("/create_card", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+      } catch (error) {
+        console.error("Error saving card:", error);
+        alert("Failed to save card. Please try again.");
+      }
+
+
     }
 
     setCurrentEntry({
@@ -243,6 +266,10 @@ export default function CardGenerator() {
     setEditingIndex(index);
   };
   // {`${changeLayout} ?  :
+
+
+
+
   return (
     <div
       className={

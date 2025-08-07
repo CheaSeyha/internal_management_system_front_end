@@ -63,7 +63,6 @@ export function Login() {
       });
 
       if (response.data.success) {
-        console.log(response.data);
         login(
           response.data.data.user,
           response.data.data.access_token,

@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Funnel, Plus, Search, Ellipsis, Trash, Loader2 } from "lucide-react";
+import {
+  Funnel,
+  Plus,
+  Search,
+  Ellipsis,
+  Trash,
+  Loader2,
+  Pencil,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,52 +39,17 @@ import { NavLink } from "react-router-dom";
 import axios from "../../api/axios";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { toast } from "sonner";
-
-const imageCache = {};
-
-function SecureImage({ url, alt, className }) {
-  const [src, setSrc] = useState(imageCache[url] || null);
-  const [loading, setLoading] = useState(!imageCache[url]);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchImage = async () => {
-      try {
-        setLoading(true);
-        const res = await axios.get(url, { responseType: "blob" });
-        const blobUrl = URL.createObjectURL(res.data);
-        imageCache[url] = blobUrl;
-        if (isMounted) setSrc(blobUrl);
-      } catch (err) {
-        console.error("Failed to load image:", err);
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-
-    if (url && !imageCache[url]) fetchImage();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [url]);
-
-  return (
-    <div className={`w-full h-full ${className}`}>
-      {loading ? (
-        <div className="skeleton w-full h-full rounded-full" />
-      ) : (
-        <img
-          src={src || "/placeholder.png"}
-          alt={alt}
-          className="w-full h-full object-cover rounded-full"
-        />
-      )}
-    </div>
-  );
-}
-
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 function AllCards() {
   const [getCards, setGetCards] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -125,7 +98,7 @@ function AllCards() {
         <p className="font-semibold text-red-500">
           Delete {selectedCards.length} selected cards?
         </p>
-        <p className="text-sm text-gray-700 mt-1">
+        <p className="text-sm mt-1">
           Card Type IDs: {selectedCards.map((c) => c.card_type_id).join(", ")}
         </p>
         <div className="mt-2 flex gap-2">
@@ -175,11 +148,13 @@ function AllCards() {
     ));
   };
 
+  const handleUpdate = (card) => {};
+
   const handleSingleDelete = (card) => {
     toast((t) => (
       <div>
         <p className="font-semibold text-red-500">Delete this card?</p>
-        <p className="text-sm text-gray-700 mt-1">
+        <p className="text-sm mt-1">
           Card Type ID: {card.card_type_id} ({card.card_type})
         </p>
         <div className="mt-2 flex gap-2">
@@ -225,6 +200,9 @@ function AllCards() {
       </div>
     ));
   };
+
+
+  
 
   return loading ? (
     <LoadingSpinner />
@@ -275,13 +253,13 @@ function AllCards() {
                   onCheckedChange={toggleSelectAll}
                 />
               </TableHead>
-              <TableHead>Card ID</TableHead>
-              <TableHead className="w-[100px]">Profile</TableHead>
+              <TableHead className="">Card ID</TableHead>
+              <TableHead>Name</TableHead>
               <TableHead>Card Type</TableHead>
               <TableHead>Block</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead className="w-[150px] text-right">
-                {selectedCards.length >= 2 && (
+              <TableHead>Create By</TableHead>
+              <TableHead className="w-[100px] text-center">
+                {(selectedCards.length >= 2 && (
                   <Button
                     variant="destructive"
                     size="sm"
@@ -290,7 +268,8 @@ function AllCards() {
                     <Trash className="mr-2 h-4 w-4" />
                     Delete Selected
                   </Button>
-                )}
+                )) ||
+                  "Actions"}
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -306,19 +285,12 @@ function AllCards() {
                 <TableCell className="font-medium">
                   {card.card_type_id}
                 </TableCell>
-                <TableCell className="font-medium">
-                  <div className="w-[30px] h-[30px] rounded-full overflow-hidden">
-                    <SecureImage
-                      url={card.profile_image_url}
-                      alt={card.card_name}
-                      className="w-full h-full"
-                    />
-                  </div>
-                </TableCell>
+                <TableCell>{card.card_name}</TableCell>
+
                 <TableCell>{card.card_type}</TableCell>
                 <TableCell>{card.block}</TableCell>
-                <TableCell>{card.card_name}</TableCell>
-                <TableCell className="text-right">
+                <TableCell>{card.create_by}</TableCell>
+                <TableCell className="w-[100px] text-center">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon">
@@ -326,7 +298,35 @@ function AllCards() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          {/* prevent DropdownMenuItem from closing the menu immediately */}
+                          <DropdownMenuItem
+                            className="text-blue-500"
+                            onSelect={(e) => e.preventDefault()} // 👈 prevents auto-close
+                          >
+                            <Pencil className="text-blue-500" />
+                            Update
+                          </DropdownMenuItem>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              Are you absolutely sure?
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction>Continue</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+
                       <DropdownMenuSeparator />
+
                       <DropdownMenuItem
                         className="text-red-500"
                         onClick={() => handleSingleDelete(card)}

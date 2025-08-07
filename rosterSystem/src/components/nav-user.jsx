@@ -39,7 +39,7 @@ export function NavUser({ user }) {
     try {
       const res = await axios.post("/logout");
       logout();
-      if (res.success) {
+      if (res.success || res.status === 401) {
         toast.success("Logged out successfully");
         window.location.href = "/auth/login"; // Redirect to login page
       }

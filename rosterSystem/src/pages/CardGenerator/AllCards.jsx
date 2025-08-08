@@ -7,6 +7,7 @@ import {
   Trash,
   Loader2,
   Pencil,
+  RotateCcw,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -200,10 +201,7 @@ function AllCards() {
       </div>
     ));
   };
-
-  return loading ? (
-    <LoadingSpinner />
-  ) : (
+  return (
     <main className="w-full space-y-5">
       {/* Search And Filter */}
       <section className="w-fit flex gap-2">
@@ -237,9 +235,12 @@ function AllCards() {
             Add Card
           </Button>
         </NavLink>
+        <Button variant="outline" onClick={fetchCards}>
+          <RotateCcw />
+        </Button>
       </section>
-
       {/* Table */}
+
       <main className="overflow-hidden rounded-md border">
         <Table>
           <TableHeader className="bg-accent rounded-md">
@@ -250,7 +251,7 @@ function AllCards() {
                   onCheckedChange={toggleSelectAll}
                 />
               </TableHead>
-              <TableHead className="">Card ID</TableHead>
+              <TableHead>Card ID</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Card Type</TableHead>
               <TableHead>Block</TableHead>
@@ -273,78 +274,54 @@ function AllCards() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {getCards.map((card) => (
-              <TableRow key={card.id}>
-                <TableCell className="w-[80px]">
-                  <Checkbox
-                    checked={selectedCards.some((c) => c.id === card.id)}
-                    onCheckedChange={() => toggleSelect(card)}
-                  />
-                </TableCell>
-                <TableCell className="font-medium">
-                  {card.card_type_id}
-                </TableCell>
-                <TableCell>{card.card_name}</TableCell>
-
-                <TableCell>{card.card_type}</TableCell>
-                <TableCell>{card.block}</TableCell>
-                <TableCell>{card.create_by}</TableCell>
-                <TableCell className="w-[100px] text-center">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger
-                      asChild
-                      className={
-                        selectedCards.length >= 2 ? "hidden h-[20px]" : ""
-                      }
-                    >
-                      <Button variant="ghost" size="20">
-                        <Ellipsis />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          {/* prevent DropdownMenuItem from closing the menu immediately */}
-                          <DropdownMenuItem
-                            className="text-blue-500"
-                            onSelect={(e) => e.preventDefault()} // 👈 prevents auto-close
-                          >
-                            <Pencil className="text-blue-500" />
-                            Update
-                          </DropdownMenuItem>
-                        </AlertDialogTrigger>
-
-                        {/* Uppdate Form  */}
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>
-                              Are you absolutely sure?
-                            </AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction>Continue</AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                      {/* Uppdate Form  */}
-                      <DropdownMenuSeparator />
-
-                      <DropdownMenuItem
-                        className="text-red-500"
-                        onClick={() => handleSingleDelete(card)}
-                      >
-                        <Trash className="text-red-500" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
+            {loading
+              ? // Show 5 skeleton rows during loading
+                [...Array(5)].map((_, idx) => (
+                  <TableRow key={`skeleton-${idx}`}>
+                    <TableCell className="w-[80px]">
+                      <div className="w-5 h-5 rounded-full skeleton"></div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="w-12 h-4 skeleton rounded"></div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="w-24 h-4 skeleton rounded"></div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="w-20 h-4 skeleton rounded"></div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="w-16 h-4 skeleton rounded"></div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="w-20 h-4 skeleton rounded"></div>
+                    </TableCell>
+                    <TableCell className="w-[100px] text-center">
+                      <div className="w-8 h-4 skeleton rounded mx-auto"></div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              : // Show actual cards
+                getCards.map((card) => (
+                  <TableRow key={card.id}>
+                    <TableCell className="w-[80px]">
+                      <Checkbox
+                        checked={selectedCards.some((c) => c.id === card.id)}
+                        onCheckedChange={() => toggleSelect(card)}
+                      />
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {card.card_type_id}
+                    </TableCell>
+                    <TableCell>{card.card_name}</TableCell>
+                    <TableCell>{card.card_type}</TableCell>
+                    <TableCell>{card.block}</TableCell>
+                    <TableCell>{card.create_by}</TableCell>
+                    <TableCell className="w-[100px] text-center">
+                      {/* Your dropdown menu code */}
+                    </TableCell>
+                  </TableRow>
+                ))}
           </TableBody>
         </Table>
       </main>

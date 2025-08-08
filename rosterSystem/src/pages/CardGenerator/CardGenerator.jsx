@@ -50,6 +50,7 @@ export default function CardGenerator() {
   const [editingIndex, setEditingIndex] = useState(null);
   const [noSpace, setNoSpace] = useState(true);
   const [loading, setloading] = useState(false);
+  const [allBlocks, setAllBlocks] = useState([]);
   //clear all cards
   const clearAllCards = () => {
     setEntries([]);
@@ -198,18 +199,11 @@ export default function CardGenerator() {
       ? { ...currentEntry, imageFile: null, imagePreviewUrl: null }
       : currentEntry;
 
-    if (editingIndex !== null) {
-      // Update existing entry
-      setEntries((prev) =>
-        prev.map((entry, i) => (i === editingIndex ? entryToAdd : entry))
-      );
-      setEditingIndex(null);
-    } else {
-      // Add new entry
-      setEntries((prev) => [...prev, entryToAdd]);
+    try {
+      if (editingIndex !== null) {
+        const originalCard = entries[editingIndex];
+        const isTypeChanged = currentEntry.cardType !== originalCard.cardType;
 
-      try {
-        // Save to server
         const formData = new FormData();
         formData.append("card_name", currentEntry.name);
         formData.append("block", currentEntry.block);
@@ -218,25 +212,74 @@ export default function CardGenerator() {
           formData.append("profile_image", currentEntry.imageFile);
         }
 
-        await axios.post("/create_card", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+        if (isTypeChanged) {
+          // Delete the original card first
+          const deleteOriginalCard = await axios.delete(
+            `card/delete/${originalCard.id}/${originalCard.cardType}`
+          );
+
+          if (deleteOriginalCard.status === 200) {
+            // Remove the old card locally
+            setEntries((prev) => prev.filter((_, i) => i !== editingIndex));
+
+            // Then create new card
+            const res = await axios.post("/create_card", formData, {
+              headers: { "Content-Type": "multipart/form-data" },
+            });
+
+            const getCardID = res.data.data.card_type_id;
+            const entryWithID = { ...entryToAdd, id: getCardID };
+
+            // Add new card to entries
+            setEntries((prev) => [...prev, entryWithID]);
+
+            toast.success("New card created due to type change!");
+          }
+        } else {
+          // Same card type: update existing
+          await axios.post(
+            `/card/edit/${originalCard.id}/${currentEntry.cardType}`,
+            formData,
+            { headers: { "Content-Type": "multipart/form-data" } }
+          );
+
+          setEntries((prev) =>
+            prev.map((entry, i) => (i === editingIndex ? entryToAdd : entry))
+          );
+
+          toast.success("Card updated successfully!");
+        }
+
+        setEditingIndex(null);
+      } else {
+        // Create new card
+        const formData = new FormData();
+        formData.append("card_name", currentEntry.name);
+        formData.append("block", currentEntry.block);
+        formData.append("card_type", currentEntry.cardType);
+        if (currentEntry.imageFile) {
+          formData.append("profile_image", currentEntry.imageFile);
+        }
+
+        const res = await axios.post("/create_card", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
         });
 
-        toast.success("Card added successfully!", {
-          description: "Your new card was added to the list.",
-        });
-      } catch (error) {
-        console.error("Error saving card:", error);
-        toast.success("Can't add card!", {
-          description: "Card was not add." + error.message,
-        });
-      } finally {
-        setloading(false);
+        const getCardID = res.data.data.card_type_id;
+        const entryWithID = { ...entryToAdd, id: getCardID };
+
+        setEntries((prev) => [...prev, entryWithID]);
+
+        toast.success("Card added successfully!");
       }
+    } catch (error) {
+      console.error("Error saving card:", error);
+      toast.error("Failed to save card!", { description: error.message });
+    } finally {
+      setloading(false);
     }
 
+    // Reset form
     setCurrentEntry({
       name: "",
       block: "",
@@ -502,18 +545,19 @@ export default function CardGenerator() {
                 : "flex-1"
             }`}
           >
+            {/* select card type  */}
             <div className="form-control">
               <label htmlFor="cardtype-select-trigger" className="label">
                 <span className="label-text">Card Type</span>
               </label>
               <Select
                 name="cardType"
-                value={currentEntry.cardType}
+                value={currentEntry.cardType || "placeholder"} // fallback to placeholder if empty
                 onValueChange={(value) =>
                   handleInputChange({
                     target: {
                       name: "cardType",
-                      value: value,
+                      value,
                     },
                   })
                 }
@@ -523,12 +567,27 @@ export default function CardGenerator() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    <SelectItem value="Staff">Staff</SelectItem>
-                    <SelectItem value="Construction">Construction</SelectItem>
-                    <SelectItem value="Delivery">Delivery</SelectItem>
-                    <SelectItem value="TukTuk">TukTuk</SelectItem>
-                    <SelectItem value="Car Card">Car Card</SelectItem>
-                    <SelectItem value="VIP Card">VIP Card</SelectItem>
+                    <SelectItem value="placeholder" disabled key="placeholder">
+                      Select a type
+                    </SelectItem>
+                    <SelectItem value="Staff" key="Staff">
+                      Staff
+                    </SelectItem>
+                    <SelectItem value="Construction" key="Construction">
+                      Construction
+                    </SelectItem>
+                    <SelectItem value="Delivery" key="Delivery">
+                      Delivery
+                    </SelectItem>
+                    <SelectItem value="TukTuk" key="TukTuk">
+                      TukTuk
+                    </SelectItem>
+                    <SelectItem value="Car Card" key="Car Card">
+                      Car Card
+                    </SelectItem>
+                    <SelectItem value="VIP Card" key="VIP Card">
+                      VIP Card
+                    </SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>
@@ -565,8 +624,8 @@ export default function CardGenerator() {
                 className="input input-bordered w-full"
               />
             </div>
-
-            <div
+            {/* Use ID from server not static  */}
+            {/* <div
               className={`form-control ${
                 currentEntry.cardType === "Car Card" ||
                 currentEntry.cardType === "Construction"
@@ -584,22 +643,20 @@ export default function CardGenerator() {
                 onChange={handleInputChange}
                 className="input input-bordered w-full"
               />
-            </div>
+            </div> */}
+            {/* Use ID from server not static  */}
             <Button
               type="submit"
               className="w-full bg-blue-500 mt-4 text-white"
               disabled={loading}
             >
-              {editingIndex !== null ? (
-                "Update"
-              ) : loading ? (
+              {loading ? (
                 <>
-                  <span key="text">Saving...</span>
-                  <span
-                    key="spinner"
-                    className="loading loading-spinner loading-md"
-                  ></span>
+                  <span className="loading loading-spinner loading-md mr-2"></span>
+                  {editingIndex !== null ? "Updating..." : "Saving..."}
                 </>
+              ) : editingIndex !== null ? (
+                "Update"
               ) : (
                 "Save"
               )}
@@ -618,6 +675,7 @@ export default function CardGenerator() {
         </div>
       </motion.form>
       {/* Preview card layout  */}
+
       <motion.div
         layout
         className="space-y-4"
@@ -700,7 +758,7 @@ export default function CardGenerator() {
           <AnimatePresence>
             {entries.map((entry, index) => (
               <motion.div
-                key={entry.name}
+                key={entry.id}
                 layout
                 initial={{ opacity: 0, y: 40, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -716,7 +774,7 @@ export default function CardGenerator() {
                 id={`card-${index}`}
               >
                 <VIP
-                  key={entry.name}
+                  key={entry.id}
                   onRemove={removeEntryByName}
                   onEdit={handleEdit}
                   index={index}

@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useState } from "react";
 import {
   BadgeCheck,
   Bell,
@@ -13,7 +14,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -25,28 +25,32 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { NavLink } from "react-router-dom";
+
 import { useAuth } from "../auth/AuthContext";
 import axios from "../api/axios";
 import { toast } from "sonner";
-import { ca } from "zod/v4/locales";
+import { useNavigate } from "react-router-dom";
+import { set } from "zod";
 
 export function NavUser({ user }) {
   const { isMobile } = useSidebar();
   const { logout } = useAuth();
 
-  const handleLogout = async () => {
+  const [loading, setLoading] = useState(false); // loading state
+  const navigate = useNavigate();
+
+  const handleLogout = async (event) => {
+    event.preventDefault(); // prevent dropdown close
+    setLoading(true);
     try {
-      const res = await axios.post("/logout");
-      logout();
-      if (res.success || res.status === 401) {
-        toast.success("Logged out successfully");
-        window.location.href = "/auth/login"; // Redirect to login page
-      }
-      
+      await axios.post("/logout");
+      toast.success("Logged out successfully");
     } catch (err) {
-      console.error("Logout failed:", err);
       toast.error("Failed to log out");
+    } finally {
+      logout();
+      setLoading(false);
+      navigate("/auth/login", { replace: true });
     }
   };
 
@@ -89,12 +93,19 @@ export function NavUser({ user }) {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <NavLink to={"auth/login"} onClick={handleLogout}>
-              <DropdownMenuItem>
-                <LogOut />
-                Log out
-              </DropdownMenuItem>
-            </NavLink>
+            {/* Logout menu item without NavLink */}
+            <DropdownMenuItem
+              onClick={handleLogout}
+              disabled={loading} // disable button when loading
+              className="cursor-pointer flex items-center gap-2"
+            >
+              <LogOut
+                className={`transition-opacity ${
+                  loading ? "opacity-50" : "opacity-100"
+                }`}
+              />
+              {loading ? <>Please Wait...<span className="loading loading-spinner loading-md"></span></> : "Log out"}
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

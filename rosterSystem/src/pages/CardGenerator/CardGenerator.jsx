@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useReactToPrint } from "react-to-print";
 import { toPng, toJpeg } from "html-to-image";
+import { toast } from "sonner";
 import {
   Select,
   SelectTrigger,
@@ -48,7 +49,7 @@ export default function CardGenerator() {
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
   const [editingIndex, setEditingIndex] = useState(null);
   const [noSpace, setNoSpace] = useState(true);
-
+  const [loading, setloading] = useState(false);
   //clear all cards
   const clearAllCards = () => {
     setEntries([]);
@@ -191,6 +192,8 @@ export default function CardGenerator() {
       );
     }
 
+    setloading(true);
+
     const entryToAdd = !requiresImage
       ? { ...currentEntry, imageFile: null, imagePreviewUrl: null }
       : currentEntry;
@@ -220,12 +223,18 @@ export default function CardGenerator() {
             "Content-Type": "multipart/form-data",
           },
         });
+
+        toast.success("Card added successfully!", {
+          description: "Your new card was added to the list.",
+        });
       } catch (error) {
         console.error("Error saving card:", error);
-        alert("Failed to save card. Please try again.");
+        toast.success("Can't add card!", {
+          description: "Card was not add." + error.message,
+        });
+      } finally {
+        setloading(false);
       }
-
-
     }
 
     setCurrentEntry({
@@ -266,9 +275,6 @@ export default function CardGenerator() {
     setEditingIndex(index);
   };
   // {`${changeLayout} ?  :
-
-
-
 
   return (
     <div
@@ -582,8 +588,21 @@ export default function CardGenerator() {
             <Button
               type="submit"
               className="w-full bg-blue-500 mt-4 text-white"
+              disabled={loading}
             >
-              {editingIndex !== null ? "Update" : "Done"}
+              {editingIndex !== null ? (
+                "Update"
+              ) : loading ? (
+                <>
+                  <span key="text">Saving...</span>
+                  <span
+                    key="spinner"
+                    className="loading loading-spinner loading-md"
+                  ></span>
+                </>
+              ) : (
+                "Save"
+              )}
             </Button>
 
             {editingIndex !== null && (

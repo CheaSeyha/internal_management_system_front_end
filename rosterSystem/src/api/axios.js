@@ -45,7 +45,7 @@ api.interceptors.response.use(
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
-        return new Promise(function (resolve, reject) {
+        return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
           .then((token) => {
@@ -59,23 +59,31 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const res = await api.post("/refresh-token"); // Backend detects old token
+        const res = await api.post("/refresh-token");
 
-        const newToken = res.data.access_token;
+        // ✅ FIX: Token is inside res.data.data.access_token
+        const newToken = res.data?.data?.access_token;
 
-        // Update both storages
+        if (!newToken) {
+          throw new Error("No new access token returned from refresh endpoint");
+        }
+
+        // Store new token
         localStorage.setItem("access_token", newToken);
         sessionStorage.setItem("access_token", newToken);
 
-        // Update Axios default headers
+        // Update Axios default
         api.defaults.headers.Authorization = `Bearer ${newToken}`;
 
         processQueue(null, newToken);
+
+        // Retry original request
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
 
-        // Clear both storages and redirect to login
+        // Clear and redirect to login
         localStorage.removeItem("access_token");
         sessionStorage.removeItem("access_token");
         window.location.href = "/auth/login";

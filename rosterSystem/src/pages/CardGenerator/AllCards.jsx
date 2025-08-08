@@ -201,9 +201,6 @@ function AllCards() {
     ));
   };
 
-
-  
-
   return loading ? (
     <LoadingSpinner />
   ) : (
@@ -265,8 +262,10 @@ function AllCards() {
                     size="sm"
                     onClick={handleBulkDelete}
                   >
-                    <Trash className="mr-2 h-4 w-4" />
-                    Delete Selected
+                    <div className="relative inline-flex">
+                      <Trash className="h-4 w-4 text-gray-300  left-0.5 bottom-0.5 relative" />
+                      <Trash className="h-4 w-4 text-gray-300 absolute fill-[#a44d4e]" />
+                    </div>
                   </Button>
                 )) ||
                   "Actions"}
@@ -292,8 +291,13 @@ function AllCards() {
                 <TableCell>{card.create_by}</TableCell>
                 <TableCell className="w-[100px] text-center">
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
+                    <DropdownMenuTrigger
+                      asChild
+                      className={
+                        selectedCards.length >= 2 ? "hidden h-[20px]" : ""
+                      }
+                    >
+                      <Button variant="ghost" size="20">
                         <Ellipsis />
                       </Button>
                     </DropdownMenuTrigger>
@@ -309,6 +313,8 @@ function AllCards() {
                             Update
                           </DropdownMenuItem>
                         </AlertDialogTrigger>
+
+                        {/* Uppdate Form  */}
                         <AlertDialogContent>
                           <AlertDialogHeader>
                             <AlertDialogTitle>
@@ -324,7 +330,7 @@ function AllCards() {
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
-
+                      {/* Uppdate Form  */}
                       <DropdownMenuSeparator />
 
                       <DropdownMenuItem

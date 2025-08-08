@@ -69,8 +69,12 @@ export function Login() {
           values.rememberMe
         );
         navigate("/");
-        toast.success("login successful", {
-          description: "Welcome back!",
+        toast.success("Login Successful", {
+          description: (
+            <>
+              Welcome back <strong>{response.data.data.user.name}</strong>!
+            </>
+          ),
         });
         setIsLoading(false);
       }

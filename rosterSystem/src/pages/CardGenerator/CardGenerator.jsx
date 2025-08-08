@@ -55,6 +55,53 @@ export default function CardGenerator() {
   const clearAllCards = () => {
     setEntries([]);
   };
+  const [blocks, setBlocks] = useState([]);
+
+  const fetchBlocks = async () => {
+    try {
+      const res = await axios.get("blocks/all_buildings");
+      if (res.status === 200) {
+        setBlocks(res.data.data);
+        setAllBlocks(res.data.data);
+      }
+      console.log("Blocks fetched successfully:", res.data.data);
+    } catch (error) {
+      console.error("Error fetching blocks:", error);
+      toast.error("Failed to fetch blocks", {
+        description: error.response?.data?.message || error.message,
+      });
+    }
+  };
+
+  useEffect(() => {
+    fetchBlocks();
+  }, []);
+
+  const [selectedBlocks, setSelectedBlocks] = React.useState([]);
+
+  const handleAddBlock = (value) => {
+    if (!selectedBlocks.includes(value)) {
+      const newSelected = [...selectedBlocks, value];
+      setSelectedBlocks(newSelected);
+      setCurrentEntry((prev) => ({
+        ...prev,
+        block: newSelected.join("-"),
+      }));
+    }
+  };
+
+  const handleRemoveBlock = (value) => {
+    const newSelected = selectedBlocks.filter((b) => b !== value);
+    setSelectedBlocks(newSelected);
+    setCurrentEntry((prev) => ({
+      ...prev,
+      block: newSelected.join("-"),
+    }));
+  };
+
+  const availableBlocks = blocks
+    .map((b) => b.building_name)
+    .filter((name) => !selectedBlocks.includes(name));
 
   const [changeLayout, setLayout] = useState(() => {
     const saved = localStorage.getItem("cardgen-layout");
@@ -288,6 +335,8 @@ export default function CardGenerator() {
       imageFile: null,
       imagePreviewUrl: null,
     });
+
+    setSelectedBlocks([]);
   };
 
   // Add a cancel edit function
@@ -459,11 +508,10 @@ export default function CardGenerator() {
           </div>
         </div>
       )}
-
       <motion.form
         layout
         onSubmit={handleSubmit}
-        className="rounded-xl p-6 shadow-lg h-fit bg-sidebar"
+        className="rounded-xl p-6 m-auto shadow-lg h-fit w-[700px] mb-5 bg-sidebar"
         transition={{ type: "spring", stiffness: 500, damping: 40 }}
       >
         <div className="relative w-fit m-auto mb-4">
@@ -528,7 +576,7 @@ export default function CardGenerator() {
                   <img
                     src={currentEntry.imagePreviewUrl}
                     alt="Preview"
-                    className="w-[80%] h-[100%] object-contain"
+                    className="w-[80%] h-full object-contain"
                   />
                 ) : (
                   <p className="text-center text-gray-500">
@@ -612,18 +660,52 @@ export default function CardGenerator() {
                 ref={nameInputRef}
               />
             </div>
+            {/* Block  */}
             <div className="form-control">
-              <label htmlFor="block" className="label">
-                <span className="label-text">Block</span>
+              <label className="label">
+                <span className="label-text">Select Block</span>
               </label>
-              <Input
-                name="block"
-                id="block"
-                value={currentEntry.block}
-                onChange={handleInputChange}
-                className="input input-bordered w-full"
-              />
+              <Select
+                value={undefined} // reset after each selection
+                onValueChange={handleAddBlock}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a block" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {availableBlocks.length === 0 && (
+                      <SelectItem disabled>No more blocks to select</SelectItem>
+                    )}
+                    {availableBlocks.map((block) => (
+                      <SelectItem key={block} value={block}>
+                        {block}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+
+              {/* Preview selected blocks */}
+              <div className="mt-2 flex flex-wrap gap-2">
+                {selectedBlocks.map((block,index) => (
+                  <div
+                    key={index}
+                    className="bg-blue-200 text-blue-800 px-3 py-1 rounded flex items-center gap-2"
+                  >
+                    <span>{block}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveBlock(block)}
+                      className="text-blue-600 hover:text-blue-900 font-bold"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
+
             {/* Use ID from server not static  */}
             {/* <div
               className={`form-control ${

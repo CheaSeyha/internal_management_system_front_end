@@ -318,7 +318,58 @@ function AllCards() {
                     <TableCell>{card.block}</TableCell>
                     <TableCell>{card.create_by}</TableCell>
                     <TableCell className="w-[100px] text-center">
-                      {/* Your dropdown menu code */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          asChild
+                          className={
+                            selectedCards.length >= 2 ? "hidden h-[20px]" : ""
+                          }
+                        >
+                          <Button variant="ghost" size="20">
+                            <Ellipsis />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              {/* prevent DropdownMenuItem from closing the menu immediately */}
+                              <DropdownMenuItem
+                                className="text-blue-500"
+                                onSelect={(e) => e.preventDefault()} // 👈 prevents auto-close
+                              >
+                                <Pencil className="text-blue-500" />
+                                Update
+                              </DropdownMenuItem>
+                            </AlertDialogTrigger>
+
+                            {/* Uppdate Form  */}
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  Are you absolutely sure?
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction>Continue</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                          {/* Uppdate Form  */}
+                          <DropdownMenuSeparator />
+
+                          <DropdownMenuItem
+                            className="text-red-500"
+                            onClick={() => handleSingleDelete(card)}
+                          >
+                            <Trash className="text-red-500" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}

@@ -62,11 +62,26 @@ function AllCards() {
       const response = await axios.get("/cards");
       setGetCards(response.data.data || []);
     } catch (error) {
+      toast.error(error.message || "Failed to fetch cards"); // Will show a red toast
       console.error("Error fetching cards:", error);
     } finally {
       setLoading(false);
     }
   };
+
+  function parseBlock(block) {
+    if (!block) return "";
+    if (Array.isArray(block)) return block.join("-");
+
+    try {
+      const parsed = JSON.parse(block);
+      if (Array.isArray(parsed)) return parsed.join("-");
+    } catch {
+      // Not JSON, just return as is
+    }
+
+    return block;
+  }
 
   useEffect(() => {
     fetchCards();
@@ -315,7 +330,7 @@ function AllCards() {
                     </TableCell>
                     <TableCell>{card.card_name}</TableCell>
                     <TableCell>{card.card_type}</TableCell>
-                    <TableCell>{card.block}</TableCell>
+                    <TableCell>{parseBlock(card.block)}</TableCell>
                     <TableCell>{card.create_by}</TableCell>
                     <TableCell className="w-[100px] text-center">
                       <DropdownMenu>

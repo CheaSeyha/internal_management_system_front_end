@@ -8,6 +8,17 @@ import { useReactToPrint } from "react-to-print";
 import { toPng, toJpeg } from "html-to-image";
 import { toast } from "sonner";
 import {
+  Command,
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+  CommandShortcut,
+} from "@/components/ui/command";
+import {
   Select,
   SelectTrigger,
   SelectValue,
@@ -50,7 +61,6 @@ export default function CardGenerator() {
   const [editingIndex, setEditingIndex] = useState(null);
   const [noSpace, setNoSpace] = useState(true);
   const [loading, setloading] = useState(false);
-  const [allBlocks, setAllBlocks] = useState([]);
   //clear all cards
   const clearAllCards = () => {
     setEntries([]);
@@ -62,9 +72,7 @@ export default function CardGenerator() {
       const res = await axios.get("blocks/all_buildings");
       if (res.status === 200) {
         setBlocks(res.data.data);
-        setAllBlocks(res.data.data);
       }
-      console.log("Blocks fetched successfully:", res.data.data);
     } catch (error) {
       console.error("Error fetching blocks:", error);
       toast.error("Failed to fetch blocks", {
@@ -79,24 +87,18 @@ export default function CardGenerator() {
 
   const [selectedBlocks, setSelectedBlocks] = React.useState([]);
 
-  const handleAddBlock = (value) => {
-    if (!selectedBlocks.includes(value)) {
-      const newSelected = [...selectedBlocks, value];
-      setSelectedBlocks(newSelected);
-      setCurrentEntry((prev) => ({
-        ...prev,
-        block: newSelected.join("-"),
-      }));
+  const handleAddBlock = (block) => {
+    if (!selectedBlocks.includes(block)) {
+      const newBlocks = [...selectedBlocks, block];
+      setSelectedBlocks(newBlocks);
+      setCurrentEntry((prev) => ({ ...prev, block: newBlocks }));
     }
   };
 
-  const handleRemoveBlock = (value) => {
-    const newSelected = selectedBlocks.filter((b) => b !== value);
-    setSelectedBlocks(newSelected);
-    setCurrentEntry((prev) => ({
-      ...prev,
-      block: newSelected.join("-"),
-    }));
+  const handleRemoveBlock = (block) => {
+    const newBlocks = selectedBlocks.filter((b) => b !== block);
+    setSelectedBlocks(newBlocks);
+    setCurrentEntry((prev) => ({ ...prev, block: newBlocks }));
   };
 
   const availableBlocks = blocks
@@ -228,6 +230,7 @@ export default function CardGenerator() {
     }
   }, [editingIndex]);
 
+  // Habdle Add or Edit Card --------------------------------------------
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -249,11 +252,13 @@ export default function CardGenerator() {
     try {
       if (editingIndex !== null) {
         const originalCard = entries[editingIndex];
+        //show preview of orignal card
+        setSelectedBlocks(originalCard.block || []);
         const isTypeChanged = currentEntry.cardType !== originalCard.cardType;
 
         const formData = new FormData();
         formData.append("card_name", currentEntry.name);
-        formData.append("block", currentEntry.block);
+        formData.append("block", JSON.stringify(currentEntry.block));
         formData.append("card_type", currentEntry.cardType);
         if (currentEntry.imageFile) {
           formData.append("profile_image", currentEntry.imageFile);
@@ -302,7 +307,7 @@ export default function CardGenerator() {
         // Create new card
         const formData = new FormData();
         formData.append("card_name", currentEntry.name);
-        formData.append("block", currentEntry.block);
+        formData.append("block", JSON.stringify(currentEntry.block));
         formData.append("card_type", currentEntry.cardType);
         if (currentEntry.imageFile) {
           formData.append("profile_image", currentEntry.imageFile);
@@ -338,6 +343,7 @@ export default function CardGenerator() {
 
     setSelectedBlocks([]);
   };
+  // Habdle Add or Edit Card --------------------------------------------
 
   // Add a cancel edit function
   const cancelEdit = () => {
@@ -350,22 +356,35 @@ export default function CardGenerator() {
       imageFile: null,
       imagePreviewUrl: null,
     });
+
+    setSelectedBlocks([]);
   };
+
   const handleEdit = (index) => {
-    // Check if there are unsaved changes in currentEntry
     if (currentEntry.name || currentEntry.imageFile) {
-      if (
-        !window.confirm(
-          "You have unsaved changes. Do you want to discard them and edit this card?"
-        )
-      ) {
-        return;
-      }
+      toast.warning(
+        "You have unsaved changes. Please save or discard them first."
+      );
+      return;
     }
 
-    setCurrentEntry(entries[index]);
+    const card = entries[index];
+    const blocks = Array.isArray(card.block)
+      ? card.block
+      : card.block
+      ? JSON.parse(card.block)
+      : [];
+
+    setSelectedBlocks(blocks);
+
+    setCurrentEntry({
+      ...card,
+      block: blocks,
+    });
+
     setEditingIndex(index);
   };
+
   // {`${changeLayout} ?  :
 
   return (
@@ -663,45 +682,48 @@ export default function CardGenerator() {
             {/* Block  */}
             <div className="form-control">
               <label className="label">
-                <span className="label-text">Select Block</span>
+                <span className="label-text">Select Blocks</span>
               </label>
-              <Select
-                value={undefined} // reset after each selection
-                onValueChange={handleAddBlock}
-              >
+
+              <Select value={undefined} onValueChange={handleAddBlock}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a block" />
+                  <SelectValue placeholder="Select a blocks" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {availableBlocks.length === 0 && (
-                      <SelectItem disabled>No more blocks to select</SelectItem>
-                    )}
-                    {availableBlocks.map((block) => (
-                      <SelectItem key={block} value={block}>
-                        {block}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
+                <SelectContent className="p-0">
+                  <Command className="flex flex-col h-60">
+                    {" "}
+                    {/* fixed height container */}
+                    <CommandInput
+                      className="sticky top-0 z-10"
+                      placeholder="Search blocks..."
+                    />
+                    <CommandEmpty>No block found.</CommandEmpty>
+                    <CommandGroup className="overflow-y-auto flex-1">
+                      {availableBlocks.map((block) => (
+                        <CommandItem
+                          key={String(block)}
+                          value={block}
+                          onSelect={(value) => handleAddBlock(value)}
+                        >
+                          {block}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Command>
                 </SelectContent>
               </Select>
 
               {/* Preview selected blocks */}
               <div className="mt-2 flex flex-wrap gap-2">
-                {selectedBlocks.map((block,index) => (
-                  <div
-                    key={index}
-                    className="bg-blue-200 text-blue-800 px-3 py-1 rounded flex items-center gap-2"
+                {selectedBlocks.map((block) => (
+                  <Button
+                    key={String(block)}
+                    onClick={() => handleRemoveBlock(block)}
+                    variant="outline"
+                    className="px-3 py-1 rounded flex items-center gap-2"
                   >
                     <span>{block}</span>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveBlock(block)}
-                      className="text-blue-600 hover:text-blue-900 font-bold"
-                    >
-                      ×
-                    </button>
-                  </div>
+                  </Button>
                 ))}
               </div>
             </div>

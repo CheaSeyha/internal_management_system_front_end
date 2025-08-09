@@ -7,11 +7,20 @@ import carcard1 from "../../../assets/CardTamplete/CAR1.png";
 import construction from "../../../assets/CardTamplete/CONSTRUCTION.png";
 import { Trash, Edit } from "lucide-react";
 function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
+  const formattedBlock = formatBlocks(block);
+  function formatBlocks(blockArray) {
+    if (!Array.isArray(blockArray) || blockArray.length === 0) return "";
+    return blockArray.join("-");
+  }
+
   const [fontSizeName, setFontSizeName] = useState(18); // Starting font size
   const nameRef = useRef();
   const [lineHight, setLineHight] = useState(0);
+
   useEffect(() => {
-    if(cardType === "Construction" ) setFontSizeName(16)
+    if (cardType === "Construction") setFontSizeName(16);
+    if (cardType === "Delivery"  || cardType === "TukTuk") setFontSizeName(17);
+
     if (name.length >= 20) {
       setLineHight(2);
       console.log(lineHight);
@@ -63,7 +72,7 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
         </div>
         {/* Delivery Card */}
         {cardType === "Delivery" && (
-          <main className="deliverycard relative font-cardFont2 w-[9cm] h-[6cm] text-black">
+          <main className="deliverycard relative font-cardFont2 w-[9cm] h-[6cm] text-black bg-white rounded-2xl">
             <div className="image-profile w-[2.5cm] border-[1.5px] border-blue-500 h-[3cm] absolute top-[2cm] left-[0.5cm]">
               <img src={image} className="w-full h-full object-cover" alt="" />
             </div>
@@ -83,7 +92,7 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
               </p>
             </div>
             <p className="forBlock absolute text-[18px] top-[3.26cm] left-[5.14cm]">
-              {block}
+              {formattedBlock}
             </p>
             <p className="forID absolute text-[18px] top-[3.84cm] left-[5.14cm]">
               {id}
@@ -96,7 +105,7 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
 
         {/* TukTuk Card */}
         {cardType === "TukTuk" && (
-          <main className="deliverycard relative font-cardFont2 w-[9cm] h-[6cm] text-black">
+          <main className="TukTukcard relative font-cardFont2 w-[9cm] h-[6cm] text-black bg-white rounded-2xl">
             <div className="image-profile w-[2.5cm] border-[1.5px] border-blue-500 h-[3cm] absolute top-[2cm] left-[0.5cm]">
               <img src={image} className="w-full h-full object-cover" alt="" />
             </div>
@@ -116,7 +125,7 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
               </p>
             </div>
             <p className="forBlock absolute text-[18px] top-[3.26cm] left-[5.14cm]">
-              {block}
+              {formattedBlock}
             </p>
             <p className="forID absolute text-[18px] top-[3.84cm] left-[5.14cm]">
               {id}
@@ -129,7 +138,7 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
 
         {/* Staff Card */}
         {cardType === "Staff" && (
-          <main className="relative font-cardFont2 w-[9cm] h-[6cm] text-black">
+          <main className="relative font-cardFont2 w-[9cm] h-[6cm] text-black  bg-white rounded-2xl">
             <div className="image-profile w-[2.5cm] border-[1.5px] border-yellow-300 h-[3cm] absolute top-[2cm] left-[0.5cm]">
               <img src={image} className="w-full h-full object-cover" alt="" />
             </div>
@@ -149,7 +158,7 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
               </p>
             </div>
             <p className="staffcard forBlock absolute text-[18px] top-[3.26cm] left-[5.21cm]">
-              {block}
+              {formattedBlock}
             </p>
             <p className="forID absolute text-[18px] top-[3.79cm] left-[5.21cm]">
               {id}
@@ -162,7 +171,7 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
 
         {/* Construction Card */}
         {cardType === "Construction" && (
-          <main className="relative font-cardFont2 w-[9cm] h-[6cm] text-black">
+          <main className="relative font-cardFont2 w-[9cm] h-[6cm] text-black  bg-white rounded-2xl">
             <div className="image-profile w-[2.5cm] border-[1.5px] border-yellow-300 h-[3cm] absolute top-[2cm] left-[0.3cm]">
               <img src={image} className="w-full h-full object-cover" alt="" />
             </div>
@@ -182,7 +191,7 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
               </p>
             </div>
             <p className="staffcard forBlock absolute text-[16px] top-[3.30cm] left-[4.86cm]">
-              {block}
+              {formattedBlock}
             </p>
             <p className="forDate absolute text-[16px] top-[4.33cm] left-[4.86cm]">
               {getDayMonthYear}
@@ -195,7 +204,7 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
 
         {/* VIP Card */}
         {cardType === "VIP Card" && (
-          <main className="vipcard relative font-cardFont2 w-[9cm] h-[6cm] text-black">
+          <main className="vipcard relative font-cardFont2 w-[9cm] h-[6cm] text-black  bg-white rounded-2xl">
             <div
               className="absolute top-[2.16cm] left-[5.25cm] flex items-end"
               style={{ height: "20px" }} // Fixed height container
@@ -213,7 +222,7 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
             </div>
 
             <p className="staffcard forBlock absolute text-[18px] top-[3.21cm] left-[5.25cm]">
-              {block}
+              {formattedBlock}
             </p>
             <p className="forID absolute text-[18px] top-[3.76cm] left-[5.25cm]">
               {id}
@@ -226,13 +235,15 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
 
         {/* Car Card */}
         {cardType === "Car Card" && (
-          <main className="carcard relative font-cardFont1 w-[20cm] h-[13.34cm] text-black">
-            <p className="plat-number absolute text-[2.9cm] text-[#0d07fd] top-[6.57cm] left-[4.79cm] text-stroke text-right direction-rtl">
-              {name}
-            </p>
+          <main className="carcard relative font-cardFont1 w-[20cm] h-[13.34cm] text-black  bg-white rounded-2xl">
+            <div className="w-full h-[4cm] absolute top-[6.57cm] flex items-center justify-center text-center">
+              <p className="plat-number text-[2.9cm] text-[#0d07fd] text-stroke direction-rtl">
+                {name}
+              </p>
+            </div>
 
             <p className="staffcard forBlock absolute text-[13px] text-blue-400 top-[12.46cm] left-[15.25cm]">
-              {block}
+              {formattedBlock}
             </p>
             <div className="image-tamplete w-full h-full">
               <img src={carcard1} alt="" />

@@ -51,19 +51,94 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Axios } from "axios";
 function AllCards() {
   const [getCards, setGetCards] = useState([]);
+  const [originalGetCards, setOriginalGetCards] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedCards, setSelectedCards] = useState([]);
+  const [searchValue, setSearchValue] = useState("");
+  const [filter, setFilter] = useState("");
+  const [filterValue, setFilterValue] = useState([]);
+  const [getFilterValue, setGetFilterValue] = useState("");
+  //search logic --------------------------
+
+  const fetchFilterValue = async () => {
+    if (filter === "block") {
+      try {
+        const res = await axios.get("blocks/all_buildings");
+        if (res.status === 200) {
+          setFilterValue(res.data.data.map((item) => item.building_name));
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    } else {
+      try {
+        const res = await axios.get("/cards/get_all_card_type");
+        if (res.status === 200) {
+          setFilterValue(res.data.data);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchFilterValue();
+    console.log(getFilterValue);
+  }, [filter]);
+
+  const handleChange = (e) => {
+    const value = e.target.value;
+    setSearchValue(value);
+
+    if (value.trim() === "") {
+      // Reset displayed cards from cached original cards
+      setGetCards(originalGetCards);
+    }
+  };
+
+  useEffect(() => {
+    console.log("Filter data" + getFilterValue);
+  }, [getFilterValue]);
+
+  const filteredCards = async () => {
+    if (!searchValue.trim() && !filterValue) {
+      setGetCards(originalGetCards);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await axios.post("card/cards_filter", {
+        card_name: searchValue, // only search text here
+        filter: filter, // selected filter type (e.g., 'block')
+        filterValue: getFilterValue, // selected filter value (e.g., 'S1-K')
+      });
+      if (res.data.success) {
+        setGetCards(res.data.data);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  //search logic --------------------------
 
   const fetchCards = async () => {
     setLoading(true);
     try {
       const response = await axios.get("/cards");
-      setGetCards(response.data.data || []);
+      if (response.data.success) {
+        setGetCards(response.data.data || []);
+        setOriginalGetCards(response.data.data || []);
+      }
     } catch (error) {
-      toast.error(error.message || "Failed to fetch cards"); // Will show a red toast
-      console.error("Error fetching cards:", error);
+      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -164,8 +239,6 @@ function AllCards() {
     ));
   };
 
-  const handleUpdate = (card) => {};
-
   const handleSingleDelete = (card) => {
     toast((t) => (
       <div>
@@ -216,22 +289,34 @@ function AllCards() {
       </div>
     ));
   };
+
+  const restart = () => {
+    fetchCards();
+    setGetFilterValue("");
+    setFilter("")
+  };
+
   return (
     <main className="w-full space-y-5">
       {/* Search And Filter */}
       <section className="w-fit flex gap-2">
         <div className="relative w-full max-w-sm">
-          <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-            size={18}
-          />
+          <Button
+            onClick={() => filteredCards()}
+            variant="ghost"
+            className="absolute left-0 top-0 h-full px-3"
+          >
+            <Search className="h-4 w-4 text-gray-500" />
+          </Button>
           <Input
             id="search"
             placeholder="Search, ID, Name..."
             className="pl-10"
+            value={searchValue}
+            onChange={handleChange}
           />
         </div>
-        <Select>
+        <Select onValueChange={(value) => setFilter(value)} value={filter}>
           <SelectTrigger className="w-[180px]">
             <Funnel />
             <SelectValue placeholder="Filter" />
@@ -239,20 +324,48 @@ function AllCards() {
           <SelectContent>
             <SelectGroup>
               <SelectLabel>Filter By</SelectLabel>
-              <SelectItem value="card_name">Card Name</SelectItem>
-              <SelectItem value="card_id">Card ID</SelectItem>
+              <SelectItem value="card_type">Card Type</SelectItem>
+              <SelectItem value="block">Block</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
+
+        {/* filter value  */}
+        <Select
+          onValueChange={(value) => setGetFilterValue(value)}
+          value={getFilterValue}
+        >
+          <SelectTrigger className="w-[180px]">
+            <Funnel />
+            <SelectValue
+              placeholder={
+                filter === "block" ? "Select Block" : "Select Cards Type"
+              }
+            />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectLabel>
+                {filter === "block" ? "Select Block" : "Select Cards Type"}
+              </SelectLabel>
+              {Array.isArray(filterValue) &&
+                filterValue.map((item) => (
+                  <SelectItem key={item} value={item}>
+                    {item}
+                  </SelectItem>
+                ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+        <Button variant="outline" onClick={restart}>
+          <RotateCcw />
+        </Button>
         <NavLink to={"/cards/card-generator"}>
           <Button className="bg-blue-500 text-accent-foreground">
             <Plus />
             Add Card
           </Button>
         </NavLink>
-        <Button variant="outline" onClick={fetchCards}>
-          <RotateCcw />
-        </Button>
       </section>
       {/* Table */}
 
@@ -291,7 +404,7 @@ function AllCards() {
           <TableBody>
             {loading
               ? // Show 5 skeleton rows during loading
-                [...Array(5)].map((_, idx) => (
+                [...Array(17)].map((_, idx) => (
                   <TableRow key={`skeleton-${idx}`}>
                     <TableCell className="w-[80px]">
                       <div className="w-5 h-5 rounded-full skeleton"></div>

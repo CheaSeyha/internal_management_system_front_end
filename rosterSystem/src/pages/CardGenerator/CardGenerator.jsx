@@ -238,9 +238,10 @@ export default function CardGenerator() {
       currentEntry.cardType
     );
     if (!currentEntry.name || (requiresImage && !currentEntry.imageFile)) {
-      return alert(
-        requiresImage ? "Name and Image are required." : "Name is required."
-      );
+      if (requiresImage) {
+        toast.error("Name and Image are required.");
+        return;
+      }
     }
 
     setloading(true);

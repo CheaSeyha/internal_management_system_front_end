@@ -87,7 +87,6 @@ function AllCards() {
 
   useEffect(() => {
     fetchFilterValue();
-    console.log(getFilterValue);
   }, [filter]);
 
   const handleChange = (e) => {
@@ -100,9 +99,6 @@ function AllCards() {
     }
   };
 
-  useEffect(() => {
-    console.log("Filter data" + getFilterValue);
-  }, [getFilterValue]);
 
   const filteredCards = async () => {
     if (!searchValue.trim() && !filterValue) {

@@ -2,7 +2,7 @@ import { SidebarProvider, SidebarTrigger } from "./components/ui/sidebar";
 import { AppSidebar } from "./components/app-sidebar";
 import { Outlet, useLocation } from "react-router-dom";
 import { DarkModeToggle } from "./components/DarkModeToggle";
-import { WalletCards } from "lucide-react";
+import { WalletCards } from "lucide-react"; // keep as fallback
 import { data } from "./data/sidebar_data";
 
 export default function Layout() {
@@ -11,20 +11,22 @@ export default function Layout() {
 
   let parentTitle = null;
   let childTitle = null;
+  let CurrentIcon = WalletCards; // default fallback icon
 
   for (const parent of data.navMain) {
-    const parentUrl = parent.url || ""; // fallback to empty string
+    const parentUrl = parent.url || "";
 
-    // Match root if URL is "" and currentPath is ""
     if (
       (parentUrl === "" && currentPath === "") ||
       (parentUrl && currentPath.startsWith(parentUrl))
     ) {
       parentTitle = parent.title;
+      CurrentIcon = parent.icon || WalletCards; // 👈 assign parent icon
 
-      // If parent has items, check child match
       if (parent.items && parent.items.length > 0) {
-        const child = parent.items.find(sub => currentPath.endsWith(sub.url));
+        const child = parent.items.find((sub) =>
+          currentPath.endsWith(sub.url)
+        );
         if (child) {
           childTitle = child.title;
         }
@@ -46,9 +48,9 @@ export default function Layout() {
         <div className="flex justify-center place-items-center mb-5 gap-2">
           <SidebarTrigger />
           <DarkModeToggle />
-          {/* Title */}
+          {/* Title with Dynamic Icon */}
           <nav className="w-full flex items-center gap-2">
-            <WalletCards className="text-blue-700 text-2xl" />
+            <CurrentIcon className="text-blue-700 text-2xl" />
             <h1 className="text-lg font-bold">{pageTitle}</h1>
           </nav>
         </div>

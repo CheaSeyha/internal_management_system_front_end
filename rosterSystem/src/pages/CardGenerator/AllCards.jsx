@@ -38,7 +38,6 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { NavLink } from "react-router-dom";
 import axios from "../../api/axios";
-import LoadingSpinner from "../../components/LoadingSpinner";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -51,80 +50,58 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Axios } from "axios";
+
 function AllCards() {
+  // State management
   const [getCards, setGetCards] = useState([]);
   const [originalGetCards, setOriginalGetCards] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedCards, setSelectedCards] = useState([]);
   const [searchValue, setSearchValue] = useState("");
-  const [filter, setFilter] = useState("");
-  const [filterValue, setFilterValue] = useState([]);
-  const [getFilterValue, setGetFilterValue] = useState("");
-  //search logic --------------------------
+  const [filter, setFilter] = useState("no_filter");
+  const [filterOptions, setFilterOptions] = useState([]);
+  const [selectedFilterValue, setSelectedFilterValue] = useState("");
+  const [isLoadingFilterOptions, setIsLoadingFilterOptions] = useState(false);
 
-  const fetchFilterValue = async () => {
-    if (filter === "block") {
-      try {
-        const res = await axios.get("blocks/all_buildings");
-        if (res.status === 200) {
-          setFilterValue(res.data.data.map((item) => item.building_name));
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    } else {
-      try {
-        const res = await axios.get("/cards/get_all_card_type");
-        if (res.status === 200) {
-          setFilterValue(res.data.data);
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    }
-  };
+  // Fetch filter options when filter type changes
 
   useEffect(() => {
-    fetchFilterValue();
-  }, [filter]);
-
-  const handleChange = (e) => {
-    const value = e.target.value;
-    setSearchValue(value);
-
-    if (value.trim() === "") {
-      // Reset displayed cards from cached original cards
-      setGetCards(originalGetCards);
-    }
-  };
-
-
-  const filteredCards = async () => {
-    if (!searchValue.trim() && !filterValue) {
-      setGetCards(originalGetCards);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await axios.post("card/cards_filter", {
-        card_name: searchValue, // only search text here
-        filter: filter, // selected filter type (e.g., 'block')
-        filterValue: getFilterValue, // selected filter value (e.g., 'S1-K')
-      });
-      if (res.data.success) {
-        setGetCards(res.data.data);
+    const fetchFilterOptions = async () => {
+      if (filter === "no_filter") {
+        // reset back to original cards
+        setGetCards(originalGetCards);
+        setFilterOptions([]);
+        setSelectedFilterValue("");
+        return;
       }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  //search logic --------------------------
+      setIsLoadingFilterOptions(true);
+      try {
+        const endpoint =
+          filter === "block"
+            ? "blocks/all_buildings"
+            : "/cards/get_all_card_type";
 
+        const res = await axios.get(endpoint);
+
+        const options =
+          filter === "block"
+            ? res.data.data.map((item) => item.building_name)
+            : res.data.data;
+
+        setFilterOptions(options);
+      } catch (error) {
+        console.error("Failed to fetch filter options:", error);
+        setFilterOptions([]);
+      } finally {
+        setIsLoadingFilterOptions(false);
+      }
+    };
+
+    fetchFilterOptions();
+  }, [filter, originalGetCards]); // 👈 add originalGetCards so it resets correctly
+
+  // Fetch cards data
   const fetchCards = async () => {
     setLoading(true);
     try {
@@ -140,6 +117,56 @@ function AllCards() {
     }
   };
 
+  // Initial data fetch
+  useEffect(() => {
+    fetchCards();
+  }, []);
+
+  // Handle filter changes
+  const handleFilterChange = (newFilter) => {
+    setFilter(newFilter);
+    setSelectedFilterValue("");
+  };
+
+  // Handle filter value selection
+  const handleFilterValueChange = (value) => {
+    setSelectedFilterValue(value);
+    filterData(searchValue, value);
+  };
+
+  // Handle search input changes
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchValue(value);
+    filterData(value, selectedFilterValue);
+  };
+
+  // Combined filter function
+  const filterData = async (searchTerm = "", filterVal = "") => {
+    if (!searchTerm.trim() && !filterVal) {
+      setGetCards(originalGetCards);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await axios.post("card/cards_filter", {
+        card_name: searchTerm,
+        filter: filter,
+        filterValue: filterVal,
+      });
+      if (res.data.success) {
+        setGetCards(res.data.data);
+      }
+    } catch (error) {
+      console.error(error);
+      setGetCards(originalGetCards);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Block parsing function
   function parseBlock(block) {
     if (!block) return "";
     if (Array.isArray(block)) return block.join("-");
@@ -154,10 +181,7 @@ function AllCards() {
     return block;
   }
 
-  useEffect(() => {
-    fetchCards();
-  }, []);
-
+  // Selection handlers
   const allSelected =
     selectedCards.length === getCards.length && getCards.length > 0;
 
@@ -165,7 +189,7 @@ function AllCards() {
     if (allSelected) {
       setSelectedCards([]);
     } else {
-      setSelectedCards(getCards.map((c) => c));
+      setSelectedCards([...getCards]);
     }
   };
 
@@ -177,8 +201,9 @@ function AllCards() {
     });
   };
 
+  // Delete handlers
   const handleBulkDelete = () => {
-    if (selectedCards.length < 2) return; // Only trigger for 2 or more
+    if (selectedCards.length < 2) return;
 
     toast((t) => (
       <div>
@@ -193,10 +218,7 @@ function AllCards() {
             size="sm"
             variant="destructive"
             onClick={async () => {
-              // 1️⃣ Dismiss confirmation toast
               toast.dismiss(t);
-
-              // 2️⃣ Show new loading toast
               const loadingId = toast.loading("Deleting selected cards...");
 
               try {
@@ -206,7 +228,6 @@ function AllCards() {
                   );
                 }
 
-                // 3️⃣ Update state
                 setGetCards((prev) =>
                   prev.filter(
                     (card) => !selectedCards.some((sel) => sel.id === card.id)
@@ -214,7 +235,6 @@ function AllCards() {
                 );
                 setSelectedCards([]);
 
-                // 4️⃣ Update loading toast to success
                 toast.success(
                   `Deleted ${selectedCards.length} cards successfully.`,
                   { id: loadingId }
@@ -247,10 +267,7 @@ function AllCards() {
             size="sm"
             variant="destructive"
             onClick={async () => {
-              // 1️⃣ Close the confirmation toast first
               toast.dismiss(t);
-
-              // 2️⃣ Show a new loading toast
               const loadingId = toast.loading("Deleting card...");
 
               try {
@@ -263,12 +280,9 @@ function AllCards() {
                   prev.filter((c) => c.id !== card.id)
                 );
 
-                // 3️⃣ Update the loading toast to success
                 toast.success(
                   `Deleted card ${card.card_type_id} successfully`,
-                  {
-                    id: loadingId,
-                  }
+                  { id: loadingId }
                 );
               } catch (error) {
                 console.error("Delete failed:", error);
@@ -288,8 +302,9 @@ function AllCards() {
 
   const restart = () => {
     fetchCards();
-    setGetFilterValue("");
-    setFilter("")
+    setSelectedFilterValue("");
+    setFilter("no_filter");
+    setSearchValue("");
   };
 
   return (
@@ -298,7 +313,7 @@ function AllCards() {
       <section className="w-fit flex gap-2">
         <div className="relative w-full max-w-sm">
           <Button
-            onClick={() => filteredCards()}
+            onClick={() => filterData(searchValue, selectedFilterValue)}
             variant="ghost"
             className="absolute left-0 top-0 h-full px-3"
           >
@@ -309,50 +324,60 @@ function AllCards() {
             placeholder="Search, ID, Name..."
             className="pl-10"
             value={searchValue}
-            onChange={handleChange}
+            onChange={handleSearchChange}
           />
         </div>
-        <Select onValueChange={(value) => setFilter(value)} value={filter}>
+
+        <Select onValueChange={handleFilterChange} value={filter}>
           <SelectTrigger className="w-[180px]">
             <Funnel />
             <SelectValue placeholder="Filter" />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              <SelectLabel>Filter By</SelectLabel>
+              <SelectItem value="no_filter">No filter</SelectItem>
               <SelectItem value="card_type">Card Type</SelectItem>
               <SelectItem value="block">Block</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
 
-        {/* filter value  */}
-        <Select
-          onValueChange={(value) => setGetFilterValue(value)}
-          value={getFilterValue}
-        >
-          <SelectTrigger className="w-[180px]">
-            <Funnel />
-            <SelectValue
-              placeholder={
-                filter === "block" ? "Select Block" : "Select Cards Type"
-              }
-            />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>
-                {filter === "block" ? "Select Block" : "Select Cards Type"}
-              </SelectLabel>
-              {Array.isArray(filterValue) &&
-                filterValue.map((item) => (
+        {/* Filter value selector */}
+        {filter !== "no_filter" && (
+          <Select
+            onValueChange={handleFilterValueChange}
+            value={selectedFilterValue}
+            disabled={isLoadingFilterOptions || filterOptions.length === 0}
+          >
+            <SelectTrigger className="w-[180px]">
+              {isLoadingFilterOptions ? (
+                <span>Loading...</span>
+              ) : (
+                <>
+                  <Funnel />
+                  <SelectValue
+                    placeholder={
+                      filter === "block" ? "Select Block" : "Select Cards Type"
+                    }
+                  />
+                </>
+              )}
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>
+                  {filter === "block" ? "Select Block" : "Select Cards Type"}
+                </SelectLabel>
+                {filterOptions.map((item) => (
                   <SelectItem key={item} value={item}>
                     {item}
                   </SelectItem>
                 ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        )}
+
         <Button variant="outline" onClick={restart}>
           <RotateCcw />
         </Button>
@@ -363,8 +388,8 @@ function AllCards() {
           </Button>
         </NavLink>
       </section>
-      {/* Table */}
 
+      {/* Table */}
       <main className="overflow-hidden rounded-md border">
         <Table>
           <TableHeader className="bg-accent rounded-md">
@@ -388,7 +413,7 @@ function AllCards() {
                     onClick={handleBulkDelete}
                   >
                     <div className="relative inline-flex">
-                      <Trash className="h-4 w-4 text-gray-300  left-0.5 bottom-0.5 relative" />
+                      <Trash className="h-4 w-4 text-gray-300 left-0.5 bottom-0.5 relative" />
                       <Trash className="h-4 w-4 text-gray-300 absolute fill-[#a44d4e]" />
                     </div>
                   </Button>
@@ -398,105 +423,106 @@ function AllCards() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {loading
-              ? // Show 5 skeleton rows during loading
-                [...Array(17)].map((_, idx) => (
-                  <TableRow key={`skeleton-${idx}`}>
-                    <TableCell className="w-[80px]">
-                      <div className="w-5 h-5 rounded-full skeleton"></div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="w-12 h-4 skeleton rounded"></div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="w-24 h-4 skeleton rounded"></div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="w-20 h-4 skeleton rounded"></div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="w-16 h-4 skeleton rounded"></div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="w-20 h-4 skeleton rounded"></div>
-                    </TableCell>
-                    <TableCell className="w-[100px] text-center">
-                      <div className="w-8 h-4 skeleton rounded mx-auto"></div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              : // Show actual cards
-                getCards.map((card) => (
-                  <TableRow key={card.id}>
-                    <TableCell className="w-[80px]">
-                      <Checkbox
-                        checked={selectedCards.some((c) => c.id === card.id)}
-                        onCheckedChange={() => toggleSelect(card)}
-                      />
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {card.card_type_id}
-                    </TableCell>
-                    <TableCell>{card.card_name}</TableCell>
-                    <TableCell>{card.card_type}</TableCell>
-                    <TableCell>{parseBlock(card.block)}</TableCell>
-                    <TableCell>{card.create_by}</TableCell>
-                    <TableCell className="w-[100px] text-center">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger
-                          asChild
-                          className={
-                            selectedCards.length >= 2 ? "hidden h-[20px]" : ""
-                          }
+            {loading ? (
+              [...Array(17)].map((_, idx) => (
+                <TableRow key={`skeleton-${idx}`}>
+                  <TableCell className="w-[80px]">
+                    <div className="w-5 h-5 rounded-full skeleton"></div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="w-12 h-4 skeleton rounded"></div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="w-24 h-4 skeleton rounded"></div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="w-20 h-4 skeleton rounded"></div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="w-16 h-4 skeleton rounded"></div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="w-20 h-4 skeleton rounded"></div>
+                  </TableCell>
+                  <TableCell className="w-[100px] text-center">
+                    <div className="w-8 h-4 skeleton rounded mx-auto"></div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : getCards.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center">
+                  No cards found
+                </TableCell>
+              </TableRow>
+            ) : (
+              getCards.map((card) => (
+                <TableRow key={card.id}>
+                  <TableCell className="w-[80px]">
+                    <Checkbox
+                      checked={selectedCards.some((c) => c.id === card.id)}
+                      onCheckedChange={() => toggleSelect(card)}
+                    />
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    {card.card_type_id}
+                  </TableCell>
+                  <TableCell>{card.card_name}</TableCell>
+                  <TableCell>{card.card_type}</TableCell>
+                  <TableCell>{parseBlock(card.block)}</TableCell>
+                  <TableCell>{card.create_by}</TableCell>
+                  <TableCell className="w-[100px] text-center">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        asChild
+                        className={
+                          selectedCards.length >= 2 ? "hidden h-[20px]" : ""
+                        }
+                      >
+                        <Button variant="ghost" size="20">
+                          <Ellipsis />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <DropdownMenuItem
+                              className="text-blue-500"
+                              onSelect={(e) => e.preventDefault()}
+                            >
+                              <Pencil className="text-blue-500" />
+                              Update
+                            </DropdownMenuItem>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                Are you absolutely sure?
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction>Continue</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="text-red-500"
+                          onClick={() => handleSingleDelete(card)}
                         >
-                          <Button variant="ghost" size="20">
-                            <Ellipsis />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              {/* prevent DropdownMenuItem from closing the menu immediately */}
-                              <DropdownMenuItem
-                                className="text-blue-500"
-                                onSelect={(e) => e.preventDefault()} // 👈 prevents auto-close
-                              >
-                                <Pencil className="text-blue-500" />
-                                Update
-                              </DropdownMenuItem>
-                            </AlertDialogTrigger>
-
-                            {/* Uppdate Form  */}
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                  Are you absolutely sure?
-                                </AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction>Continue</AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                          {/* Uppdate Form  */}
-                          <DropdownMenuSeparator />
-
-                          <DropdownMenuItem
-                            className="text-red-500"
-                            onClick={() => handleSingleDelete(card)}
-                          >
-                            <Trash className="text-red-500" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                          <Trash className="text-red-500" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </main>

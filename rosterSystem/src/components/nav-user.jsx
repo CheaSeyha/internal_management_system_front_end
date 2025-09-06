@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   BadgeCheck,
   Bell,
@@ -35,6 +35,21 @@ import { set } from "zod";
 export function NavUser({ user }) {
   const { isMobile } = useSidebar();
   const { logout } = useAuth();
+  const [userInfo, setUserInfo] = useState(() => {
+    // Try localStorage first
+    const savedUserLocal = localStorage.getItem("user");
+    if (savedUserLocal) return JSON.parse(savedUserLocal);
+
+    // Fallback to sessionStorage
+    const savedUserSession = sessionStorage.getItem("user");
+    if (savedUserSession) return JSON.parse(savedUserSession);
+
+    // Default if nothing is found
+    return null;
+  });
+
+  // Now you can use userInfo directly as an object
+  console.log(userInfo?.name);
 
   const [loading, setLoading] = useState(false); // loading state
   const navigate = useNavigate();
@@ -53,7 +68,6 @@ export function NavUser({ user }) {
       navigate("/auth/login", { replace: true });
     }
   };
-
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -68,8 +82,10 @@ export function NavUser({ user }) {
                 <AvatarFallback className="rounded-lg">CN</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
-                <span className="truncate text-xs">{user.email}</span>
+                <span className="truncate font-medium">
+                  {userInfo?.name?.toUpperCase()}
+                </span>
+                <span className="truncate text-xs">{userInfo?.email}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -87,8 +103,8 @@ export function NavUser({ user }) {
                   <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.name}</span>
-                  <span className="truncate text-xs">{user.email}</span>
+                  <span className="truncate font-medium">{userInfo?.name?.toUpperCase()}</span>
+                  <span className="truncate text-xs">{userInfo?.email}</span>
                 </div>
               </div>
             </DropdownMenuLabel>
@@ -104,7 +120,14 @@ export function NavUser({ user }) {
                   loading ? "opacity-50" : "opacity-100"
                 }`}
               />
-              {loading ? <>Please Wait...<span className="loading loading-spinner loading-md"></span></> : "Log out"}
+              {loading ? (
+                <>
+                  Please Wait...
+                  <span className="loading loading-spinner loading-md"></span>
+                </>
+              ) : (
+                "Log out"
+              )}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

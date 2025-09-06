@@ -127,6 +127,37 @@ function AllCards() {
   //     setLoading(false);
   //   }
   // };
+  const renderPageNumbers = () => {
+    if (!pagination) return null;
+    const { current_page, last_page } = pagination;
+    const pages = [];
+
+    const start = Math.max(1, current_page - 2);
+    const end = Math.min(last_page, current_page + 2);
+
+    if (start > 1) pages.push(1, "ellipsis");
+    for (let i = start; i <= end; i++) pages.push(i);
+    if (end < last_page) pages.push("ellipsis", last_page);
+
+    return pages.map((p, i) =>
+      p === "ellipsis" ? (
+        <PaginationEllipsis key={i} />
+      ) : (
+        <PaginationItem key={i}>
+          <PaginationLink
+            href="#"
+            isActive={p === current_page}
+            onClick={(e) => {
+              e.preventDefault();
+              fetchCards(p);
+            }}
+          >
+            {p}
+          </PaginationLink>
+        </PaginationItem>
+      )
+    );
+  };
 
   const fetchCards = async (page = 1) => {
     setLoading(true);
@@ -500,9 +531,7 @@ function AllCards() {
                       onCheckedChange={() => toggleSelect(card)}
                     />
                   </TableCell>
-                  <TableCell className="font-medium">
-                    {card.id}
-                  </TableCell>
+                  <TableCell className="font-medium">{card.id}</TableCell>
                   <TableCell className="font-medium">
                     {card.card_type_id}
                   </TableCell>
@@ -566,54 +595,37 @@ function AllCards() {
         </Table>
       </main>
       <div className="absolute bottom-4">
-        {pagination && (
-          <Pagination className="mt-4">
-            <PaginationContent>
-              {/* Previous */}
-              <PaginationItem>
-                <PaginationPrevious
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    goToPage(pagination.prev_page_url);
-                  }}
-                />
-              </PaginationItem>
+        <Pagination className="border-t mt-4">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  fetchCards(
+                    pagination.prev_page_url &&
+                      new URL(pagination.prev_page_url).searchParams.get("page")
+                  );
+                }}
+              />
+            </PaginationItem>
 
-              {/* Page Numbers */}
-              {pagination.links
-                .filter(
-                  (l) =>
-                    !l.label.includes("Previous") && !l.label.includes("Next")
-                )
-                .map((link, i) => (
-                  <PaginationItem key={i}>
-                    <PaginationLink
-                      href="#"
-                      isActive={link.active}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        goToPage(link.url);
-                      }}
-                    >
-                      {link.label}
-                    </PaginationLink>
-                  </PaginationItem>
-                ))}
+            {renderPageNumbers()}
 
-              {/* Next */}
-              <PaginationItem>
-                <PaginationNext
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    goToPage(pagination.next_page_url);
-                  }}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        )}
+            <PaginationItem>
+              <PaginationNext
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  fetchCards(
+                    pagination.next_page_url &&
+                      new URL(pagination.next_page_url).searchParams.get("page")
+                  );
+                }}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
       </div>
     </main>
   );

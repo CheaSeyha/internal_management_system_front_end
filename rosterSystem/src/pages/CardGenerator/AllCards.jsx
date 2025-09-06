@@ -50,11 +50,21 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 function AllCards() {
   // State management
   const [getCards, setGetCards] = useState([]);
   const [originalGetCards, setOriginalGetCards] = useState([]);
+  const [pagination, setPagination] = useState(null);
   const [loading, setLoading] = useState(false);
   const [selectedCards, setSelectedCards] = useState([]);
   const [searchValue, setSearchValue] = useState("");
@@ -99,19 +109,38 @@ function AllCards() {
     };
 
     fetchFilterOptions();
+    console.log(getCards);
   }, [filter, originalGetCards]); // 👈 add originalGetCards so it resets correctly
 
   // Fetch cards data
-  const fetchCards = async () => {
+  // const fetchCards = async () => {
+  //   setLoading(true);
+  //   try {
+  //     const response = await axios.get("/cards");
+  //     if (response.data.success) {
+  //       setGetCards(response.data.data.data || []);
+  //       setOriginalGetCards(response.data.data.data || []);
+  //     }
+  //   } catch (error) {
+  //     console.error(error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  const fetchCards = async (page = 1) => {
     setLoading(true);
     try {
-      const response = await axios.get("/cards");
+      const response = await axios.get(`/cards?page=${page}`);
       if (response.data.success) {
-        setGetCards(response.data.data || []);
-        setOriginalGetCards(response.data.data || []);
+        const data = response.data.data;
+
+        setOriginalGetCards(data.data || []);
+        setGetCards(data.data || []); // actual cards array
+        setPagination(data); // full pagination object
       }
     } catch (error) {
-      console.error(error);
+      console.error("Error fetching cards:", error);
     } finally {
       setLoading(false);
     }
@@ -119,8 +148,14 @@ function AllCards() {
 
   // Initial data fetch
   useEffect(() => {
-    fetchCards();
+    fetchCards(1);
   }, []);
+
+  const goToPage = (url) => {
+    if (!url) return;
+    const page = new URL(url).searchParams.get("page");
+    fetchCards(page);
+  };
 
   // Handle filter changes
   const handleFilterChange = (newFilter) => {
@@ -400,6 +435,7 @@ function AllCards() {
                   onCheckedChange={toggleSelectAll}
                 />
               </TableHead>
+              <TableHead>Unique ID</TableHead>
               <TableHead>Card ID</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Card Type</TableHead>
@@ -465,6 +501,9 @@ function AllCards() {
                     />
                   </TableCell>
                   <TableCell className="font-medium">
+                    {card.id}
+                  </TableCell>
+                  <TableCell className="font-medium">
                     {card.card_type_id}
                   </TableCell>
                   <TableCell>{card.card_name}</TableCell>
@@ -526,6 +565,56 @@ function AllCards() {
           </TableBody>
         </Table>
       </main>
+      <div className="absolute bottom-4">
+        {pagination && (
+          <Pagination className="mt-4">
+            <PaginationContent>
+              {/* Previous */}
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    goToPage(pagination.prev_page_url);
+                  }}
+                />
+              </PaginationItem>
+
+              {/* Page Numbers */}
+              {pagination.links
+                .filter(
+                  (l) =>
+                    !l.label.includes("Previous") && !l.label.includes("Next")
+                )
+                .map((link, i) => (
+                  <PaginationItem key={i}>
+                    <PaginationLink
+                      href="#"
+                      isActive={link.active}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        goToPage(link.url);
+                      }}
+                    >
+                      {link.label}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+
+              {/* Next */}
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    goToPage(pagination.next_page_url);
+                  }}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        )}
+      </div>
     </main>
   );
 }

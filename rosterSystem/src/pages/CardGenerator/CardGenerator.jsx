@@ -857,7 +857,7 @@ export default function CardGenerator() {
 
         {/* Preview and print the card layout  */}
         <div
-          className="flex flex-wrap justify-center gap-0 p-5 w-full" // gap-0 as baseline
+          className="flex flex-wrap justify-center gap-0 p-5 w-full print:justify-start"
           ref={contentRef}
         >
           <AnimatePresence>

@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Funnel,
   Plus,
   Search,
   Ellipsis,
   Trash,
+  Printer,
   Loader2,
   Pencil,
   RotateCcw,
@@ -59,6 +60,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { useReactToPrint } from "react-to-print";
+import PrintCard from "./components/PrintCard";
 
 function AllCards() {
   // State management
@@ -372,12 +375,56 @@ function AllCards() {
     setFilter("no_filter");
     setSearchValue("");
   };
+  const contentRef = useRef(null);
+  const reactToPrintFn = useReactToPrint({ contentRef });
+  const [cardToPrint, setCardToPrint] = useState(null);
+  const [readyToPrint, setReadyToPrint] = useState(false);
+
+  useEffect(() => {
+    if (readyToPrint && cardToPrint) {
+      reactToPrintFn();
+      setReadyToPrint(false); // reset
+    }
+  }, [readyToPrint, cardToPrint]);
+
+  const printCard = async (card) => {
+    try {
+      // 1️⃣ Fetch image
+      let imageBlob = null;
+      if (card.profile_image_url) {
+        const response = await axios.get(card.profile_image_url, {
+          responseType: "blob",
+        });
+        imageBlob = URL.createObjectURL(response.data);
+      }
+
+      // 2️⃣ Safely convert block
+      let blockArray = card.block;
+      if (typeof blockArray === "string") {
+        try {
+          blockArray = /^[\[{]/.test(blockArray)
+            ? JSON.parse(blockArray)
+            : [blockArray];
+        } catch {
+          blockArray = [blockArray]; // fallback to array with one value
+        }
+      }
+
+      // 3️⃣ Set state
+      setCardToPrint({ ...card, imageBlob, block: blockArray });
+
+      // 4️⃣ Trigger print when ready
+      setReadyToPrint(true);
+    } catch (err) {
+      console.error("Error in printCard:", err);
+    }
+  };
 
   return (
     <main className="w-full space-y-5">
       {/* Search And Filter */}
-      <section className="w-fit flex gap-2">
-        <div className="relative w-full max-w-sm">
+      <section className="w-fit flex flex-wrap md:flex-row gap-2 ">
+        <div className="relative w-full md:w-[240px]">
           <Button
             onClick={() => filterData(searchValue, selectedFilterValue)}
             variant="ghost"
@@ -395,7 +442,7 @@ function AllCards() {
         </div>
 
         <Select onValueChange={handleFilterChange} value={filter}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-full md:w-[180px]">
             <Funnel />
             <SelectValue placeholder="Filter" />
           </SelectTrigger>
@@ -494,25 +541,28 @@ function AllCards() {
               [...Array(17)].map((_, idx) => (
                 <TableRow key={`skeleton-${idx}`}>
                   <TableCell className="w-[80px]">
-                    <div className="w-5 h-5 rounded-full skeleton"></div>
+                    <div className="w-5 h-5 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
                   </TableCell>
                   <TableCell>
-                    <div className="w-12 h-4 skeleton rounded"></div>
+                    <div className="w-12 h-4 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
                   </TableCell>
                   <TableCell>
-                    <div className="w-24 h-4 skeleton rounded"></div>
+                    <div className="w-24 h-4 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
                   </TableCell>
                   <TableCell>
-                    <div className="w-20 h-4 skeleton rounded"></div>
+                    <div className="w-20 h-4 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
                   </TableCell>
                   <TableCell>
-                    <div className="w-16 h-4 skeleton rounded"></div>
+                    <div className="w-16 h-4 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
                   </TableCell>
                   <TableCell>
-                    <div className="w-20 h-4 skeleton rounded"></div>
+                    <div className="w-20 h-4 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
                   </TableCell>
                   <TableCell className="w-[100px] text-center">
-                    <div className="w-8 h-4 skeleton rounded mx-auto"></div>
+                    <div className="w-8 h-4 mx-auto rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+                  </TableCell>
+                  <TableCell className="w-[100px] text-center">
+                    <div className="w-8 h-4 mx-auto rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
                   </TableCell>
                 </TableRow>
               ))
@@ -552,31 +602,13 @@ function AllCards() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <DropdownMenuItem
-                              className="text-blue-500"
-                              onSelect={(e) => e.preventDefault()}
-                            >
-                              <Pencil className="text-blue-500" />
-                              Update
-                            </DropdownMenuItem>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>
-                                Are you absolutely sure?
-                              </AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction>Continue</AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                        <DropdownMenuItem
+                          className=""
+                          onClick={() => printCard(card)}
+                        >
+                          <Printer className="" />
+                          Print
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           className="text-red-500"
@@ -594,8 +626,9 @@ function AllCards() {
           </TableBody>
         </Table>
       </main>
+      {/* paginatin  */}
       <div className="absolute bottom-4">
-        <Pagination className="border-t mt-4">
+        <Pagination className="border-t mt-4 pt-2">
           <PaginationContent>
             <PaginationItem>
               <PaginationPrevious
@@ -626,6 +659,10 @@ function AllCards() {
             </PaginationItem>
           </PaginationContent>
         </Pagination>
+      </div>
+
+      <div className="hidden">
+        {cardToPrint && <PrintCard entries={[cardToPrint]} ref={contentRef} />}
       </div>
     </main>
   );

@@ -77,7 +77,7 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
               <img src={image} className="w-full h-full object-cover" alt="" />
             </div>
             <div
-              className="absolute top-[2.21cm] left-[5.15cm] flex items-end"
+              className="absolute top-[2.23cm] left-[5.15cm] flex items-end"
               style={{ height: "20px" }} // Fixed height container
             >
               <p
@@ -110,7 +110,7 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
               <img src={image} className="w-full h-full object-cover" alt="" />
             </div>
             <div
-              className="absolute top-[2.21cm] left-[5.15cm] flex items-end"
+              className="absolute top-[2.23cm] left-[5.15cm] flex items-end"
               style={{ height: "20px" }} // Fixed height container
             >
               <p
@@ -127,7 +127,7 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
             <p className="forBlock absolute text-[18px] top-[3.26cm] left-[5.14cm]">
               {formattedBlock}
             </p>
-            <p className="forID absolute text-[18px] top-[3.84cm] left-[5.14cm]">
+            <p className="forID absolute text-[18px] top-[3.80cm] left-[5.14cm]">
               {id}
             </p>
             <div className="image-tamplete w-full h-full">
@@ -143,7 +143,7 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
               <img src={image} className="w-full h-full object-cover" alt="" />
             </div>
             <div
-              className="absolute top-[2.19cm] left-[5.23cm] flex items-end"
+              className="absolute top-[2.22cm] left-[5.23cm] flex items-end"
               style={{ height: "20px" }} // Fixed height container
             >
               <p
@@ -176,7 +176,7 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
               <img src={image} className="w-full h-full object-cover" alt="" />
             </div>
             <div
-              className="absolute top-[2.29cm] left-[4.86cm] flex items-end"
+              className="absolute top-[2.30cm] left-[4.86cm] flex items-end"
               style={{ height: "20px" }} // Fixed height container
             >
               <p
@@ -206,7 +206,7 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
         {cardType === "VIP Card" && (
           <main className="vipcard relative font-cardFont2 w-[9cm] h-[6cm] text-black  bg-white rounded-2xl">
             <div
-              className="absolute top-[2.16cm] left-[5.25cm] flex items-end"
+              className="absolute top-[2.20cm] left-[5.25cm] flex items-end"
               style={{ height: "20px" }} // Fixed height container
             >
               <p

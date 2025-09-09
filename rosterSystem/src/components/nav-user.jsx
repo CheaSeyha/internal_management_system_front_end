@@ -48,9 +48,6 @@ export function NavUser({ user }) {
     return null;
   });
 
-  // Now you can use userInfo directly as an object
-  console.log(userInfo?.name);
-
   const [loading, setLoading] = useState(false); // loading state
   const navigate = useNavigate();
 

@@ -207,16 +207,19 @@ function AllCards() {
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setSearchValue(value);
-    filterData(value, selectedFilterValue);
-  };
 
-  // Combined filter function
-  const filterData = async (searchTerm = "", filterVal = "") => {
-    if (!searchTerm.trim() && !filterVal) {
+    // Reset to original cards when input is empty
+    if (!value.trim()) {
       setGetCards(originalGetCards);
       return;
     }
 
+    // Otherwise, do your search/filter API call if needed
+    // filterData(value, selectedFilterValue);
+  };
+
+  // Combined filter function
+  const filterData = async (searchTerm = "", filterVal = "") => {
     setLoading(true);
     try {
       const res = await axios.post("card/cards_filter", {
@@ -225,7 +228,10 @@ function AllCards() {
         filterValue: filterVal,
       });
       if (res.data.success) {
-        setGetCards(res.data.data);
+        const data = res.data.data;
+
+        setGetCards(data.data || []); // actual cards array
+        setPagination(data); // full pagination object
       }
     } catch (error) {
       console.error(error);

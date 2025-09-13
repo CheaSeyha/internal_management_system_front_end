@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useReactToPrint } from "react-to-print";
 import { toPng, toJpeg } from "html-to-image";
 import { toast } from "sonner";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Command,
   CommandDialog,
@@ -72,6 +73,7 @@ export default function CardGenerator() {
       const res = await axios.get("blocks/all_buildings");
       if (res.status === 200) {
         setBlocks(res.data.data);
+        console.log(res.data.data);
       }
     } catch (error) {
       console.error("Error fetching blocks:", error);
@@ -85,14 +87,40 @@ export default function CardGenerator() {
     fetchBlocks();
   }, []);
 
-  const [selectedBlocks, setSelectedBlocks] = React.useState([]);
+  const [selectedBlocks, setSelectedBlocks] = useState([]);
+  useEffect(() => {
+    console.log(selectedBlocks);
+  }, [selectedBlocks]);
 
-  const handleAddBlock = (block) => {
-    if (!selectedBlocks.includes(block)) {
-      const newBlocks = [...selectedBlocks, block];
-      setSelectedBlocks(newBlocks);
-      setCurrentEntry((prev) => ({ ...prev, block: newBlocks }));
+  const handleAddBlock = (value) => {
+    const [building, room] = value.split("-");
+    let updatedBlocks = [...selectedBlocks];
+
+    if (!room) {
+      // User selected whole building → replace any existing entry
+      updatedBlocks = updatedBlocks.filter((b) => !b.startsWith(building));
+      updatedBlocks.push(building);
+    } else {
+      // User selected a room
+      const buildingIndex = updatedBlocks.findIndex((b) =>
+        b.startsWith(building)
+      );
+
+      if (buildingIndex === -1) {
+        // No existing entry → add building-room
+        updatedBlocks.push(`${building}-${room}`);
+      } else {
+        // Merge room into existing string safely
+        const parts = updatedBlocks[buildingIndex].split("-");
+        if (!parts.includes(room)) {
+          parts.push(room);
+          updatedBlocks[buildingIndex] = parts.join("-");
+        }
+      }
     }
+
+    setSelectedBlocks(updatedBlocks);
+    setCurrentEntry((prev) => ({ ...prev, block: updatedBlocks }));
   };
 
   const handleRemoveBlock = (block) => {
@@ -102,7 +130,7 @@ export default function CardGenerator() {
   };
 
   const availableBlocks = blocks
-    .map((b) => b.building_name)
+    .map((b) => b.building)
     .filter((name) => !selectedBlocks.includes(name));
 
   const [changeLayout, setLayout] = useState(() => {
@@ -231,12 +259,20 @@ export default function CardGenerator() {
   }, [editingIndex]);
 
   // Habdle Add or Edit Card --------------------------------------------
+  // Helper function to format blocks as string
+  function formatBlocks(blockArray) {
+    if (!Array.isArray(blockArray) || blockArray.length === 0) return "";
+    return blockArray.join(",");
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const requiresImage = !["VIP Card", "Car Card"].includes(
       currentEntry.cardType
     );
+
+    // Validation
     if (!currentEntry.name || (requiresImage && !currentEntry.imageFile)) {
       if (requiresImage) {
         toast.error("Name and Image are required.");
@@ -246,36 +282,38 @@ export default function CardGenerator() {
 
     setloading(true);
 
+    // Convert selected blocks array to merged string like "P-103-105,S1"
+    const blockString = formatBlocks(currentEntry.block || selectedBlocks);
+
+    // Prepare entry to add/update
     const entryToAdd = !requiresImage
       ? { ...currentEntry, imageFile: null, imagePreviewUrl: null }
       : currentEntry;
 
     try {
+      const formData = new FormData();
+      formData.append("card_name", currentEntry.name);
+      formData.append("block", blockString); // ✅ merged string
+      formData.append("card_type", currentEntry.cardType);
+      if (currentEntry.imageFile)
+        formData.append("profile_image", currentEntry.imageFile);
+
       if (editingIndex !== null) {
+        // Edit existing card
         const originalCard = entries[editingIndex];
-        //show preview of orignal card
         setSelectedBlocks(originalCard.block || []);
+
         const isTypeChanged = currentEntry.cardType !== originalCard.cardType;
 
-        const formData = new FormData();
-        formData.append("card_name", currentEntry.name);
-        formData.append("block", JSON.stringify(currentEntry.block));
-        formData.append("card_type", currentEntry.cardType);
-        if (currentEntry.imageFile) {
-          formData.append("profile_image", currentEntry.imageFile);
-        }
-
         if (isTypeChanged) {
-          // Delete the original card first
+          // Delete original and create new card
           const deleteOriginalCard = await axios.delete(
             `card/delete/${originalCard.id}/${originalCard.cardType}`
           );
 
           if (deleteOriginalCard.status === 200) {
-            // Remove the old card locally
             setEntries((prev) => prev.filter((_, i) => i !== editingIndex));
 
-            // Then create new card
             const res = await axios.post("/create_card", formData, {
               headers: { "Content-Type": "multipart/form-data" },
             });
@@ -283,13 +321,11 @@ export default function CardGenerator() {
             const getCardID = res.data.data.card_type_id;
             const entryWithID = { ...entryToAdd, id: getCardID };
 
-            // Add new card to entries
             setEntries((prev) => [...prev, entryWithID]);
-
             toast.success("New card created due to type change!");
           }
         } else {
-          // Same card type: update existing
+          // Same type: update card
           await axios.post(
             `/card/edit/${originalCard.id}/${currentEntry.cardType}`,
             formData,
@@ -299,21 +335,12 @@ export default function CardGenerator() {
           setEntries((prev) =>
             prev.map((entry, i) => (i === editingIndex ? entryToAdd : entry))
           );
-
           toast.success("Card updated successfully!");
         }
 
         setEditingIndex(null);
       } else {
         // Create new card
-        const formData = new FormData();
-        formData.append("card_name", currentEntry.name);
-        formData.append("block", JSON.stringify(currentEntry.block));
-        formData.append("card_type", currentEntry.cardType);
-        if (currentEntry.imageFile) {
-          formData.append("profile_image", currentEntry.imageFile);
-        }
-
         const res = await axios.post("/create_card", formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
@@ -322,7 +349,6 @@ export default function CardGenerator() {
         const entryWithID = { ...entryToAdd, id: getCardID };
 
         setEntries((prev) => [...prev, entryWithID]);
-
         toast.success("Card added successfully!");
       }
     } catch (error) {
@@ -330,20 +356,21 @@ export default function CardGenerator() {
       toast.error("Failed to save card!", { description: error.message });
     } finally {
       setloading(false);
+
+      // Reset form
+      setCurrentEntry({
+        name: "",
+        block: [],
+        id: "",
+        cardType: "Staff",
+        imageFile: null,
+        imagePreviewUrl: null,
+      });
+
+      setSelectedBlocks([]);
     }
-
-    // Reset form
-    setCurrentEntry({
-      name: "",
-      block: "",
-      id: "",
-      cardType: "Staff",
-      imageFile: null,
-      imagePreviewUrl: null,
-    });
-
-    setSelectedBlocks([]);
   };
+
   // Habdle Add or Edit Card --------------------------------------------
 
   // Add a cancel edit function
@@ -688,28 +715,67 @@ export default function CardGenerator() {
 
               <Select value={undefined} onValueChange={handleAddBlock}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a blocks" />
+                  <SelectValue placeholder="Select a block or room" />
                 </SelectTrigger>
-                <SelectContent className="p-0">
-                  <Command className="flex flex-col h-60">
-                    {" "}
-                    {/* fixed height container */}
+                <SelectContent>
+                  <Command className="flex flex-col">
                     <CommandInput
                       className="sticky top-0 z-10"
                       placeholder="Search blocks..."
                     />
                     <CommandEmpty>No block found.</CommandEmpty>
-                    <CommandGroup className="overflow-y-auto flex-1">
-                      {availableBlocks.map((block) => (
-                        <CommandItem
-                          key={String(block)}
-                          value={block}
-                          onSelect={(value) => handleAddBlock(value)}
-                        >
-                          {block}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
+
+                    {/* Fixed ScrollArea implementation */}
+                    <ScrollArea className="h-60 w-full">
+                      <div className="p-1">
+                        {blocks.map((block) => {
+                          // Check if the building itself is selected
+                          const buildingSelected = selectedBlocks.includes(
+                            block.building
+                          );
+
+                          // Filter out rooms that are selected individually OR if building is selected
+                          const remainingRooms = block.room.filter(
+                            (roomName) =>
+                              !buildingSelected && // hide all rooms if building selected
+                              !selectedBlocks.some((selected) =>
+                                selected.split("-").slice(1).includes(roomName)
+                              )
+                          );
+
+                          // Hide building if explicitly selected or all rooms selected
+                          const hideBuilding =
+                            !buildingSelected &&
+                            block.room.length > 0 &&
+                            remainingRooms.length === 0;
+
+                          return (
+                            <CommandGroup key={block.building}>
+                              {!buildingSelected && !hideBuilding && (
+                                <CommandItem
+                                  value={block.building}
+                                  onSelect={handleAddBlock}
+                                  className="font-semibold"
+                                >
+                                  {block.building}
+                                </CommandItem>
+                              )}
+
+                              {remainingRooms.map((roomName) => (
+                                <CommandItem
+                                  key={`${block.building}-${roomName}`}
+                                  value={`${block.building}-${roomName}`}
+                                  onSelect={handleAddBlock}
+                                  className="pl-4"
+                                >
+                                  {roomName}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          );
+                        })}
+                      </div>
+                    </ScrollArea>
                   </Command>
                 </SelectContent>
               </Select>

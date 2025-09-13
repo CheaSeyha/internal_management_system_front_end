@@ -593,7 +593,7 @@ function AllCards() {
                   </TableCell>
                   <TableCell>{card.card_name}</TableCell>
                   <TableCell>{card.card_type}</TableCell>
-                  <TableCell>{parseBlock(card.block)}</TableCell>
+                  <TableCell>{card.block}</TableCell>
                   <TableCell>{card.create_by}</TableCell>
                   <TableCell className="w-[100px] text-center">
                     <DropdownMenu>

@@ -10,7 +10,7 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
   const formattedBlock = formatBlocks(block);
   function formatBlocks(blockArray) {
     if (!Array.isArray(blockArray) || blockArray.length === 0) return "";
-    return blockArray.join("-");
+    return blockArray.join(", ");
   }
 
   const [fontSizeName, setFontSizeName] = useState(18); // Starting font size
@@ -19,7 +19,7 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
 
   useEffect(() => {
     if (cardType === "Construction") setFontSizeName(16);
-    if (cardType === "Delivery"  || cardType === "TukTuk") setFontSizeName(17);
+    if (cardType === "Delivery" || cardType === "TukTuk") setFontSizeName(17);
 
     if (name.length >= 20) {
       setLineHight(2);

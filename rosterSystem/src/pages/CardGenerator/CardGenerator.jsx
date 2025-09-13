@@ -140,6 +140,7 @@ export default function CardGenerator() {
 
   useEffect(() => {
     localStorage.setItem("cardgen-layout", changeLayout);
+    console.log(entries)
   }, [changeLayout]);
 
   const setNoSpaceCard = () => {

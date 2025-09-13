@@ -274,6 +274,7 @@ function AllCards() {
       if (exists) return prev.filter((c) => c.id !== card.id);
       return [...prev, card];
     });
+    console.log(selectedCards)
   };
 
   // Delete handlers
@@ -394,6 +395,9 @@ function AllCards() {
   }, [readyToPrint, cardToPrint]);
 
   const printCard = async (card) => {
+
+    
+
     try {
       // 1️⃣ Fetch image
       let imageBlob = null;
@@ -406,19 +410,26 @@ function AllCards() {
 
       // 2️⃣ Safely convert block
       let blockArray = card.block;
+
       if (typeof blockArray === "string") {
         try {
-          blockArray = /^[\[{]/.test(blockArray)
-            ? JSON.parse(blockArray)
-            : [blockArray];
+          // If it's a JSON array, parse it
+          if (/^[\[{]/.test(blockArray)) {
+            blockArray = JSON.parse(blockArray);
+          } else {
+            // Otherwise, split by comma and trim spaces
+            blockArray = blockArray.split(",").map((b) => b.trim());
+          }
         } catch {
-          blockArray = [blockArray]; // fallback to array with one value
+          blockArray = [blockArray]; // fallback to single-item array
         }
       }
 
+      // Now blockArray will be ["S1-107-202", "LY"]
+
       // 3️⃣ Set state
       setCardToPrint({ ...card, imageBlob, block: blockArray });
-
+      console.log(cardToPrint);
       // 4️⃣ Trigger print when ready
       setReadyToPrint(true);
     } catch (err) {

@@ -7,43 +7,40 @@ import carcard1 from "../../../assets/CardTamplete/CAR1.png";
 import construction from "../../../assets/CardTamplete/CONSTRUCTION.png";
 import { Trash, Edit } from "lucide-react";
 function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
+  const normalizedCardType = cardType?.toLowerCase() || "";
+
   const formattedBlock = formatBlocks(block);
   function formatBlocks(blockArray) {
     if (!Array.isArray(blockArray) || blockArray.length === 0) return "";
     return blockArray.join(", ");
   }
 
-  const [fontSizeName, setFontSizeName] = useState(18); // Starting font size
+  const [fontSizeName, setFontSizeName] = useState(18);
   const nameRef = useRef();
   const [lineHight, setLineHight] = useState(0);
 
   useEffect(() => {
-    if (cardType === "Construction") setFontSizeName(16);
-    if (cardType === "Delivery" || cardType === "TukTuk") setFontSizeName(17);
+    if (normalizedCardType === "construction") setFontSizeName(16);
+    if (normalizedCardType === "delivery" || normalizedCardType === "tuktuk")
+      setFontSizeName(17);
 
-    if (name.length >= 20) {
-      setLineHight(2);
-      console.log(lineHight);
-    } else {
-      setLineHight(0);
-    }
+    if (name.length >= 20) setLineHight(2);
+    else setLineHight(0);
+
     if (nameRef.current) {
       const width = nameRef.current.getBoundingClientRect().width;
-      console.log("Name width:", width, "px");
-
       if (width > 134 && fontSizeName > 1) {
-        // Reduce font size one step at a time
         setFontSizeName((prev) => prev - 1);
       }
     }
-  }, [name, fontSizeName]); // Watch both name and fontSizeName
+  }, [name, fontSizeName, normalizedCardType]);
 
   const getDate = new Date();
   const monthName = getDate.toLocaleString("default", { month: "long" });
   const getDayMonthYear =
     getDate.getDate() +
     " " +
-    monthName.toLocaleUpperCase() +
+    monthName.toUpperCase() +
     " " +
     getDate.getFullYear();
 
@@ -71,7 +68,9 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
           </button>
         </div>
         {/* Delivery Card */}
-        {cardType === "Delivery" && (
+
+
+        {normalizedCardType === "delivery" && (
           <main className="deliverycard relative font-cardFont2 w-[9cm] h-[6cm] text-black bg-white rounded-2xl">
             <div className="image-profile w-[2.5cm] border-[1.5px] border-blue-500 h-[3cm] absolute top-[2cm] left-[0.5cm]">
               <img src={image} className="w-full h-full object-cover" alt="" />
@@ -104,7 +103,7 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
         )}
 
         {/* TukTuk Card */}
-        {cardType === "TukTuk" && (
+        {normalizedCardType === "tuktuk" && (
           <main className="TukTukcard relative font-cardFont2 w-[9cm] h-[6cm] text-black bg-white rounded-2xl">
             <div className="image-profile w-[2.5cm] border-[1.5px] border-blue-500 h-[3cm] absolute top-[2cm] left-[0.5cm]">
               <img src={image} className="w-full h-full object-cover" alt="" />
@@ -137,7 +136,7 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
         )}
 
         {/* Staff Card */}
-        {cardType === "Staff" && (
+        {normalizedCardType === "staff" && (
           <main className="relative font-cardFont2 w-[9cm] h-[6cm] text-black  bg-white rounded-2xl">
             <div className="image-profile w-[2.5cm] border-[1.5px] border-yellow-300 h-[3cm] absolute top-[2cm] left-[0.5cm]">
               <img src={image} className="w-full h-full object-cover" alt="" />
@@ -170,7 +169,7 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
         )}
 
         {/* Construction Card */}
-        {cardType === "Construction" && (
+        {normalizedCardType === "construction" && (
           <main className="relative font-cardFont2 w-[9cm] h-[6cm] text-black  bg-white rounded-2xl">
             <div className="image-profile w-[2.5cm] border-[1.5px] border-yellow-300 h-[3cm] absolute top-[2cm] left-[0.3cm]">
               <img src={image} className="w-full h-full object-cover" alt="" />
@@ -203,7 +202,7 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
         )}
 
         {/* VIP Card */}
-        {cardType === "VIP Card" && (
+        {normalizedCardType === "vip card" && (
           <main className="vipcard relative font-cardFont2 w-[9cm] h-[6cm] text-black  bg-white rounded-2xl">
             <div
               className="absolute top-[2.20cm] left-[5.25cm] flex items-end"
@@ -234,7 +233,7 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
         )}
 
         {/* Car Card */}
-        {cardType === "Car Card" && (
+        {normalizedCardType === "car card" && (
           <main className="carcard relative font-cardFont1 w-[20cm] h-[13.34cm] text-black  bg-white rounded-2xl">
             <div className="w-full h-[4cm] absolute top-[6.57cm] flex items-center justify-center text-center">
               <p className="plat-number text-[2.9cm] text-[#0d07fd] text-stroke direction-rtl">

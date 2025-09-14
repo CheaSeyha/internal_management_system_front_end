@@ -67,6 +67,7 @@ function AllCards() {
   // State management
   const [getCards, setGetCards] = useState([]);
   const [originalGetCards, setOriginalGetCards] = useState([]);
+  const [originalPagination, setOriginalPagination] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [loading, setLoading] = useState(false);
   const [selectedCards, setSelectedCards] = useState([]);
@@ -149,22 +150,33 @@ function AllCards() {
     try {
       let response;
 
-      if (filter && filter !== "no_filter") {
-        // 🔥 When filtering, use POST
+      if ((filter && filter !== "no_filter") || searchTerm) {
+        // 🔥 Filtering or searching → POST
         response = await axios.post(`card/cards_filter?page=${page}`, {
           card_name: searchTerm,
           filter: filter,
           filterValue: filterVal || selectedFilterValue,
         });
       } else {
-        // 🔥 Normal GET request
+        // 🔥 Normal GET
         response = await axios.get(`/cards?page=${page}`);
       }
 
       if (response.data.success) {
         const data = response.data.data;
-        setGetCards(data.data || []);
-        setPagination(data);
+
+        // ✅ Normalize array
+        const cards = Array.isArray(data) ? data : data.data;
+
+        // Always set the visible cards
+        setGetCards(cards || []);
+        setPagination(Array.isArray(data) ? null : data);
+
+        // ✅ Only store "original" when NOT filtering
+        if (!(filter && filter !== "no_filter") && !searchTerm) {
+          setOriginalGetCards(cards || []);
+          setOriginalPagination(Array.isArray(data) ? null : data);
+        }
       }
     } catch (error) {
       console.error("Error fetching cards:", error);
@@ -188,6 +200,8 @@ function AllCards() {
   const handleFilterChange = (newFilter) => {
     setFilter(newFilter);
     setSelectedFilterValue("");
+    setGetCards(originalGetCards);
+    setPagination(originalPagination);
   };
 
   // Handle filter value selection
@@ -202,8 +216,9 @@ function AllCards() {
     setSearchValue(value);
 
     // Reset to original cards when input is empty
-    if (!value.trim()) {
+    if (value.trim() === "" && filter === "no_filter") {
       setGetCards(originalGetCards);
+      setPagination(originalPagination);
       return;
     }
 
@@ -211,6 +226,9 @@ function AllCards() {
     // filterData(value, selectedFilterValue);
   };
 
+  useEffect(() => {
+    console.log(originalGetCards);
+  }, [getCards]);
   // Selection handlers
   const allSelected =
     selectedCards.length === getCards.length && getCards.length > 0;

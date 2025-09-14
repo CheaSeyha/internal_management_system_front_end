@@ -97,12 +97,10 @@ function AllCards() {
 
         const res = await axios.get(endpoint);
 
-        const options =
-          filter === "block"
-            ? res.data.data.map((item) => item.building_name)
-            : res.data.data;
+        const options = res.data.data || [];
 
         setFilterOptions(options);
+        console.log(filterOptions);
       } catch (error) {
         console.error("Failed to fetch filter options:", error);
         setFilterOptions([]);
@@ -112,24 +110,8 @@ function AllCards() {
     };
 
     fetchFilterOptions();
-    console.log(getCards);
   }, [filter, originalGetCards]); // 👈 add originalGetCards so it resets correctly
 
-  // Fetch cards data
-  // const fetchCards = async () => {
-  //   setLoading(true);
-  //   try {
-  //     const response = await axios.get("/cards");
-  //     if (response.data.success) {
-  //       setGetCards(response.data.data.data || []);
-  //       setOriginalGetCards(response.data.data.data || []);
-  //     }
-  //   } catch (error) {
-  //     console.error(error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
   const renderPageNumbers = () => {
     if (!pagination) return null;
     const { current_page, last_page } = pagination;
@@ -232,6 +214,7 @@ function AllCards() {
 
         setGetCards(data.data || []); // actual cards array
         setPagination(data); // full pagination object
+        console.log(pagination)
       }
     } catch (error) {
       console.error(error);
@@ -240,21 +223,6 @@ function AllCards() {
       setLoading(false);
     }
   };
-
-  // Block parsing function
-  function parseBlock(block) {
-    if (!block) return "";
-    if (Array.isArray(block)) return block.join("-");
-
-    try {
-      const parsed = JSON.parse(block);
-      if (Array.isArray(parsed)) return parsed.join("-");
-    } catch {
-      // Not JSON, just return as is
-    }
-
-    return block;
-  }
 
   // Selection handlers
   const allSelected =
@@ -274,7 +242,7 @@ function AllCards() {
       if (exists) return prev.filter((c) => c.id !== card.id);
       return [...prev, card];
     });
-    console.log(selectedCards)
+    console.log(selectedCards);
   };
 
   // Delete handlers
@@ -395,9 +363,6 @@ function AllCards() {
   }, [readyToPrint, cardToPrint]);
 
   const printCard = async (card) => {
-
-    
-
     try {
       // 1️⃣ Fetch image
       let imageBlob = null;
@@ -498,11 +463,28 @@ function AllCards() {
                 <SelectLabel>
                   {filter === "block" ? "Select Block" : "Select Cards Type"}
                 </SelectLabel>
-                {filterOptions.map((item) => (
-                  <SelectItem key={item} value={item}>
-                    {item}
-                  </SelectItem>
-                ))}
+                {filterOptions.map((item, index) => {
+                  const key =
+                    filter === "block" ? item.building : item.card_type;
+                  const value = key;
+                  const count = item.count ?? item.count_card ?? 0; // adapt to your API
+
+                  return (
+                    <SelectItem
+                      key={`${key}-${index}`}
+                      value={value}
+                      className="flex justify-between items-center"
+                    >
+                      <span>
+                        {filter === "block" ? item.building : item.card_type}
+                      </span>
+
+                      <span className="ml-2 bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full">
+                        {count}
+                      </span>
+                    </SelectItem>
+                  );
+                })}
               </SelectGroup>
             </SelectContent>
           </Select>

@@ -144,16 +144,27 @@ function AllCards() {
     );
   };
 
-  const fetchCards = async (page = 1) => {
+  const fetchCards = async (page = 1, searchTerm = "", filterVal = "") => {
     setLoading(true);
     try {
-      const response = await axios.get(`/cards?page=${page}`);
+      let response;
+
+      if (filter && filter !== "no_filter") {
+        // 🔥 When filtering, use POST
+        response = await axios.post(`card/cards_filter?page=${page}`, {
+          card_name: searchTerm,
+          filter: filter,
+          filterValue: filterVal || selectedFilterValue,
+        });
+      } else {
+        // 🔥 Normal GET request
+        response = await axios.get(`/cards?page=${page}`);
+      }
+
       if (response.data.success) {
         const data = response.data.data;
-
-        setOriginalGetCards(data.data || []);
-        setGetCards(data.data || []); // actual cards array
-        setPagination(data); // full pagination object
+        setGetCards(data.data || []);
+        setPagination(data);
       }
     } catch (error) {
       console.error("Error fetching cards:", error);
@@ -182,7 +193,7 @@ function AllCards() {
   // Handle filter value selection
   const handleFilterValueChange = (value) => {
     setSelectedFilterValue(value);
-    filterData(searchValue, value);
+    fetchCards(1, searchValue, value); // ✅ page=1, searchTerm=searchValue, filterVal=value
   };
 
   // Handle search input changes
@@ -198,30 +209,6 @@ function AllCards() {
 
     // Otherwise, do your search/filter API call if needed
     // filterData(value, selectedFilterValue);
-  };
-
-  // Combined filter function
-  const filterData = async (searchTerm = "", filterVal = "") => {
-    setLoading(true);
-    try {
-      const res = await axios.post("card/cards_filter", {
-        card_name: searchTerm,
-        filter: filter,
-        filterValue: filterVal,
-      });
-      if (res.data.success) {
-        const data = res.data.data;
-
-        setGetCards(data.data || []); // actual cards array
-        setPagination(data); // full pagination object
-        console.log(pagination)
-      }
-    } catch (error) {
-      console.error(error);
-      setGetCards(originalGetCards);
-    } finally {
-      setLoading(false);
-    }
   };
 
   // Selection handlers
@@ -345,7 +332,7 @@ function AllCards() {
   };
 
   const restart = () => {
-    fetchCards();
+    fetchCards(1);
     setSelectedFilterValue("");
     setFilter("no_filter");
     setSearchValue("");
@@ -408,12 +395,13 @@ function AllCards() {
       <section className="w-fit flex flex-wrap md:flex-row gap-2 ">
         <div className="relative w-full md:w-[240px]">
           <Button
-            onClick={() => filterData(searchValue, selectedFilterValue)}
+            onClick={() => fetchCards(1, searchValue, selectedFilterValue)} // ✅ use unified fetchCards
             variant="ghost"
             className="absolute left-0 top-0 h-full px-3"
           >
             <Search className="h-4 w-4 text-gray-500" />
           </Button>
+
           <Input
             id="search"
             placeholder="Search, ID, Name..."

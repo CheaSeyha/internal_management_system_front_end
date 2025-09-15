@@ -11,6 +11,7 @@ import AllCustomer from "./pages/Internet/AllCustomer";
 import AllISP from "./pages/Internet/AllISP";
 import RosterForm from "./pages/RosterForm/RosterForm";
 import ProtectedRoute from "./auth/ProtectedRoute";
+import NotFoundPage from "./pages/NotFoundPage";
 function App() {
   const location = useLocation(); // Get the current location
 
@@ -75,7 +76,9 @@ function App() {
                 }
               />
             </Route>
+            
           </Route>
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </AnimatePresence>
       <Toaster position="top-center" />

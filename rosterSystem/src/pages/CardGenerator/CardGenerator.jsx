@@ -140,7 +140,7 @@ export default function CardGenerator() {
 
   useEffect(() => {
     localStorage.setItem("cardgen-layout", changeLayout);
-    console.log(entries)
+    console.log(entries);
   }, [changeLayout]);
 
   const setNoSpaceCard = () => {
@@ -556,274 +556,287 @@ export default function CardGenerator() {
           </div>
         </div>
       )}
-      <motion.form
-        layout
-        onSubmit={handleSubmit}
-        className="rounded-xl p-6 m-auto shadow-lg h-fit w-[700px] mb-5 bg-sidebar"
-        transition={{ type: "spring", stiffness: 500, damping: 40 }}
-      >
-        <div className="relative w-fit m-auto mb-4">
-          <motion.div
-            // Animate the gradient background for the glow
-            animate={{
-              background: [
-                "linear-gradient(90deg, #ef4444, #3b82f6, #f59e0b)",
-                "linear-gradient(90deg, #f59e0b, #ef4444, #3b82f6)",
-                "linear-gradient(90deg, #3b82f6, #f59e0b, #ef4444)",
-                "linear-gradient(90deg, #ef4444, #3b82f6, #f59e0b)",
-              ],
-            }}
-            transition={{
-              duration: 4,
-              repeat: Infinity,
-              ease: "linear",
-            }}
-            className="absolute inset-0 blur-[20px] opacity-50 pointer-events-none rounded-lg z-0"
-            style={{
-              background: "linear-gradient(90deg, #ef4444, #3b82f6, #f59e0b)",
-            }}
-          />
-          <motion.h2
-            className="relative text-3xl font-bold text-center w-fit m-auto z-10 bg-clip-text text-transparent"
-            initial={{
-              background: "linear-gradient(90deg, #ef4444, #3b82f6, #f59e0b)",
-              backgroundClip: "text",
-              color: "rgba(0,0,0,0)", // Use rgba(0,0,0,0) instead of "transparent"
-              backgroundSize: "200% 200%",
-            }}
-            animate={{
-              background: [
-                "linear-gradient(90deg, #ef4444, #3b82f6, #f59e0b)",
-                "linear-gradient(90deg, #f59e0b, #ef4444, #3b82f6)",
-                "linear-gradient(90deg, #3b82f6, #f59e0b, #ef4444)",
-                "linear-gradient(90deg, #ef4444, #3b82f6, #f59e0b)",
-              ],
-              backgroundClip: "text",
-              color: "rgba(0,0,0,0)", // Consistent with initial value
-              backgroundSize: "200% 200%",
-            }}
-            transition={{
-              duration: 4,
-              repeat: Infinity,
-              ease: "linear",
-            }}
-          >
-            Card Generator
-          </motion.h2>
-        </div>
-        <div className="flex flex-col md:flex-row gap-6">
-          {/* Show Image  */}
-          {currentEntry.cardType !== "VIP Card" &&
-            currentEntry.cardType !== "Car Card" && (
-              <div
-                className="flex-1 border-2 border-dashed border-gray-400 rounded-lg p-4 flex items-center justify-center"
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-              >
-                {currentEntry.imagePreviewUrl ? (
-                  <img
-                    src={currentEntry.imagePreviewUrl}
-                    alt="Preview"
-                    className="w-[80%] h-full object-contain"
-                  />
-                ) : (
-                  <p className="text-center text-gray-500">
-                    Drag & drop or Ctrl+V to paste image
-                  </p>
-                )}
-              </div>
-            )}
-
-          <div
-            className={`space-y-4 ${
-              ["VIP Card", "Car Card"].includes(currentEntry.cardType)
-                ? "w-full"
-                : "flex-1"
-            }`}
-          >
-            {/* select card type  */}
-            <div className="form-control">
-              <label htmlFor="cardtype-select-trigger" className="label">
-                <span className="label-text">Card Type</span>
-              </label>
-              <Select
-                name="cardType"
-                value={currentEntry.cardType || "placeholder"} // fallback to placeholder if empty
-                onValueChange={(value) =>
-                  handleInputChange({
-                    target: {
-                      name: "cardType",
-                      value,
-                    },
-                  })
-                }
-              >
-                <SelectTrigger className="w-full" id="cardtype-select-trigger">
-                  <SelectValue placeholder="Select a type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value="placeholder" disabled key="placeholder">
-                      Select a type
-                    </SelectItem>
-                    <SelectItem value="Staff" key="Staff">
-                      Staff
-                    </SelectItem>
-                    <SelectItem value="Construction" key="Construction">
-                      Construction
-                    </SelectItem>
-                    <SelectItem value="Delivery" key="Delivery">
-                      Delivery
-                    </SelectItem>
-                    <SelectItem value="TukTuk" key="TukTuk">
-                      TukTuk
-                    </SelectItem>
-                    <SelectItem value="Car Card" key="Car Card">
-                      Car Card
-                    </SelectItem>
-                    <SelectItem value="VIP Card" key="VIP Card">
-                      VIP Card
-                    </SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="form-control">
-              <label htmlFor="name" className="label">
-                <span className="label-text">
-                  {currentEntry.cardType === "Car Card"
-                    ? "Plate Number"
-                    : "Name"}
-                </span>
-              </label>
-              <Input
-                autoComplete="username"
-                name="name"
-                id="name"
-                value={currentEntry.name}
-                onChange={handleInputChange}
-                className="input input-bordered w-full"
-                required
-                ref={nameInputRef}
-              />
-            </div>
-            {/* Block  */}
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">Select Blocks</span>
-              </label>
-
-              <Select value={undefined} onValueChange={handleAddBlock}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a block or room" />
-                </SelectTrigger>
-                <SelectContent>
-                  <Command className="flex flex-col">
-                    <CommandInput
-                      className="sticky top-0 z-10"
-                      placeholder="Search blocks..."
-                    />
-                    <CommandEmpty>No block found.</CommandEmpty>
-
-                    {/* Fixed ScrollArea implementation */}
-                    <ScrollArea className="h-60 w-full">
-                      <div className="p-1">
-                        {blocks.map((block) => {
-                          // Check if the building itself is selected
-                          const buildingSelected = selectedBlocks.includes(
-                            block.building
-                          );
-
-                          // Filter out rooms that are selected individually OR if building is selected
-                          const remainingRooms = block.room.filter(
-                            (roomName) =>
-                              !buildingSelected && // hide all rooms if building selected
-                              !selectedBlocks.some((selected) =>
-                                selected.split("-").slice(1).includes(roomName)
-                              )
-                          );
-
-                          // Hide building if explicitly selected or all rooms selected
-                          const hideBuilding =
-                            !buildingSelected &&
-                            block.room.length > 0 &&
-                            remainingRooms.length === 0;
-
-                          return (
-                            <CommandGroup key={block.building}>
-                              {!buildingSelected && !hideBuilding && (
-                                <CommandItem
-                                  value={block.building}
-                                  onSelect={handleAddBlock}
-                                  className="font-semibold"
-                                >
-                                  {block.building}
-                                </CommandItem>
-                              )}
-
-                              {remainingRooms.map((roomName) => (
-                                <CommandItem
-                                  key={`${block.building}-${roomName}`}
-                                  value={`${block.building}-${roomName}`}
-                                  onSelect={handleAddBlock}
-                                  className="pl-4"
-                                >
-                                  {roomName}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          );
-                        })}
-                      </div>
-                    </ScrollArea>
-                  </Command>
-                </SelectContent>
-              </Select>
-
-              {/* Preview selected blocks */}
-              <div className="mt-2 flex flex-wrap gap-2">
-                {selectedBlocks.map((block) => (
-                  <Button
-                    key={String(block)}
-                    onClick={() => handleRemoveBlock(block)}
-                    variant="outline"
-                    className="px-3 py-1 rounded flex items-center gap-2"
-                  >
-                    <span>{block}</span>
-                  </Button>
-                ))}
-              </div>
-            </div>
-            <Button
-              type="submit"
-              className="w-full bg-blue-500 mt-4 text-white"
-              disabled={loading}
+      <div className="h-full w-full">
+        <motion.form
+          layout
+          onSubmit={handleSubmit}
+          className="rounded-xl p-6 m-auto shadow-lg h-fit w-[700px] mb-5 bg-sidebar"
+          transition={{ type: "spring", stiffness: 500, damping: 40 }}
+        >
+          <div className="relative w-fit m-auto mb-4">
+            <motion.div
+              // Animate the gradient background for the glow
+              animate={{
+                background: [
+                  "linear-gradient(90deg, #ef4444, #3b82f6, #f59e0b)",
+                  "linear-gradient(90deg, #f59e0b, #ef4444, #3b82f6)",
+                  "linear-gradient(90deg, #3b82f6, #f59e0b, #ef4444)",
+                  "linear-gradient(90deg, #ef4444, #3b82f6, #f59e0b)",
+                ],
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: "linear",
+              }}
+              className="absolute inset-0 blur-[20px] opacity-50 pointer-events-none rounded-lg z-0"
+              style={{
+                background: "linear-gradient(90deg, #ef4444, #3b82f6, #f59e0b)",
+              }}
+            />
+            <motion.h2
+              className="relative text-3xl font-bold text-center w-fit m-auto z-10 bg-clip-text text-transparent"
+              initial={{
+                background: "linear-gradient(90deg, #ef4444, #3b82f6, #f59e0b)",
+                backgroundClip: "text",
+                color: "rgba(0,0,0,0)", // Use rgba(0,0,0,0) instead of "transparent"
+                backgroundSize: "200% 200%",
+              }}
+              animate={{
+                background: [
+                  "linear-gradient(90deg, #ef4444, #3b82f6, #f59e0b)",
+                  "linear-gradient(90deg, #f59e0b, #ef4444, #3b82f6)",
+                  "linear-gradient(90deg, #3b82f6, #f59e0b, #ef4444)",
+                  "linear-gradient(90deg, #ef4444, #3b82f6, #f59e0b)",
+                ],
+                backgroundClip: "text",
+                color: "rgba(0,0,0,0)", // Consistent with initial value
+                backgroundSize: "200% 200%",
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: "linear",
+              }}
             >
-              {loading ? (
-                <>
-                  <span className="loading loading-spinner loading-md mr-2"></span>
-                  {editingIndex !== null ? "Updating..." : "Saving..."}
-                </>
-              ) : editingIndex !== null ? (
-                "Update"
-              ) : (
-                "Save"
-              )}
-            </Button>
-
-            {editingIndex !== null && (
-              <Button
-                type="button"
-                onClick={cancelEdit}
-                className="w-full bg-red-500 mt-2 text-white"
-              >
-                Cancel Edit
-              </Button>
-            )}
+              Card Generator
+            </motion.h2>
           </div>
-        </div>
-      </motion.form>
+          <div className="flex flex-col md:flex-row gap-6">
+            {/* Show Image  */}
+            {currentEntry.cardType !== "VIP Card" &&
+              currentEntry.cardType !== "Car Card" && (
+                <div
+                  className="flex-1 border-2 border-dashed border-gray-400 rounded-lg p-4 flex items-center justify-center"
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                >
+                  {currentEntry.imagePreviewUrl ? (
+                    <img
+                      src={currentEntry.imagePreviewUrl}
+                      alt="Preview"
+                      className="w-[80%] h-full object-contain"
+                    />
+                  ) : (
+                    <p className="text-center text-gray-500">
+                      Drag & drop or Ctrl+V to paste image
+                    </p>
+                  )}
+                </div>
+              )}
+
+            <div
+              className={`space-y-4 ${
+                ["VIP Card", "Car Card"].includes(currentEntry.cardType)
+                  ? "w-full"
+                  : "flex-1"
+              }`}
+            >
+              {/* select card type  */}
+              <div className="form-control">
+                <label htmlFor="cardtype-select-trigger" className="label">
+                  <span className="label-text">Card Type</span>
+                </label>
+                <Select
+                  name="cardType"
+                  value={currentEntry.cardType || "placeholder"} // fallback to placeholder if empty
+                  onValueChange={(value) =>
+                    handleInputChange({
+                      target: {
+                        name: "cardType",
+                        value,
+                      },
+                    })
+                  }
+                >
+                  <SelectTrigger
+                    className="w-full"
+                    id="cardtype-select-trigger"
+                  >
+                    <SelectValue placeholder="Select a type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem
+                        value="placeholder"
+                        disabled
+                        key="placeholder"
+                      >
+                        Select a type
+                      </SelectItem>
+                      <SelectItem value="Staff" key="Staff">
+                        Staff
+                      </SelectItem>
+                      <SelectItem value="Construction" key="Construction">
+                        Construction
+                      </SelectItem>
+                      <SelectItem value="Delivery" key="Delivery">
+                        Delivery
+                      </SelectItem>
+                      <SelectItem value="TukTuk" key="TukTuk">
+                        TukTuk
+                      </SelectItem>
+                      <SelectItem value="Car Card" key="Car Card">
+                        Car Card
+                      </SelectItem>
+                      <SelectItem value="VIP Card" key="VIP Card">
+                        VIP Card
+                      </SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="form-control">
+                <label htmlFor="name" className="label">
+                  <span className="label-text">
+                    {currentEntry.cardType === "Car Card"
+                      ? "Plate Number"
+                      : "Name"}
+                  </span>
+                </label>
+                <Input
+                  autoComplete="username"
+                  name="name"
+                  id="name"
+                  value={currentEntry.name}
+                  onChange={handleInputChange}
+                  className="input input-bordered w-full"
+                  required
+                  ref={nameInputRef}
+                />
+              </div>
+              {/* Block  */}
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Select Blocks</span>
+                </label>
+
+                <Select value={undefined} onValueChange={handleAddBlock}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a block or room" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <Command className="flex flex-col">
+                      <CommandInput
+                        className="sticky top-0 z-10"
+                        placeholder="Search blocks..."
+                      />
+                      <CommandEmpty>No block found.</CommandEmpty>
+
+                      {/* Fixed ScrollArea implementation */}
+                      <ScrollArea className="h-60 w-full">
+                        <div className="p-1">
+                          {blocks.map((block) => {
+                            // Check if the building itself is selected
+                            const buildingSelected = selectedBlocks.includes(
+                              block.building
+                            );
+
+                            // Filter out rooms that are selected individually OR if building is selected
+                            const remainingRooms = block.room.filter(
+                              (roomName) =>
+                                !buildingSelected && // hide all rooms if building selected
+                                !selectedBlocks.some((selected) =>
+                                  selected
+                                    .split("-")
+                                    .slice(1)
+                                    .includes(roomName)
+                                )
+                            );
+
+                            // Hide building if explicitly selected or all rooms selected
+                            const hideBuilding =
+                              !buildingSelected &&
+                              block.room.length > 0 &&
+                              remainingRooms.length === 0;
+
+                            return (
+                              <CommandGroup key={block.building}>
+                                {!buildingSelected && !hideBuilding && (
+                                  <CommandItem
+                                    value={block.building}
+                                    onSelect={handleAddBlock}
+                                    className="font-semibold"
+                                  >
+                                    {block.building}
+                                  </CommandItem>
+                                )}
+
+                                {remainingRooms.map((roomName) => (
+                                  <CommandItem
+                                    key={`${block.building}-${roomName}`}
+                                    value={`${block.building}-${roomName}`}
+                                    onSelect={handleAddBlock}
+                                    className="pl-4"
+                                  >
+                                    {roomName}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            );
+                          })}
+                        </div>
+                      </ScrollArea>
+                    </Command>
+                  </SelectContent>
+                </Select>
+
+                {/* Preview selected blocks */}
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {selectedBlocks.map((block) => (
+                    <Button
+                      key={String(block)}
+                      onClick={() => handleRemoveBlock(block)}
+                      variant="outline"
+                      className="px-3 py-1 rounded flex items-center gap-2"
+                    >
+                      <span>{block}</span>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+              <Button
+                type="submit"
+                className="w-full bg-blue-500 mt-4 text-white"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <span className="loading loading-spinner loading-md mr-2"></span>
+                    {editingIndex !== null ? "Updating..." : "Saving..."}
+                  </>
+                ) : editingIndex !== null ? (
+                  "Update"
+                ) : (
+                  "Save"
+                )}
+              </Button>
+
+              {editingIndex !== null && (
+                <Button
+                  type="button"
+                  onClick={cancelEdit}
+                  className="w-full bg-red-500 mt-2 text-white"
+                >
+                  Cancel Edit
+                </Button>
+              )}
+            </div>
+          </div>
+        </motion.form>
+      </div>
+
       {/* Preview card layout  */}
 
       <motion.div

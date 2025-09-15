@@ -344,21 +344,27 @@ function AllCards() {
     fetchCards(1);
     setSelectedFilterValue("");
     setFilter("no_filter");
+    setPagination(originalPagination);
     setSearchValue("");
   };
   const contentRef = useRef(null);
   const reactToPrintFn = useReactToPrint({ contentRef });
   const [cardToPrint, setCardToPrint] = useState(null);
   const [readyToPrint, setReadyToPrint] = useState(false);
-
+  const [loadingPrint, setLoadingPrint] = useState(false);
   useEffect(() => {
     if (readyToPrint && cardToPrint) {
       reactToPrintFn();
       setReadyToPrint(false); // reset
     }
   }, [readyToPrint, cardToPrint]);
+  const printCard = async (e, card) => {
+    e.preventDefault();
+    setLoadingPrint(true); // show Printing...
+    
+    // ⏸️ let React update the UI before doing heavy work
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
-  const printCard = async (card) => {
     try {
       // 1️⃣ Fetch image
       let imageBlob = null;
@@ -371,30 +377,28 @@ function AllCards() {
 
       // 2️⃣ Safely convert block
       let blockArray = card.block;
-
       if (typeof blockArray === "string") {
         try {
-          // If it's a JSON array, parse it
           if (/^[\[{]/.test(blockArray)) {
             blockArray = JSON.parse(blockArray);
           } else {
-            // Otherwise, split by comma and trim spaces
             blockArray = blockArray.split(",").map((b) => b.trim());
           }
         } catch {
-          blockArray = [blockArray]; // fallback to single-item array
+          blockArray = [blockArray];
         }
       }
 
-      // Now blockArray will be ["S1-107-202", "LY"]
-
-      // 3️⃣ Set state
+      // 3️⃣ Update state
       setCardToPrint({ ...card, imageBlob, block: blockArray });
-      console.log(cardToPrint);
-      // 4️⃣ Trigger print when ready
+
+      // 4️⃣ Trigger print
       setReadyToPrint(true);
+      // await doPrint();
     } catch (err) {
       console.error("Error in printCard:", err);
+    } finally {
+      setLoadingPrint(false); // reset when done
     }
   };
 
@@ -446,7 +450,7 @@ function AllCards() {
                 <span>Loading...</span>
               ) : (
                 <>
-                  {filter === "block" ? <School2/> : <IdCard />}
+                  {filter === "block" ? <School2 /> : <IdCard />}
                   <SelectValue
                     placeholder={
                       filter === "block" ? "Select Block" : "Select Cards Type"
@@ -478,7 +482,7 @@ function AllCards() {
                         </span>
 
                         <Badge
-                          className="h-5 min-w-5 rounded-full bg-blue-500 text-white dark:bg-blue-600 px-1 font-mono tabular-nums"
+                          className="h-5 min-w-5 rounded-full bg-blue-500 text-white dark:bg-blue-600 font-mono tabular-nums"
                           variant="secondary"
                         >
                           {count}
@@ -605,11 +609,22 @@ function AllCards() {
                       <DropdownMenuContent>
                         <DropdownMenuItem
                           className=""
-                          onClick={() => printCard(card)}
+                          onClick={(e) => printCard(e, card)}
+                          disabled={loadingPrint}
                         >
-                          <Printer className="" />
-                          Print
+                          {loadingPrint ? (
+                            <>
+                              <Printer className="" />
+                              Printing...
+                            </>
+                          ) : (
+                            <>
+                              <Printer className="" />
+                              Print
+                            </>
+                          )}
                         </DropdownMenuItem>
+
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           className="text-red-500"

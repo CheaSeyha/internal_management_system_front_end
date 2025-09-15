@@ -10,9 +10,9 @@ const PrintCard = forwardRef(({ entries = [] }, ref) => {
         <div
           key={entry.id}
           className={
-            entry.card_type === "Car Card"
-              ? "w-full flex justify-center py-4"
-              : "w-auto mx-2 my-2"
+            entry.card_type === "CAR CARD"
+              ? "w-full flex justify-center py-4 "
+              : `w-auto ${true ? "-mx-[1.1px] -my-[2px]" : "mx-2 my-2"}`
           }
           id={`card-${entry.id}`}
         >

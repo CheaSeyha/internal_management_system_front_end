@@ -795,28 +795,6 @@ export default function CardGenerator() {
                 ))}
               </div>
             </div>
-
-            {/* Use ID from server not static  */}
-            {/* <div
-              className={`form-control ${
-                currentEntry.cardType === "Car Card" ||
-                currentEntry.cardType === "Construction"
-                  ? "hidden"
-                  : "block"
-              }`}
-            >
-              <label htmlFor="id" className="label">
-                <span className="label-text">ID</span>
-              </label>
-              <Input
-                name="id"
-                id="id"
-                value={currentEntry.id}
-                onChange={handleInputChange}
-                className="input input-bordered w-full"
-              />
-            </div> */}
-            {/* Use ID from server not static  */}
             <Button
               type="submit"
               className="w-full bg-blue-500 mt-4 text-white"

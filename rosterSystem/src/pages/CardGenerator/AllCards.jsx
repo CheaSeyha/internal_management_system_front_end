@@ -67,8 +67,14 @@ function AllCards() {
   const [filterOptions, setFilterOptions] = useState([]);
   const [selectedFilterValue, setSelectedFilterValue] = useState("");
   const [isLoadingFilterOptions, setIsLoadingFilterOptions] = useState(false);
-
   // Fetch filter options when filter type changes
+  //pritn logic state
+  const contentRef = useRef(null);
+  const reactToPrintFn = useReactToPrint({ contentRef });
+  const [cardToPrint, setCardToPrint] = useState(null);
+  const [multiCardToPrint, setMultiCardToPrint] = useState([]);
+  const [readyToPrint, setReadyToPrint] = useState(false);
+  const [loadingPrint, setLoadingPrint] = useState(false);
 
   useEffect(() => {
     const fetchFilterOptions = async () => {
@@ -92,7 +98,6 @@ function AllCards() {
         const options = res.data.data || [];
 
         setFilterOptions(options);
-        console.log(filterOptions);
       } catch (error) {
         console.error("Failed to fetch filter options:", error);
         setFilterOptions([]);
@@ -216,10 +221,7 @@ function AllCards() {
     // Otherwise, do your search/filter API call if needed
     // filterData(value, selectedFilterValue);
   };
-
-  useEffect(() => {
-    console.log(originalGetCards);
-  }, [getCards]);
+  
   // Selection handlers
   const allSelected =
     selectedCards.length === getCards.length && getCards.length > 0;
@@ -238,7 +240,6 @@ function AllCards() {
       if (exists) return prev.filter((c) => c.id !== card.id);
       return [...prev, card];
     });
-    console.log(selectedCards);
   };
 
   // Delete handlers
@@ -346,60 +347,92 @@ function AllCards() {
     setFilter("no_filter");
     setPagination(originalPagination);
     setSearchValue("");
+    setSelectedCards([]);
   };
-  const contentRef = useRef(null);
-  const reactToPrintFn = useReactToPrint({ contentRef });
-  const [cardToPrint, setCardToPrint] = useState(null);
-  const [readyToPrint, setReadyToPrint] = useState(false);
-  const [loadingPrint, setLoadingPrint] = useState(false);
+
   useEffect(() => {
-    if (readyToPrint && cardToPrint) {
+    if ((readyToPrint && cardToPrint) || multiCardToPrint) {
       reactToPrintFn();
       setReadyToPrint(false); // reset
     }
   }, [readyToPrint, cardToPrint]);
+
+  const prepareCard = async (card) => {
+    let imageBlob = null;
+    if (card.profile_image_url) {
+      const response = await axios.get(card.profile_image_url, {
+        responseType: "blob",
+      });
+      imageBlob = URL.createObjectURL(response.data);
+    }
+
+    // Safely convert block
+    let blockArray = card.block;
+    if (typeof blockArray === "string") {
+      try {
+        if (/^[\[{]/.test(blockArray)) {
+          blockArray = JSON.parse(blockArray);
+        } else {
+          blockArray = blockArray.split(",").map((b) => b.trim());
+        }
+      } catch {
+        blockArray = [blockArray];
+      }
+    }
+
+    return { ...card, imageBlob, block: blockArray };
+  };
+
+  // Sigle print card
   const printCard = async (e, card) => {
     e.preventDefault();
-    setLoadingPrint(true); // show Printing...
-    
-    // ⏸️ let React update the UI before doing heavy work
+    setLoadingPrint(true);
+
+    await new Promise((resolve) => setTimeout(resolve, 0)); // let UI update
+
+    try {
+      const preparedCard = await prepareCard(card);
+
+      // 👇 keep your old state usage
+      setCardToPrint(preparedCard);
+      setReadyToPrint(true);
+    } catch (err) {
+      console.error("Error in printSingleCard:", err);
+    } finally {
+      setLoadingPrint(false);
+    }
+  };
+
+  // Multiple Pritn Card
+  const multiplePrint = async (cards) => {
+    if (!Array.isArray(cards) || cards.length === 0) return;
+
+    setLoadingPrint(true);
+
+    // Let React render loading UI first
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     try {
-      // 1️⃣ Fetch image
-      let imageBlob = null;
-      if (card.profile_image_url) {
-        const response = await axios.get(card.profile_image_url, {
-          responseType: "blob",
-        });
-        imageBlob = URL.createObjectURL(response.data);
-      }
+      // Prepare all cards independently
+      const preparedCards = await Promise.all(
+        cards.map((card) => prepareCard(card))
+      );
 
-      // 2️⃣ Safely convert block
-      let blockArray = card.block;
-      if (typeof blockArray === "string") {
-        try {
-          if (/^[\[{]/.test(blockArray)) {
-            blockArray = JSON.parse(blockArray);
-          } else {
-            blockArray = blockArray.split(",").map((b) => b.trim());
-          }
-        } catch {
-          blockArray = [blockArray];
-        }
-      }
+      // Update multiCardToPrint state
+      setMultiCardToPrint(preparedCards);
 
-      // 3️⃣ Update state
-      setCardToPrint({ ...card, imageBlob, block: blockArray });
-
-      // 4️⃣ Trigger print
+      // Trigger readyToPrint AFTER state is updated
       setReadyToPrint(true);
-      // await doPrint();
     } catch (err) {
-      console.error("Error in printCard:", err);
+      console.error("Error in multiplePrint:", err);
     } finally {
-      setLoadingPrint(false); // reset when done
+      setLoadingPrint(false);
     }
+  };
+
+  window.onafterprint = () => {
+    setReadyToPrint(false);
+    setMultiCardToPrint([]);
   };
 
   return (
@@ -526,16 +559,37 @@ function AllCards() {
               <TableHead>Create By</TableHead>
               <TableHead className="w-[100px] text-center">
                 {(selectedCards.length >= 2 && (
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={handleBulkDelete}
-                  >
-                    <div className="relative inline-flex">
-                      <Trash className="h-4 w-4 text-gray-300 left-0.5 bottom-0.5 relative" />
-                      <Trash className="h-4 w-4 text-gray-300 absolute fill-[#a44d4e]" />
-                    </div>
-                  </Button>
+                  <div className="flex gap-1">
+                    <Button
+                      className="bg-[#077bff] hover:bg-[#035fc7] active:bg-[#035fc7] flex items-center justify-center"
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => multiplePrint(selectedCards)}
+                      disabled={loadingPrint || readyToPrint} // disable while loading or printing
+                    >
+                      {loadingPrint ? (
+                        <div className="flex items-center gap-2">
+                          <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                        </div>
+                      ) : (
+                        <div className="relative inline-flex">
+                          <Printer className="h-4 w-4 text-gray-300 left-0.5 bottom-0.5 relative" />
+                          <Printer className="h-4 w-4 text-gray-300 absolute fill-[#077bff]" />
+                        </div>
+                      )}
+                    </Button>
+
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={handleBulkDelete}
+                    >
+                      <div className="relative inline-flex">
+                        <Trash className="h-4 w-4 text-gray-300 left-0.5 bottom-0.5 relative" />
+                        <Trash className="h-4 w-4 text-gray-300 absolute fill-[#a44d4e]" />
+                      </div>
+                    </Button>
+                  </div>
                 )) ||
                   "Actions"}
               </TableHead>
@@ -679,6 +733,12 @@ function AllCards() {
 
       <div className="hidden">
         {cardToPrint && <PrintCard entries={[cardToPrint]} ref={contentRef} />}
+      </div>
+
+      <div className="hidden">
+        {multiCardToPrint.length > 0 && (
+          <PrintCard entries={multiCardToPrint} ref={contentRef} />
+        )}
       </div>
     </main>
   );

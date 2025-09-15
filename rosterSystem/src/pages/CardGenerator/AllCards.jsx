@@ -6,9 +6,10 @@ import {
   Ellipsis,
   Trash,
   Printer,
-  Loader2,
-  Pencil,
+  School,
+  IdCard,
   RotateCcw,
+  School2,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -40,17 +41,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { NavLink } from "react-router-dom";
 import axios from "../../api/axios";
 import { toast } from "sonner";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 import {
   Pagination,
   PaginationContent,
@@ -430,7 +421,7 @@ function AllCards() {
         </div>
 
         <Select onValueChange={handleFilterChange} value={filter}>
-          <SelectTrigger className="w-full md:w-[180px]">
+          <SelectTrigger className="w-full md:w-fit">
             <Funnel />
             <SelectValue placeholder="Filter" />
           </SelectTrigger>
@@ -450,12 +441,12 @@ function AllCards() {
             value={selectedFilterValue}
             disabled={isLoadingFilterOptions || filterOptions.length === 0}
           >
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-fit">
               {isLoadingFilterOptions ? (
                 <span>Loading...</span>
               ) : (
                 <>
-                  <Funnel />
+                  {filter === "block" ? <School2/> : <IdCard />}
                   <SelectValue
                     placeholder={
                       filter === "block" ? "Select Block" : "Select Cards Type"
@@ -481,13 +472,18 @@ function AllCards() {
                       value={value}
                       className="flex justify-between items-center"
                     >
-                      <span>
-                        {filter === "block" ? item.building : item.card_type}
-                      </span>
+                      <>
+                        <span>
+                          {filter === "block" ? item.building : item.card_type}
+                        </span>
 
-                      <span className="ml-2 bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full">
-                        {count}
-                      </span>
+                        <Badge
+                          className="h-5 min-w-5 rounded-full bg-blue-500 text-white dark:bg-blue-600 px-1 font-mono tabular-nums"
+                          variant="secondary"
+                        >
+                          {count}
+                        </Badge>
+                      </>
                     </SelectItem>
                   );
                 })}

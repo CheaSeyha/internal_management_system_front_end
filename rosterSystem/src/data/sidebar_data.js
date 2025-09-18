@@ -1,4 +1,10 @@
-import { GalleryVerticalEnd, CalendarDays, IdCard, HouseWifi } from "lucide-react";
+import {
+  GalleryVerticalEnd,
+  CalendarDays,
+  IdCard,
+  HouseWifi,
+  University,
+} from "lucide-react";
 
 export const data = {
   user: {
@@ -19,6 +25,11 @@ export const data = {
       title: "Roster",
       url: "",
       icon: CalendarDays,
+    },
+    {
+      title: "Blocks Manage",
+      url: "buildings-rooms-manage",
+      icon: University ,
     },
     {
       title: "Card Access",

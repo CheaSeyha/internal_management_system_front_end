@@ -1019,8 +1019,13 @@ export default function CardGenerator() {
           ref={contentRef}
         >
           <AnimatePresence>
-            {showCardHidden
-              ? // Show all hidden cards
+            {showCardHidden ? (
+              // Show all hidden cards
+              hideCard.length === 0 ? (
+                <>
+                  <p>No Hidden Card</p>
+                </>
+              ) : (
                 hideCard.map((entry, index) => (
                   <motion.div
                     key={entry.id}
@@ -1056,53 +1061,56 @@ export default function CardGenerator() {
                     </div>
                   </motion.div>
                 ))
-              : // Show visible cards only
-                entries
-                  .filter(
-                    (entry) =>
-                      !hideCard.some(
-                        (hidden) =>
-                          hidden.id === entry.id &&
-                          hidden.cardType === entry.cardType
-                      )
-                  )
-                  .map((entry, index) => (
-                    <motion.div
+              )
+            ) : (
+              // Show visible cards only
+              entries
+                .filter(
+                  (entry) =>
+                    !hideCard.some(
+                      (hidden) =>
+                        hidden.id === entry.id &&
+                        hidden.cardType === entry.cardType
+                    )
+                )
+                .map((entry, index) => (
+                  <motion.div
+                    key={entry.id}
+                    layout
+                    initial={{ opacity: 0, y: 40, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -40, scale: 0.95 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 400,
+                      damping: 30,
+                    }}
+                    className={
+                      entry.cardType === "CAR CARD"
+                        ? "w-full flex justify-center py-4 print:border-y print:border-dashed"
+                        : `w-auto ${
+                            noSpace ? "-mx-[1.1px] -my-[2px]" : "mx-2 my-2"
+                          }`
+                    }
+                    id={`card-${index}`}
+                  >
+                    <VIP
                       key={entry.id}
-                      layout
-                      initial={{ opacity: 0, y: 40, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -40, scale: 0.95 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 400,
-                        damping: 30,
-                      }}
-                      className={
-                        entry.cardType === "CAR CARD"
-                          ? "w-full flex justify-center py-4 print:border-y print:border-dashed"
-                          : `w-auto ${
-                              noSpace ? "-mx-[1.1px] -my-[2px]" : "mx-2 my-2"
-                            }`
+                      onRemove={removeEntryByName}
+                      onEdit={handleEdit}
+                      onHideCard={() =>
+                        handelHideCard(entry.id, entry.cardType)
                       }
-                      id={`card-${index}`}
-                    >
-                      <VIP
-                        key={entry.id}
-                        onRemove={removeEntryByName}
-                        onEdit={handleEdit}
-                        onHideCard={() =>
-                          handelHideCard(entry.id, entry.cardType)
-                        }
-                        index={index}
-                        block={entry.block}
-                        cardType={entry.cardType}
-                        id={entry.id}
-                        image={entry.imagePreviewUrl}
-                        name={entry.name}
-                      />
-                    </motion.div>
-                  ))}
+                      index={index}
+                      block={entry.block}
+                      cardType={entry.cardType}
+                      id={entry.id}
+                      image={entry.imagePreviewUrl}
+                      name={entry.name}
+                    />
+                  </motion.div>
+                ))
+            )}
           </AnimatePresence>
         </div>
       </motion.div>

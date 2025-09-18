@@ -25,10 +25,6 @@ function App() {
           </Route>
           {/* Block Route  */}
 
-
-          <Route path="buildings-rooms-manage" element={<BuildingRoom />} />
-
-
           {/* Card Route  */}
           <Route
             element={
@@ -83,10 +79,9 @@ function App() {
                 }
               />
             </Route>
-            
+            {/* Rote Building Room */}
+            <Route path="buildings-rooms-manage" element={<BuildingRoom />} />
           </Route>
-          
-
 
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

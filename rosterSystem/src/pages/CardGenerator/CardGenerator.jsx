@@ -45,6 +45,7 @@ import {
 } from "@/components/ui/tooltip";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "../../api/axios";
+import { useCardHook } from "./components/Hook/useCardHook";
 export default function CardGenerator() {
   const contentRef = useRef(null);
   const reactToPrintFn = useReactToPrint({ contentRef });
@@ -56,11 +57,11 @@ export default function CardGenerator() {
     imageFile: null,
     imagePreviewUrl: null,
   });
+  const [entries, setEntries] = useState([]);
+  // Crop State---------------------
   const [brightness, setBrightness] = useState(100);
   const [contrast, setContrast] = useState(100);
   const [saturation, setSaturation] = useState(100);
-
-  const [entries, setEntries] = useState([]);
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [rawImage, setRawImage] = useState(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -69,11 +70,19 @@ export default function CardGenerator() {
   const [editingIndex, setEditingIndex] = useState(null);
   const [noSpace, setNoSpace] = useState(true);
   const [loading, setloading] = useState(false);
-
-  //Hide Card State
+  // Crop State---------------------
+  //Hide Card State-----------------------------------------
   const [hideCard, setHideCard] = useState([]);
   const [showCardHidden, setShowCardHidden] = useState(false);
+  //Hide Card State-----------------------------------------
 
+  const { cardTypes, loadings, error } = useCardHook();
+
+  useEffect(() => {
+    console.log("cardType:", cardTypes);
+  }, [cardTypes]);
+
+  //Hide Card State-----------------------------------------
   const handelHideCard = (id, cardType) => {
     // find the entry in entries state
     const entryToHide = entries.find(
@@ -103,7 +112,7 @@ export default function CardGenerator() {
       return [...prev, entryToHide];
     });
   };
-  //Hide Logic
+  //Hide Logic---------------------------------------------
 
   //clear all cards
   const clearAllCards = () => {
@@ -308,7 +317,7 @@ export default function CardGenerator() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const requiresImage = !["VIP Card", "Car Card"].includes(
+    const requiresImage = !["VIP CARD", "CAR CARD"].includes(
       currentEntry.cardType
     );
 
@@ -655,8 +664,8 @@ export default function CardGenerator() {
           </div>
           <div className="flex flex-col md:flex-row gap-6">
             {/* Show Image  */}
-            {currentEntry.cardType !== "VIP Card" &&
-              currentEntry.cardType !== "Car Card" && (
+            {currentEntry.cardType !== "VIP CARD" &&
+              currentEntry.cardType !== "CAR CARD" && (
                 <div
                   className="flex-1 border-2 border-dashed border-gray-400 rounded-lg p-4 flex items-center justify-center"
                   onDrop={handleDrop}
@@ -678,7 +687,7 @@ export default function CardGenerator() {
 
             <div
               className={`space-y-4 ${
-                ["VIP Card", "Car Card"].includes(currentEntry.cardType)
+                ["VIP CARD", "CAR CARD"].includes(currentEntry.cardType)
                   ? "w-full"
                   : "flex-1"
               }`}
@@ -708,31 +717,30 @@ export default function CardGenerator() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem
-                        value="placeholder"
-                        disabled
-                        key="placeholder"
-                      >
-                        Select a type
-                      </SelectItem>
-                      <SelectItem value="Staff" key="Staff">
-                        Staff
-                      </SelectItem>
-                      <SelectItem value="Construction" key="Construction">
-                        Construction
-                      </SelectItem>
-                      <SelectItem value="Delivery" key="Delivery">
-                        Delivery
-                      </SelectItem>
-                      <SelectItem value="TukTuk" key="TukTuk">
-                        TukTuk
-                      </SelectItem>
-                      <SelectItem value="Car Card" key="Car Card">
-                        Car Card
-                      </SelectItem>
-                      <SelectItem value="VIP Card" key="VIP Card">
-                        VIP Card
-                      </SelectItem>
+                      {loadings ? (
+                        <>
+                          <span>Please wait...</span><span className="loading loading-spinner loading-sm"></span>
+                        </>
+                      ) : (
+                        <>
+                          <SelectItem
+                            value="placeholder"
+                            disabled
+                            key="placeholder"
+                          >
+                            Select a type
+                          </SelectItem>
+
+                          {cardTypes.map((card) => (
+                            <SelectItem
+                              value={card.card_type}
+                              key={card.card_type}
+                            >
+                              {card.card_type}
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
                     </SelectGroup>
                   </SelectContent>
                 </Select>
@@ -741,7 +749,7 @@ export default function CardGenerator() {
               <div className="form-control">
                 <label htmlFor="name" className="label">
                   <span className="label-text">
-                    {currentEntry.cardType === "Car Card"
+                    {currentEntry.cardType === "CAR CARD"
                       ? "Plate Number"
                       : "Name"}
                   </span>
@@ -840,7 +848,7 @@ export default function CardGenerator() {
                       key={String(block)}
                       onClick={() => handleRemoveBlock(block)}
                       variant="outline"
-                      className="px-3 py-1 rounded flex items-center gap-2"
+                      className="px-3 py-1 rounded flex items-center gap-2 hover:bg-red-600"
                     >
                       <span>{block}</span>
                     </Button>
@@ -986,14 +994,14 @@ export default function CardGenerator() {
             <Button
               disabled={entries.length === 0 || showCardHidden}
               onClick={saveAllCardsAsImages}
-              className="btn bg-[#6dbb06] text-white border-none hover:bg-[#427203]"
+              className="btn bg-[#6dbb06] text-gray-800 dark:text-white border-none hover:bg-[#427203]"
             >
               <ImageDown size={18} /> Export
             </Button>
             <Button
               disabled={entries.length === 0 || showCardHidden}
               onClick={reactToPrintFn}
-              className="btn bg-[#2dc1fc] text-white border-none hover:bg-[#1a8bbd]"
+              className="btn bg-[#2dc1fc] text-gray-800 dark:text-white border-none hover:bg-[#1a8bbd]"
             >
               <Printer size={18} /> Print
             </Button>
@@ -1017,7 +1025,7 @@ export default function CardGenerator() {
                     exit={{ opacity: 0, y: -40, scale: 0.95 }}
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     className={
-                      entry.cardType === "Car Card"
+                      entry.cardType === "CAR CARD"
                         ? "w-full flex justify-center py-4"
                         : `w-auto ${
                             noSpace ? "-mx-[1.1px] -my-[2px]" : "mx-2 my-2"
@@ -1066,7 +1074,7 @@ export default function CardGenerator() {
                         damping: 30,
                       }}
                       className={
-                        entry.cardType === "Car Card"
+                        entry.cardType === "CAR CARD"
                           ? "w-full flex justify-center py-4"
                           : `w-auto ${
                               noSpace ? "-mx-[1.1px] -my-[2px]" : "mx-2 my-2"

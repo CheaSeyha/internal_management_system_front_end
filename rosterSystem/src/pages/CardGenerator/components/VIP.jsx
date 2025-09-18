@@ -202,6 +202,9 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
             <p className="staffcard forBlock absolute text-[16px] top-[3.30cm] left-[4.86cm]">
               {formattedBlock}
             </p>
+            <p className="forID absolute text-[18px] top-[3.76cm] left-[4.87cm]">
+              {id}
+            </p>
             <p className="forDate absolute text-[16px] top-[4.33cm] left-[4.86cm]">
               {getDayMonthYear}
             </p>

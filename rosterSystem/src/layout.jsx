@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { SidebarProvider, SidebarTrigger } from "./components/ui/sidebar";
 import { AppSidebar } from "./components/app-sidebar";
 import { Outlet, useLocation } from "react-router-dom";
@@ -24,9 +25,7 @@ export default function Layout() {
       CurrentIcon = parent.icon || WalletCards; // 👈 assign parent icon
 
       if (parent.items && parent.items.length > 0) {
-        const child = parent.items.find((sub) =>
-          currentPath.endsWith(sub.url)
-        );
+        const child = parent.items.find((sub) => currentPath.endsWith(sub.url));
         if (child) {
           childTitle = child.title;
         }
@@ -40,6 +39,15 @@ export default function Layout() {
       ? `${parentTitle} \\ ${childTitle}`
       : parentTitle
     : "Unknown Page";
+
+  // 👇 Dynamically update <title>
+  useEffect(() => {
+    const team = data.teams?.[0];
+    const baseTitle = team ? `${team.name} ${team.plan}` : "My App";
+
+    document.title =
+      pageTitle !== "Unknown Page" ? `${pageTitle} | ${baseTitle}` : baseTitle;
+  }, [pageTitle]);
 
   return (
     <SidebarProvider>

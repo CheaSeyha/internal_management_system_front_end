@@ -5,9 +5,19 @@ import deliverycard from "../../../assets/CardTamplete/DELIVERY.png";
 import tuktuk from "../../../assets/CardTamplete/TUKTUK.png";
 import carcard1 from "../../../assets/CardTamplete/CAR1.png";
 import construction from "../../../assets/CardTamplete/CONSTRUCTION.png";
-import { Trash, Edit,EyeOff  } from "lucide-react";
+import { Trash, Edit, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
-function VIP({ name, block, id, image, cardType, onRemove, onEdit,onHideCard, index }) {
+function VIP({
+  name,
+  block,
+  id,
+  image,
+  cardType,
+  onRemove,
+  onEdit,
+  onHideCard,
+  index,
+}) {
   const normalizedCardType = cardType?.toLowerCase() || "";
 
   function formatBlocks(block) {
@@ -61,6 +71,17 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit,onHideCard, in
       <div className="container-card relative ">
         <div className="absolute inset-0 z-2 flex items-center rounded-2xl justify-center opacity-0 hover:opacity-100 transition-all delay-100 backdrop-blur-sm gap-2">
           <Button
+            className="btn border-none group bg-gray-800 hover:bg-gray-600"
+            onClick={() => onHideCard(id, cardType)}
+            variant="secondary"
+          >
+            <EyeOff
+              color="white"
+              className="group-hover:mb-2 delay-75 transition-all"
+            />
+          </Button>
+
+          <Button
             className="btn border-none group"
             variant="destructive"
             onClick={() => onRemove(name)}
@@ -75,16 +96,6 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit,onHideCard, in
             onClick={() => onEdit(index)}
           >
             <Edit
-              color="white"
-              className="group-hover:mb-2 delay-75 transition-all"
-            />
-          </Button>
-          <Button
-            className="btn border-none group"
-            onClick={() => onHideCard(id, cardType)}
-            variant="secondary"
-          >
-            <EyeOff 
               color="white"
               className="group-hover:mb-2 delay-75 transition-all"
             />

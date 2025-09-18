@@ -12,6 +12,7 @@ import AllISP from "./pages/Internet/AllISP";
 import RosterForm from "./pages/RosterForm/RosterForm";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import NotFoundPage from "./pages/NotFoundPage";
+import BuildingRoom from "./pages/Blocks/BuildingRoom";
 function App() {
   const location = useLocation(); // Get the current location
 
@@ -22,7 +23,13 @@ function App() {
           <Route path="auth">
             <Route path="login" element={<Login />} />
           </Route>
+          {/* Block Route  */}
 
+
+          <Route path="buildings-rooms-manage" element={<BuildingRoom />} />
+
+
+          {/* Card Route  */}
           <Route
             element={
               <ProtectedRoute>
@@ -78,6 +85,9 @@ function App() {
             </Route>
             
           </Route>
+          
+
+
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </AnimatePresence>

@@ -9,9 +9,9 @@ export const data = {
   },
   teams: [
     {
-      name: "System",
+      name: "JohnSey",
       logo: GalleryVerticalEnd,
-      plan: "Test System",
+      plan: "System",
     },
   ],
   navMain: [

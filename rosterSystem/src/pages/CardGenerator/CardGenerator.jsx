@@ -328,6 +328,10 @@ export default function CardGenerator() {
         return;
       }
     }
+    if (!currentEntry.block || String(currentEntry.block).trim() === "") {
+      toast.error("Block is required...");
+      return;
+    }
 
     setloading(true);
 
@@ -719,7 +723,8 @@ export default function CardGenerator() {
                     <SelectGroup>
                       {loadings ? (
                         <>
-                          <span>Please wait...</span><span className="loading loading-spinner loading-sm"></span>
+                          <span>Please wait...</span>
+                          <span className="loading loading-spinner loading-sm"></span>
                         </>
                       ) : (
                         <>
@@ -1075,7 +1080,7 @@ export default function CardGenerator() {
                       }}
                       className={
                         entry.cardType === "CAR CARD"
-                          ? "w-full flex justify-center py-4"
+                          ? "w-full flex justify-center py-4 print:border-y print:border-dashed"
                           : `w-auto ${
                               noSpace ? "-mx-[1.1px] -my-[2px]" : "mx-2 my-2"
                             }`

@@ -35,7 +35,14 @@ import {
   CopyX,
   Columns2,
   Rows2,
+  Eye,
+  EyeOff,
 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "../../api/axios";
 export default function CardGenerator() {
@@ -62,9 +69,46 @@ export default function CardGenerator() {
   const [editingIndex, setEditingIndex] = useState(null);
   const [noSpace, setNoSpace] = useState(true);
   const [loading, setloading] = useState(false);
+
+  //Hide Card State
+  const [hideCard, setHideCard] = useState([]);
+  const [showCardHidden, setShowCardHidden] = useState(false);
+
+  const handelHideCard = (id, cardType) => {
+    // find the entry in entries state
+    const entryToHide = entries.find(
+      (e) => e.id === id && e.cardType === cardType
+    );
+
+    if (!entryToHide) return; // safety check if not found
+
+    setHideCard((prev) => {
+      // check if already hidden
+      const exists = prev.some(
+        (hidden) =>
+          hidden.id === entryToHide.id &&
+          hidden.cardType === entryToHide.cardType
+      );
+
+      if (exists) {
+        // if exists, remove it (unhide)
+        return prev.filter(
+          (hidden) =>
+            hidden.id !== entryToHide.id ||
+            hidden.cardType !== entryToHide.cardType
+        );
+      }
+
+      // if not exists, add it (hide)
+      return [...prev, entryToHide];
+    });
+  };
+  //Hide Logic
+
   //clear all cards
   const clearAllCards = () => {
     setEntries([]);
+    setHideCard([]);
   };
   const [blocks, setBlocks] = useState([]);
 
@@ -73,7 +117,6 @@ export default function CardGenerator() {
       const res = await axios.get("blocks/all_buildings");
       if (res.status === 200) {
         setBlocks(res.data.data);
-        console.log(res.data.data);
       }
     } catch (error) {
       console.error("Error fetching blocks:", error);
@@ -137,7 +180,6 @@ export default function CardGenerator() {
 
   useEffect(() => {
     localStorage.setItem("cardgen-layout", changeLayout);
-    console.log(entries);
   }, [changeLayout]);
 
   const setNoSpaceCard = () => {
@@ -351,7 +393,9 @@ export default function CardGenerator() {
       }
     } catch (error) {
       console.error("Error saving card:", error);
-      toast.error("Failed to save card!", { description: error.response.data.errors.card_type });
+      toast.error("Failed to save card!", {
+        description: error.response.data.errors.card_type,
+      });
     } finally {
       setloading(false);
 
@@ -845,47 +889,93 @@ export default function CardGenerator() {
           <h3 className="text-xl font-semibold">All Cards</h3>
           <div className="btn-container space-x-2">
             {/* Toggle noSpace */}
-            <label
-              htmlFor="toggle-no-space"
-              className="swap bg-[#f508a6] hover:bg-[#990367] w-[40px] h-[40px] rounded-full active:scale-105 transition-all duration-200"
-            >
-              <input
-                id="toggle-no-space"
-                type="checkbox"
-                checked={noSpace}
-                onChange={setNoSpaceCard}
-                className="hidden"
-              />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <label
+                  htmlFor="toggle-no-space"
+                  className="swap bg-[#f508a6] hover:bg-[#990367] w-[40px] h-[40px] rounded-full active:scale-105 transition-all duration-200"
+                >
+                  <input
+                    id="toggle-no-space"
+                    type="checkbox"
+                    checked={noSpace}
+                    onChange={setNoSpaceCard}
+                    className="hidden"
+                  />
 
-              <div className="swap-on text-white">
-                <ChevronsLeftRight size={18} />
-              </div>
-              <div className="swap-off text-white">
-                <ChevronsRightLeft size={18} />
-              </div>
-            </label>
-
+                  <div className="swap-on text-white">
+                    <ChevronsLeftRight size={18} />
+                  </div>
+                  <div className="swap-off text-white">
+                    <ChevronsRightLeft size={18} />
+                  </div>
+                </label>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>No Space Card</p>
+              </TooltipContent>
+            </Tooltip>
             {/* Toggle layout */}
-            <label
-              htmlFor="toggle-layout"
-              className="swap bg-[#2dc1fc] hover:bg-[#1e7699] w-[40px] h-[40px] rounded-full active:scale-105 transition-all duration-200"
-            >
-              <input
-                id="toggle-layout"
-                type="checkbox"
-                checked={changeLayout}
-                onChange={() => setLayout((prev) => !prev)}
-                className="hidden"
-              />
 
-              <div className="swap-on text-white">
-                <Columns2 size={18} />
-              </div>
-              <div className="swap-off text-white">
-                <Rows2 size={18} />
-              </div>
-            </label>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <label
+                  htmlFor="toggle-layout"
+                  className="swap bg-[#2dc1fc] hover:bg-[#1e7699] w-[40px] h-[40px] rounded-full active:scale-105 transition-all duration-200"
+                >
+                  <input
+                    id="toggle-layout"
+                    type="checkbox"
+                    checked={changeLayout}
+                    onChange={() => setLayout((prev) => !prev)}
+                    className="hidden"
+                  />
 
+                  <div className="swap-on text-white">
+                    <Columns2 size={18} />
+                  </div>
+                  <div className="swap-off text-white">
+                    <Rows2 size={18} />
+                  </div>
+                </label>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Change Layout</p>
+              </TooltipContent>
+            </Tooltip>
+            {/*Toggle Hide/Show Card  */}
+
+            {/* Show Button When Card Hidden  */}
+            {/* Button show hidden card  */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <label
+                  htmlFor="toggle-hidden"
+                  className="swap bg-[#3b3d3d] hover:bg-[#636464] w-[40px] h-[40px] rounded-full active:scale-105 transition-all duration-200"
+                >
+                  <input
+                    id="toggle-hidden"
+                    type="checkbox"
+                    checked={showCardHidden}
+                    onChange={() => setShowCardHidden((prev) => !prev)}
+                    className="hidden"
+                  />
+
+                  {/* when ON (show hidden cards) */}
+                  <div className="swap-on text-white flex items-center justify-center">
+                    <Eye size={18} />
+                  </div>
+
+                  {/* when OFF (hide hidden cards) */}
+                  <div className="swap-off text-white flex items-center justify-center">
+                    <EyeOff size={18} />
+                  </div>
+                </label>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Hide/Show Card</p>
+              </TooltipContent>
+            </Tooltip>
             <Button
               onClick={clearAllCards}
               id="nospace"
@@ -894,14 +984,14 @@ export default function CardGenerator() {
               <CopyX size={18} /> Clear
             </Button>
             <Button
-              disabled={entries.length === 0}
+              disabled={entries.length === 0 || showCardHidden}
               onClick={saveAllCardsAsImages}
               className="btn bg-[#6dbb06] text-white border-none hover:bg-[#427203]"
             >
               <ImageDown size={18} /> Export
             </Button>
             <Button
-              disabled={entries.length === 0}
+              disabled={entries.length === 0 || showCardHidden}
               onClick={reactToPrintFn}
               className="btn bg-[#2dc1fc] text-white border-none hover:bg-[#1a8bbd]"
             >
@@ -916,36 +1006,90 @@ export default function CardGenerator() {
           ref={contentRef}
         >
           <AnimatePresence>
-            {entries.map((entry, index) => (
-              <motion.div
-                key={entry.id}
-                layout
-                initial={{ opacity: 0, y: 40, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -40, scale: 0.95 }}
-                transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                className={
-                  entry.cardType === "Car Card"
-                    ? "w-full flex justify-center py-4"
-                    : `w-auto ${
-                        noSpace ? "-mx-[1.1px] -my-[2px]" : "mx-2 my-2"
-                      }`
-                }
-                id={`card-${index}`}
-              >
-                <VIP
-                  key={entry.id}
-                  onRemove={removeEntryByName}
-                  onEdit={handleEdit}
-                  index={index}
-                  block={entry.block}
-                  cardType={entry.cardType}
-                  id={entry.id}
-                  image={entry.imagePreviewUrl}
-                  name={entry.name}
-                />
-              </motion.div>
-            ))}
+            {showCardHidden
+              ? // Show all hidden cards
+                hideCard.map((entry, index) => (
+                  <motion.div
+                    key={entry.id}
+                    layout
+                    initial={{ opacity: 0, y: 40, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -40, scale: 0.95 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    className={
+                      entry.cardType === "Car Card"
+                        ? "w-full flex justify-center py-4"
+                        : `w-auto ${
+                            noSpace ? "-mx-[1.1px] -my-[2px]" : "mx-2 my-2"
+                          }`
+                    }
+                    id={`card-${index}`}
+                  >
+                    <div className="grayscale">
+                      <VIP
+                        key={entry.id}
+                        onRemove={removeEntryByName}
+                        onEdit={handleEdit}
+                        onHideCard={() =>
+                          handelHideCard(entry.id, entry.cardType)
+                        }
+                        index={index}
+                        block={entry.block}
+                        cardType={entry.cardType}
+                        id={entry.id}
+                        image={entry.imagePreviewUrl}
+                        name={entry.name}
+                      />
+                    </div>
+                  </motion.div>
+                ))
+              : // Show visible cards only
+                entries
+                  .filter(
+                    (entry) =>
+                      !hideCard.some(
+                        (hidden) =>
+                          hidden.id === entry.id &&
+                          hidden.cardType === entry.cardType
+                      )
+                  )
+                  .map((entry, index) => (
+                    <motion.div
+                      key={entry.id}
+                      layout
+                      initial={{ opacity: 0, y: 40, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -40, scale: 0.95 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 400,
+                        damping: 30,
+                      }}
+                      className={
+                        entry.cardType === "Car Card"
+                          ? "w-full flex justify-center py-4"
+                          : `w-auto ${
+                              noSpace ? "-mx-[1.1px] -my-[2px]" : "mx-2 my-2"
+                            }`
+                      }
+                      id={`card-${index}`}
+                    >
+                      <VIP
+                        key={entry.id}
+                        onRemove={removeEntryByName}
+                        onEdit={handleEdit}
+                        onHideCard={() =>
+                          handelHideCard(entry.id, entry.cardType)
+                        }
+                        index={index}
+                        block={entry.block}
+                        cardType={entry.cardType}
+                        id={entry.id}
+                        image={entry.imagePreviewUrl}
+                        name={entry.name}
+                      />
+                    </motion.div>
+                  ))}
           </AnimatePresence>
         </div>
       </motion.div>

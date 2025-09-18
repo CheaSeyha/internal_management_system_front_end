@@ -9,11 +9,22 @@ import { Trash, Edit } from "lucide-react";
 function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
   const normalizedCardType = cardType?.toLowerCase() || "";
 
-  const formattedBlock = formatBlocks(block);
-  function formatBlocks(blockArray) {
-    if (!Array.isArray(blockArray) || blockArray.length === 0) return "";
-    return blockArray.join(", ");
+  function formatBlocks(block) {
+    if (!Array.isArray(block) || block.length === 0) return "";
+
+    // Check if any block has a room (contains a dash followed by digits)
+    const hasRoom = block.some((item) => /-\d+/.test(item));
+
+    if (hasRoom) {
+      // If at least one block has a room, join with comma
+      return block.join(", ");
+    } else {
+      // If no block has a room, concatenate directly
+      return block.join("");
+    }
   }
+
+  const formattedBlock = formatBlocks(block); // ✅ call the function
 
   const [fontSizeName, setFontSizeName] = useState(18);
   const nameRef = useRef();
@@ -68,7 +79,6 @@ function VIP({ name, block, id, image, cardType, onRemove, onEdit, index }) {
           </button>
         </div>
         {/* Delivery Card */}
-
 
         {normalizedCardType === "delivery" && (
           <main className="deliverycard relative font-cardFont2 w-[9cm] h-[6cm] text-black bg-white rounded-2xl">

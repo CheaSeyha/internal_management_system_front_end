@@ -88,9 +88,6 @@ export default function CardGenerator() {
   }, []);
 
   const [selectedBlocks, setSelectedBlocks] = useState([]);
-  useEffect(() => {
-    console.log(selectedBlocks);
-  }, [selectedBlocks]);
 
   const handleAddBlock = (value) => {
     const [building, room] = value.split("-");
@@ -354,7 +351,7 @@ export default function CardGenerator() {
       }
     } catch (error) {
       console.error("Error saving card:", error);
-      toast.error("Failed to save card!", { description: error.message });
+      toast.error("Failed to save card!", { description: error.response.data.errors.card_type });
     } finally {
       setloading(false);
 

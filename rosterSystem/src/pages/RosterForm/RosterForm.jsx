@@ -11,11 +11,12 @@ function RosterForm() {
   return (
     <>
       <div className="w-full h-full ">
-        <h1 className="font-bold text-2xl sticky">IT ROSTER FOR {monthName}</h1>
+        {/* <h1 className="font-bold text-2xl sticky">IT ROSTER FOR {monthName}</h1> */}
         {/* Custom cursor element */}
         {/* Button Control */}
-        <ControlButton/>
-        <RosterTable/>
+        {/* <ControlButton/> */}
+        <p className="text-center">Avaible in the next update</p>
+        {/* <RosterTable/> */}
       </div>
     </>
   );

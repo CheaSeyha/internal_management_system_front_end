@@ -19,6 +19,14 @@
   src: url('./assets/fonts/News 706 BT');
 }
 
+@font-face {
+  font-family: 'KantumruyPro';
+  src: url('./assets/fonts/KantumruyPro-Regular.ttf');
+}
+
+
+
+
 /* styles/theme.css */
 :root {
   /* Light theme defaults */
@@ -107,6 +115,7 @@
   --font-cardFont1: cardFont1, 'News706BT-BoldC';
   --font-cardFont2: cardFont2, 'swiss-721-bt-black-condensed';
   --font-News706BT: News706BT, 'News 706 BT';
+  --font-KantumruyPro: KantumruyPro, 'KantumruyPro';
 
   --color-background: var(--color-background);
   --color-sidebar: var(--color-sidebar);

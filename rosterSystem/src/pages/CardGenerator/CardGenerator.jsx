@@ -8,6 +8,7 @@ import { useReactToPrint } from "react-to-print";
 import { toPng, toJpeg } from "html-to-image";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import LoadingSpinner from "../../components/LoadingSpinner";
 import {
   Command,
   CommandDialog,
@@ -53,7 +54,7 @@ export default function CardGenerator() {
     name: "",
     block: "",
     id: "",
-    cardType: "Staff",
+    cardType: "",
     imageFile: null,
     imagePreviewUrl: null,
   });
@@ -74,6 +75,7 @@ export default function CardGenerator() {
   //Hide Card State-----------------------------------------
   const [hideCard, setHideCard] = useState([]);
   const [showCardHidden, setShowCardHidden] = useState(false);
+  const [ready, setReady] = useState(false);//for select card type logic ro render when fetch data done
   //Hide Card State-----------------------------------------
 
   const { cardTypes, loadings, error } = useCardHook();
@@ -417,7 +419,7 @@ export default function CardGenerator() {
         name: "",
         block: [],
         id: "",
-        cardType: "Staff",
+        cardType: cardTypes[0].card_type,
         imageFile: null,
         imagePreviewUrl: null,
       });
@@ -468,8 +470,14 @@ export default function CardGenerator() {
     setEditingIndex(index);
   };
 
-  // {`${changeLayout} ?  :
+  useEffect(() => {
+    if (!loadings && cardTypes.length > 0) {
+      setCurrentEntry({ cardType: cardTypes[0].card_type }); // set first value
+      setReady(true); // now we can render the Select
+    }
+  }, [loadings, cardTypes]);
 
+  if (!ready) return <LoadingSpinner />; // show loading until ready
   return (
     <div
       className={
@@ -703,49 +711,21 @@ export default function CardGenerator() {
                 </label>
                 <Select
                   name="cardType"
-                  value={currentEntry.cardType || "placeholder"} // fallback to placeholder if empty
+                  value={currentEntry.cardType}
                   onValueChange={(value) =>
-                    handleInputChange({
-                      target: {
-                        name: "cardType",
-                        value,
-                      },
-                    })
+                    setCurrentEntry((prev) => ({ ...prev, cardType: value }))
                   }
                 >
-                  <SelectTrigger
-                    className="w-full"
-                    id="cardtype-select-trigger"
-                  >
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select a type" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      {loadings ? (
-                        <>
-                          <span>Please wait...</span>
-                          <span className="loading loading-spinner loading-sm"></span>
-                        </>
-                      ) : (
-                        <>
-                          <SelectItem
-                            value="placeholder"
-                            disabled
-                            key="placeholder"
-                          >
-                            Select a type
-                          </SelectItem>
-
-                          {cardTypes.map((card) => (
-                            <SelectItem
-                              value={card.card_type}
-                              key={card.card_type}
-                            >
-                              {card.card_type}
-                            </SelectItem>
-                          ))}
-                        </>
-                      )}
+                      {cardTypes.map((card) => (
+                        <SelectItem value={card.card_type} key={card.card_type}>
+                          {card.card_type}
+                        </SelectItem>
+                      ))}
                     </SelectGroup>
                   </SelectContent>
                 </Select>

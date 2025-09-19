@@ -75,7 +75,7 @@ export default function CardGenerator() {
   //Hide Card State-----------------------------------------
   const [hideCard, setHideCard] = useState([]);
   const [showCardHidden, setShowCardHidden] = useState(false);
-  const [ready, setReady] = useState(false);//for select card type logic ro render when fetch data done
+  const [ready, setReady] = useState(false); //for select card type logic ro render when fetch data done
   //Hide Card State-----------------------------------------
 
   const { cardTypes, loadings, error } = useCardHook();
@@ -730,7 +730,7 @@ export default function CardGenerator() {
                   </SelectContent>
                 </Select>
               </div>
-
+              {/* Card Naem  */}
               <div className="form-control">
                 <label htmlFor="name" className="label">
                   <span className="label-text">
@@ -743,14 +743,15 @@ export default function CardGenerator() {
                   autoComplete="username"
                   name="name"
                   id="name"
-                  value={currentEntry.name}
+                  value={currentEntry.name || ""}
                   onChange={handleInputChange}
                   className="input input-bordered w-full"
                   required
                   ref={nameInputRef}
                 />
               </div>
-              {/* Block  */}
+
+              {/* Block select  */}
               <div className="form-control">
                 <label className="label">
                   <span className="label-text">Select Blocks</span>
@@ -840,6 +841,9 @@ export default function CardGenerator() {
                   ))}
                 </div>
               </div>
+
+
+              {/* button for save card or update card  */}
               <Button
                 type="submit"
                 className="w-full bg-blue-500 mt-4 text-white"

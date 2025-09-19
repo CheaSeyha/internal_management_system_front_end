@@ -706,30 +706,34 @@ export default function CardGenerator() {
             >
               {/* select card type  */}
               <div className="form-control">
-                <label htmlFor="cardtype-select-trigger" className="label">
-                  <span className="label-text">Card Type</span>
+                <label className="label flex flex-col items-start">
+                  <span className="label-text mb-1">Card Type</span>
+                  <Select
+                    name="cardType"
+                    value={currentEntry.cardType || ""}
+                    onValueChange={(value) =>
+                      setCurrentEntry((prev) => ({ ...prev, cardType: value }))
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {cardTypes.map((card) => (
+                          <SelectItem
+                            value={card.card_type}
+                            key={card.card_type}
+                          >
+                            {card.card_type}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
                 </label>
-                <Select
-                  name="cardType"
-                  value={currentEntry.cardType}
-                  onValueChange={(value) =>
-                    setCurrentEntry((prev) => ({ ...prev, cardType: value }))
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {cardTypes.map((card) => (
-                        <SelectItem value={card.card_type} key={card.card_type}>
-                          {card.card_type}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
               </div>
+
               {/* Card Naem  */}
               <div className="form-control">
                 <label htmlFor="name" className="label">
@@ -753,79 +757,76 @@ export default function CardGenerator() {
 
               {/* Block select  */}
               <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Select Blocks</span>
+                <label className="label flex flex-col items-start">
+                  <span className="label-text mb-1">Select Blocks</span>
+                  <Select
+                    name="blockselection"
+                    value={undefined}
+                    onValueChange={handleAddBlock}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a block or room" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <Command className="flex flex-col">
+                        <CommandInput
+                          className="sticky top-0 z-10"
+                          placeholder="Search blocks..."
+                        />
+                        <CommandEmpty>No block found.</CommandEmpty>
+
+                        <ScrollArea className="h-60 w-full">
+                          <div className="p-1">
+                            {blocks.map((block) => {
+                              const buildingSelected = selectedBlocks.includes(
+                                block.building
+                              );
+                              const remainingRooms = block.room.filter(
+                                (roomName) =>
+                                  !buildingSelected &&
+                                  !selectedBlocks.some((selected) =>
+                                    selected
+                                      .split("-")
+                                      .slice(1)
+                                      .includes(roomName)
+                                  )
+                              );
+                              const hideBuilding =
+                                !buildingSelected &&
+                                block.room.length > 0 &&
+                                remainingRooms.length === 0;
+
+                              return (
+                                <CommandGroup key={block.building}>
+                                  {!buildingSelected && !hideBuilding && (
+                                    <CommandItem
+                                      value={block.building}
+                                      onSelect={handleAddBlock}
+                                      className="font-semibold"
+                                    >
+                                      {block.building}
+                                    </CommandItem>
+                                  )}
+
+                                  {remainingRooms.map((roomName) => (
+                                    <CommandItem
+                                      key={`${block.building}-${roomName}`}
+                                      value={`${block.building}-${roomName}`}
+                                      onSelect={handleAddBlock}
+                                      className="pl-4"
+                                    >
+                                      {roomName}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              );
+                            })}
+                          </div>
+                        </ScrollArea>
+                      </Command>
+                    </SelectContent>
+                  </Select>
                 </label>
-
-                <Select value={undefined} onValueChange={handleAddBlock}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a block or room" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <Command className="flex flex-col">
-                      <CommandInput
-                        className="sticky top-0 z-10"
-                        placeholder="Search blocks..."
-                      />
-                      <CommandEmpty>No block found.</CommandEmpty>
-
-                      {/* Fixed ScrollArea implementation */}
-                      <ScrollArea className="h-60 w-full">
-                        <div className="p-1">
-                          {blocks.map((block) => {
-                            // Check if the building itself is selected
-                            const buildingSelected = selectedBlocks.includes(
-                              block.building
-                            );
-
-                            // Filter out rooms that are selected individually OR if building is selected
-                            const remainingRooms = block.room.filter(
-                              (roomName) =>
-                                !buildingSelected && // hide all rooms if building selected
-                                !selectedBlocks.some((selected) =>
-                                  selected
-                                    .split("-")
-                                    .slice(1)
-                                    .includes(roomName)
-                                )
-                            );
-
-                            // Hide building if explicitly selected or all rooms selected
-                            const hideBuilding =
-                              !buildingSelected &&
-                              block.room.length > 0 &&
-                              remainingRooms.length === 0;
-
-                            return (
-                              <CommandGroup key={block.building}>
-                                {!buildingSelected && !hideBuilding && (
-                                  <CommandItem
-                                    value={block.building}
-                                    onSelect={handleAddBlock}
-                                    className="font-semibold"
-                                  >
-                                    {block.building}
-                                  </CommandItem>
-                                )}
-
-                                {remainingRooms.map((roomName) => (
-                                  <CommandItem
-                                    key={`${block.building}-${roomName}`}
-                                    value={`${block.building}-${roomName}`}
-                                    onSelect={handleAddBlock}
-                                    className="pl-4"
-                                  >
-                                    {roomName}
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
-                            );
-                          })}
-                        </div>
-                      </ScrollArea>
-                    </Command>
-                  </SelectContent>
-                </Select>
 
                 {/* Preview selected blocks */}
                 <div className="mt-2 flex flex-wrap gap-2">
@@ -841,7 +842,6 @@ export default function CardGenerator() {
                   ))}
                 </div>
               </div>
-
 
               {/* button for save card or update card  */}
               <Button

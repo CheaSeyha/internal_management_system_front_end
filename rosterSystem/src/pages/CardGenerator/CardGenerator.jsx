@@ -149,7 +149,7 @@ export default function CardGenerator() {
   }, []);
 
   const [selectedBlocks, setSelectedBlocks] = useState([]);
-  
+
   const handleAddBlock = (value) => {
     const [building, room] = value.split("-");
     let updatedBlocks = [...selectedBlocks];
@@ -716,6 +716,7 @@ export default function CardGenerator() {
               <div className="form-control">
                 <label className="label flex flex-col items-start">
                   <span className="label-text mb-1">Card Type</span>
+
                   <Select
                     name="cardType"
                     value={currentEntry.cardType || ""}
@@ -723,16 +724,17 @@ export default function CardGenerator() {
                       setCurrentEntry((prev) => ({ ...prev, cardType: value }))
                     }
                   >
-                    <SelectTrigger className="w-full cursor-pointer">
+                    <SelectTrigger className="w-full cursor-pointer bg-white text-black dark:text-white border border-gray-300 dark:border-gray-700">
                       <SelectValue placeholder="Select a type" />
                     </SelectTrigger>
-                    <SelectContent>
+
+                    <SelectContent className="text-black dark:text-white">
                       <SelectGroup>
                         {cardTypes.map((card) => (
                           <SelectItem
-                            className="cursor-pointer"
-                            value={card.card_type}
                             key={card.card_type}
+                            value={card.card_type}
+                            className="cursor-pointer hover:bg-gray-100 focus:bg-gray-200 dark:hover:bg-gray-700 dark:focus:bg-gray-600"
                           >
                             {card.card_type}
                           </SelectItem>
@@ -742,6 +744,7 @@ export default function CardGenerator() {
                   </Select>
                 </label>
               </div>
+
               {/* Card Naem  */}
               <div className="form-control">
                 <label htmlFor="name" className="label">

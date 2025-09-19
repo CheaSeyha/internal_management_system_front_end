@@ -221,7 +221,7 @@ function AllCards() {
     // Otherwise, do your search/filter API call if needed
     // filterData(value, selectedFilterValue);
   };
-  
+
   // Selection handlers
   const allSelected =
     selectedCards.length === getCards.length && getCards.length > 0;
@@ -493,7 +493,7 @@ function AllCards() {
               )}
             </SelectTrigger>
             <SelectContent>
-              <SelectGroup>
+              <SelectGroup className="h-[250px]">
                 <SelectLabel>
                   {filter === "block" ? "Select Block" : "Select Cards Type"}
                 </SelectLabel>

@@ -9,6 +9,8 @@ import { toPng, toJpeg } from "html-to-image";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import LoadingSpinner from "../../components/LoadingSpinner";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import {
   Command,
   CommandDialog,
@@ -76,9 +78,14 @@ export default function CardGenerator() {
   const [hideCard, setHideCard] = useState([]);
   const [showCardHidden, setShowCardHidden] = useState(false);
   const [ready, setReady] = useState(false); //for select card type logic ro render when fetch data done
-  //Hide Card State-----------------------------------------
+  const [searchText, setSearchText] = useState(""); // for search box in select blocks
 
+  //Hide Card State-----------------------------------------
+  const [keepSameBlocks, setKeepSameBlocks] = useState(false); //for store block the same when add new card
   const { cardTypes, loadings, error } = useCardHook();
+
+  // 🔹 Create a ref for the search box in select blocks
+  const searchInputRef = React.useRef(null);
 
   useEffect(() => {
     console.log("cardType:", cardTypes);
@@ -142,26 +149,21 @@ export default function CardGenerator() {
   }, []);
 
   const [selectedBlocks, setSelectedBlocks] = useState([]);
-
+  
   const handleAddBlock = (value) => {
     const [building, room] = value.split("-");
     let updatedBlocks = [...selectedBlocks];
 
     if (!room) {
-      // User selected whole building → replace any existing entry
       updatedBlocks = updatedBlocks.filter((b) => !b.startsWith(building));
       updatedBlocks.push(building);
     } else {
-      // User selected a room
       const buildingIndex = updatedBlocks.findIndex((b) =>
         b.startsWith(building)
       );
-
       if (buildingIndex === -1) {
-        // No existing entry → add building-room
         updatedBlocks.push(`${building}-${room}`);
       } else {
-        // Merge room into existing string safely
         const parts = updatedBlocks[buildingIndex].split("-");
         if (!parts.includes(room)) {
           parts.push(room);
@@ -172,6 +174,10 @@ export default function CardGenerator() {
 
     setSelectedBlocks(updatedBlocks);
     setCurrentEntry((prev) => ({ ...prev, block: updatedBlocks }));
+
+    // 🔹 Clear the search text and focus again
+    setSearchText(""); // clear the input
+    setTimeout(() => searchInputRef.current?.focus(), 0); // refocus
   };
 
   const handleRemoveBlock = (block) => {
@@ -414,17 +420,19 @@ export default function CardGenerator() {
     } finally {
       setloading(false);
 
-      // Reset form
       setCurrentEntry({
         name: "",
-        block: [],
+        block: keepSameBlocks ? [...currentEntry.block] : [],
         id: "",
-        cardType: cardTypes[0].card_type,
+        cardType: cardTypes.length > 0 ? cardTypes[0].card_type : "",
         imageFile: null,
         imagePreviewUrl: null,
       });
 
-      setSelectedBlocks([]);
+      // also clear the selected blocks state if not keeping them
+      if (!keepSameBlocks) {
+        setSelectedBlocks([]);
+      }
     }
   };
 
@@ -715,13 +723,14 @@ export default function CardGenerator() {
                       setCurrentEntry((prev) => ({ ...prev, cardType: value }))
                     }
                   >
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full cursor-pointer">
                       <SelectValue placeholder="Select a type" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
                         {cardTypes.map((card) => (
                           <SelectItem
+                            className="cursor-pointer"
                             value={card.card_type}
                             key={card.card_type}
                           >
@@ -733,7 +742,6 @@ export default function CardGenerator() {
                   </Select>
                 </label>
               </div>
-
               {/* Card Naem  */}
               <div className="form-control">
                 <label htmlFor="name" className="label">
@@ -754,9 +762,8 @@ export default function CardGenerator() {
                   ref={nameInputRef}
                 />
               </div>
-
               {/* Block select  */}
-              <div className="form-control">
+              <div className="form-control ">
                 <label className="label flex flex-col items-start">
                   <span className="label-text mb-1">Select Blocks</span>
                   <Select
@@ -764,15 +771,18 @@ export default function CardGenerator() {
                     value={undefined}
                     onValueChange={handleAddBlock}
                   >
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full cursor-pointer">
                       <SelectValue placeholder="Select a block or room" />
                     </SelectTrigger>
                     <SelectContent>
-                      <Command className="flex flex-col">
+                      <Command className="flex flex-col ">
                         <CommandInput
+                          value={searchText} // controlled by state
+                          onValueChange={(val) => setSearchText(val)} // update state as user types
                           className="sticky top-0 z-10"
                           placeholder="Search blocks..."
                         />
+
                         <CommandEmpty>No block found.</CommandEmpty>
 
                         <ScrollArea className="h-60 w-full">
@@ -802,7 +812,7 @@ export default function CardGenerator() {
                                     <CommandItem
                                       value={block.building}
                                       onSelect={handleAddBlock}
-                                      className="font-semibold"
+                                      className="font-semibold cursor-pointer"
                                     >
                                       {block.building}
                                     </CommandItem>
@@ -813,7 +823,7 @@ export default function CardGenerator() {
                                       key={`${block.building}-${roomName}`}
                                       value={`${block.building}-${roomName}`}
                                       onSelect={handleAddBlock}
-                                      className="pl-4"
+                                      className="pl-4 cursor-pointer"
                                     >
                                       {roomName}
                                     </CommandItem>
@@ -843,6 +853,21 @@ export default function CardGenerator() {
                 </div>
               </div>
 
+              {/* Check keep block the same */}
+              <div className="flex justify-end w-full gap-3">
+                <Label htmlFor="terms" className="text-gray-400">
+                  Keep Same Blocks
+                </Label>
+                <Checkbox
+                  id="terms"
+                  checked={keepSameBlocks}
+                  onCheckedChange={(value) => {
+                    console.log("Checkbox changed:", value); // true / false
+                    setKeepSameBlocks(value === true); // store boolean
+                  }}
+                />
+              </div>
+
               {/* button for save card or update card  */}
               <Button
                 type="submit"
@@ -860,7 +885,6 @@ export default function CardGenerator() {
                   "Save"
                 )}
               </Button>
-
               {editingIndex !== null && (
                 <Button
                   type="button"

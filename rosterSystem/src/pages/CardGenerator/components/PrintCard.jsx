@@ -11,18 +11,15 @@ const PrintCard = forwardRef(({ entries = [] }, ref) => {
           key={entry.id}
           className={
             entry.card_type === "CAR CARD"
-              ? "w-full flex justify-center py-4 "
+              ? "w-full flex justify-center py-4 print:border-y print:border-dashed print:border-blue-600"
               : `w-auto ${true ? "-mx-[1.1px] -my-[2px]" : "mx-2 my-2"}`
           }
           id={`card-${entry.id}`}
         >
-          {console.log(entry.block)}
           <VIP
             key={entry.card_type_id}
             index={index}
-            block={entry.block.map((b) =>
-              typeof b === "string" ? { building: b, rooms: [] } : b
-            )}
+            block={entry.block}
             cardType={entry.card_type}
             id={entry.card_type_id}
             image={entry.imageBlob}

@@ -646,7 +646,7 @@ function AllCards() {
                   </TableCell>
                   <TableCell>{card.card_name}</TableCell>
                   <TableCell>{card.card_type}</TableCell>
-                  <TableCell>{card.block}</TableCell>
+                  <TableCell>{card.blocks_string}</TableCell>
                   <TableCell>{card.create_by}</TableCell>
                   <TableCell className="w-[100px] text-center">
                     <DropdownMenu>

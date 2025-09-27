@@ -1135,7 +1135,7 @@ export default function CardGenerator() {
                     }}
                     className={
                       entry.cardType === "CAR CARD"
-                        ? "w-full flex justify-center py-4 print:border-y print:border-dashed"
+                        ? "w-full flex justify-center py-4 print:border-y print:border-dashed print:border-blue-600"
                         : `w-auto ${
                             noSpace ? "-mx-[1.1px] -my-[2px]" : "mx-2 my-2"
                           }`

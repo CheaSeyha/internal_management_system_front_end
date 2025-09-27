@@ -20,18 +20,22 @@ function VIP({
 }) {
   const normalizedCardType = cardType?.toLowerCase() || "";
 
-  function formatBlocks(block) {
-    if (!Array.isArray(block) || block.length === 0) return "";
+  function formatBlocks(blocks) {
+    if (!Array.isArray(blocks) || blocks.length === 0) return "";
 
-    // Check if any block has a room (contains a dash followed by digits)
-    const hasRoom = block.some((item) => /-\d+/.test(item));
+    const hasRoom = blocks.some(({ rooms }) => rooms && rooms.length > 0);
 
-    if (hasRoom) {
-      // If at least one block has a room, join with comma
-      return block.join(", ");
+    if (!hasRoom) {
+      // All blocks have empty rooms → concatenate building names
+      return blocks.map(({ building }) => building).join("");
     } else {
-      // If no block has a room, concatenate directly
-      return block.join("");
+      // Some blocks have rooms → show Building-Room or Building, separated by commas
+      return blocks
+        .map(({ building, rooms }) => {
+          if (!rooms || rooms.length === 0) return building;
+          return rooms.map((room) => `${building}-${room}`).join(",");
+        })
+        .join(", ");
     }
   }
 

@@ -54,7 +54,7 @@ export default function CardGenerator() {
   const reactToPrintFn = useReactToPrint({ contentRef });
   const [currentEntry, setCurrentEntry] = useState({
     name: "",
-    block: "",
+    block: [],
     id: "",
     cardType: "",
     imageFile: null,
@@ -86,10 +86,6 @@ export default function CardGenerator() {
 
   // 🔹 Create a ref for the search box in select blocks
   const searchInputRef = React.useRef(null);
-
-  useEffect(() => {
-    console.log("cardType:", cardTypes);
-  }, [cardTypes]);
 
   //Hide Card State-----------------------------------------
   const handelHideCard = (id, cardType) => {
@@ -151,39 +147,57 @@ export default function CardGenerator() {
   const [selectedBlocks, setSelectedBlocks] = useState([]);
 
   const handleAddBlock = (value) => {
-    const [building, room] = value.split("-");
-    let updatedBlocks = [...selectedBlocks];
+    const [building, ...roomParts] = value.split("-");
+    const room = roomParts.join("-"); // room can contain dashes now
 
-    if (!room) {
-      updatedBlocks = updatedBlocks.filter((b) => !b.startsWith(building));
-      updatedBlocks.push(building);
-    } else {
-      const buildingIndex = updatedBlocks.findIndex((b) =>
-        b.startsWith(building)
+    setCurrentEntry((prev) => {
+      const updatedBlocks = [...(prev.block || [])];
+      const buildingIndex = updatedBlocks.findIndex(
+        (b) => b.building === building
       );
-      if (buildingIndex === -1) {
-        updatedBlocks.push(`${building}-${room}`);
+
+      if (!room) {
+        // Select whole building
+        if (buildingIndex === -1) {
+          updatedBlocks.push({ building, rooms: [] });
+        } else {
+          updatedBlocks[buildingIndex].rooms = [];
+        }
       } else {
-        const parts = updatedBlocks[buildingIndex].split("-");
-        if (!parts.includes(room)) {
-          parts.push(room);
-          updatedBlocks[buildingIndex] = parts.join("-");
+        // Select a specific room
+        if (buildingIndex === -1) {
+          updatedBlocks.push({ building, rooms: [room] });
+        } else {
+          const rooms = updatedBlocks[buildingIndex].rooms;
+          if (!rooms.includes(room)) {
+            rooms.push(room);
+            updatedBlocks[buildingIndex].rooms = rooms;
+          }
         }
       }
-    }
 
-    setSelectedBlocks(updatedBlocks);
-    setCurrentEntry((prev) => ({ ...prev, block: updatedBlocks }));
+      return { ...prev, block: updatedBlocks };
+    });
 
-    // 🔹 Clear the search text and focus again
-    setSearchText(""); // clear the input
-    setTimeout(() => searchInputRef.current?.focus(), 0); // refocus
+    setSearchText("");
+    setTimeout(() => searchInputRef.current?.focus(), 0);
   };
 
-  const handleRemoveBlock = (block) => {
-    const newBlocks = selectedBlocks.filter((b) => b !== block);
-    setSelectedBlocks(newBlocks);
-    setCurrentEntry((prev) => ({ ...prev, block: newBlocks }));
+  useEffect(() => {
+    console.log(currentEntry);
+  }, [currentEntry]);
+
+  const handleRemoveBlock = (building, room = null) => {
+    setCurrentEntry((prev) => {
+      const updatedBlocks = prev.block
+        .map((b) => {
+          if (b.building !== building) return b;
+          if (!room) return null; // remove entire building
+          return { ...b, rooms: b.rooms.filter((r) => r !== room) };
+        })
+        .filter(Boolean);
+      return { ...prev, block: updatedBlocks };
+    });
   };
 
   const availableBlocks = blocks
@@ -344,7 +358,7 @@ export default function CardGenerator() {
     setloading(true);
 
     // Convert selected blocks array to merged string like "P-103-105,S1"
-    const blockString = formatBlocks(currentEntry.block || selectedBlocks);
+    // const blockString = formatBlocks(currentEntry.block || selectedBlocks);
 
     // Prepare entry to add/update
     const entryToAdd = !requiresImage
@@ -354,7 +368,7 @@ export default function CardGenerator() {
     try {
       const formData = new FormData();
       formData.append("card_name", currentEntry.name);
-      formData.append("block", blockString); // ✅ merged string
+      formData.append("block", JSON.stringify(currentEntry.block)); // ✅ merged string
       formData.append("card_type", currentEntry.cardType);
       if (currentEntry.imageFile)
         formData.append("profile_image", currentEntry.imageFile);
@@ -766,7 +780,7 @@ export default function CardGenerator() {
                 />
               </div>
               {/* Block select  */}
-              <div className="form-control ">
+              <div className="form-control">
                 <label className="label flex flex-col items-start">
                   <span className="label-text mb-1">Select Blocks</span>
                   <Select
@@ -777,11 +791,12 @@ export default function CardGenerator() {
                     <SelectTrigger className="w-full cursor-pointer">
                       <SelectValue placeholder="Select a block or room" />
                     </SelectTrigger>
+
                     <SelectContent>
-                      <Command className="flex flex-col ">
+                      <Command className="flex flex-col">
                         <CommandInput
-                          value={searchText} // controlled by state
-                          onValueChange={(val) => setSearchText(val)} // update state as user types
+                          value={searchText}
+                          onValueChange={(val) => setSearchText(val)}
                           className="sticky top-0 z-10"
                           placeholder="Search blocks..."
                         />
@@ -791,19 +806,21 @@ export default function CardGenerator() {
                         <ScrollArea className="h-60 w-full">
                           <div className="p-1">
                             {blocks.map((block) => {
-                              const buildingSelected = selectedBlocks.includes(
-                                block.building
+                              const buildingSelected = selectedBlocks.some(
+                                (b) => b.building === block.building
                               );
+
                               const remainingRooms = block.room.filter(
-                                (roomName) =>
-                                  !buildingSelected &&
-                                  !selectedBlocks.some((selected) =>
-                                    selected
-                                      .split("-")
-                                      .slice(1)
-                                      .includes(roomName)
-                                  )
+                                (roomName) => {
+                                  const roomSelected = selectedBlocks.some(
+                                    (b) =>
+                                      b.building === block.building &&
+                                      b.rooms.includes(roomName)
+                                  );
+                                  return !buildingSelected && !roomSelected;
+                                }
                               );
+
                               const hideBuilding =
                                 !buildingSelected &&
                                 block.room.length > 0 &&
@@ -811,6 +828,7 @@ export default function CardGenerator() {
 
                               return (
                                 <CommandGroup key={block.building}>
+                                  {/* Building */}
                                   {!buildingSelected && !hideBuilding && (
                                     <CommandItem
                                       value={block.building}
@@ -821,6 +839,7 @@ export default function CardGenerator() {
                                     </CommandItem>
                                   )}
 
+                                  {/* Rooms */}
                                   {remainingRooms.map((roomName) => (
                                     <CommandItem
                                       key={`${block.building}-${roomName}`}
@@ -843,16 +862,33 @@ export default function CardGenerator() {
 
                 {/* Preview selected blocks */}
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {selectedBlocks.map((block) => (
-                    <Button
-                      key={String(block)}
-                      onClick={() => handleRemoveBlock(block)}
-                      variant="outline"
-                      className="px-3 py-1 rounded flex items-center gap-2 hover:bg-red-600"
-                    >
-                      <span>{block}</span>
-                    </Button>
-                  ))}
+                  {Array.isArray(currentEntry.block) &&
+                    currentEntry.block.map((b) => (
+                      <React.Fragment key={b.building}>
+                        {b.rooms.length === 0 ? (
+                          <Button
+                            onClick={() => handleRemoveBlock(b.building)}
+                            variant="outline"
+                            className="px-3 py-1 rounded flex items-center gap-2 hover:bg-red-600"
+                          >
+                            <span>{b.building}</span>
+                          </Button>
+                        ) : (
+                          b.rooms.map((room) => (
+                            <Button
+                              key={`${b.building}-${room}`}
+                              onClick={() =>
+                                handleRemoveBlock(b.building, room)
+                              }
+                              variant="outline"
+                              className="px-3 py-1 rounded flex items-center gap-2 hover:bg-red-600"
+                            >
+                              <span>{`${b.building}-${room}`}</span>
+                            </Button>
+                          ))
+                        )}
+                      </React.Fragment>
+                    ))}
                 </div>
               </div>
 
@@ -909,6 +945,7 @@ export default function CardGenerator() {
         className="space-y-4"
         transition={{ type: "spring", stiffness: 500, damping: 40 }}
       >
+        {/* Button conrtoller  */}
         <div className="flex justify-between items-center p-5 rounded-lg bg-sidebar">
           <h3 className="text-xl font-semibold">All Cards</h3>
           <div className="btn-container space-x-2">

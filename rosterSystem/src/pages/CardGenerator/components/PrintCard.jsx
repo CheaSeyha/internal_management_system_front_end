@@ -16,10 +16,13 @@ const PrintCard = forwardRef(({ entries = [] }, ref) => {
           }
           id={`card-${entry.id}`}
         >
+          {console.log(entry.block)}
           <VIP
             key={entry.card_type_id}
             index={index}
-            block={entry.block}
+            block={entry.block.map((b) =>
+              typeof b === "string" ? { building: b, rooms: [] } : b
+            )}
             cardType={entry.card_type}
             id={entry.card_type_id}
             image={entry.imageBlob}

@@ -42,7 +42,7 @@ export function NavUser({ user }) {
       const userData = JSON.parse(savedUserLocal);
       // Ensure full URL for avatar
       userData.avatar = userData.profile_image
-        ? `http://127.0.0.1:8000${userData.profile_image}`
+        ? `http://10.10.200.54:8080${userData.profile_image}`
         : null;
       return userData;
     }
@@ -52,7 +52,7 @@ export function NavUser({ user }) {
     if (savedUserSession) {
       const userData = JSON.parse(savedUserSession);
       userData.avatar = userData.profile_image
-        ? `http://127.0.0.1:8000${userData.profile_image}`
+        ? `http://10.10.200.54:8080${userData.profile_image}`
         : null;
       return userData;
     }

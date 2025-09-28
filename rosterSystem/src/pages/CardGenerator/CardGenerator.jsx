@@ -423,7 +423,6 @@ export default function CardGenerator() {
         toast.success("Card added successfully!");
       }
     } catch (error) {
-      console.error("Error saving card:", error);
       toast.error("Failed to save card!", {
         description: error.response.data.errors.card_type,
       });
@@ -802,9 +801,12 @@ export default function CardGenerator() {
                           <div className="p-1">
                             {blocks.map((block) => {
                               // Check if building fully selected
-                              const buildingEntry = currentEntry.block?.find(
-                                (b) => b.building === block.building
-                              );
+                              const buildingEntry = (
+                                Array.isArray(currentEntry.block)
+                                  ? currentEntry.block
+                                  : []
+                              ).find((b) => b.building === block.building);
+
                               const buildingFullySelected =
                                 buildingEntry &&
                                 buildingEntry.rooms.length === 0;
@@ -900,7 +902,6 @@ export default function CardGenerator() {
                   id="terms"
                   checked={keepSameBlocks}
                   onCheckedChange={(value) => {
-                    console.log("Checkbox changed:", value); // true / false
                     setKeepSameBlocks(value === true); // store boolean
                   }}
                 />

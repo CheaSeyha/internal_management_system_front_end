@@ -43,7 +43,35 @@ function VIP({
 
   const [fontSizeName, setFontSizeName] = useState(18);
   const nameRef = useRef();
+  const platRef = useRef();
+  const DEFAULT_FONT_SIZE_CM = 2.9;
+  const [platFontSize, setPlatFontSize] = useState(DEFAULT_FONT_SIZE_CM);
+
   const [lineHight, setLineHight] = useState(0);
+
+  useEffect(() => {
+    if (platRef.current) {
+      // Reset to default font size before measuring
+      platRef.current.style.fontSize = `${DEFAULT_FONT_SIZE_CM}cm`;
+      setPlatFontSize(DEFAULT_FONT_SIZE_CM);
+
+      let width = platRef.current.getBoundingClientRect().width;
+
+      // Assume your plate container max width in px (1cm ≈ 37.8px)
+      const containerWidth = 18 * 37.8; // adjust to your card width
+
+      let fontSize = DEFAULT_FONT_SIZE_CM;
+
+      // Shrink font if text is too wide
+      while (width > containerWidth && fontSize > 0.5) {
+        fontSize -= 0.05; // small decrement for smoother scaling
+        platRef.current.style.fontSize = `${fontSize}cm`;
+        width = platRef.current.getBoundingClientRect().width;
+      }
+
+      setPlatFontSize(fontSize);
+    }
+  }, [name]);
 
   useEffect(() => {
     if (normalizedCardType === "construction") setFontSizeName(16);
@@ -276,7 +304,11 @@ function VIP({
         {normalizedCardType === "car card" && (
           <main className="carcard relative font-cardFont1 w-[20cm] h-[13.34cm] text-black  bg-white rounded-2xl">
             <div className="w-full h-[4cm] absolute top-[6.57cm] flex items-center justify-center text-center">
-              <p className="plat-number text-[2.9cm] text-[#0d07fd] text-stroke direction-rtl">
+              <p
+                ref={platRef}
+                className="plat-number text-[#0d07fd] text-stroke direction-rtl"
+                style={{ fontSize: `${platFontSize}cm` }}
+              >
                 {name}
               </p>
             </div>

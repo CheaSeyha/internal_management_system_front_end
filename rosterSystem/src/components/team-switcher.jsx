@@ -45,7 +45,7 @@ export function TeamSwitcher({
                 <span className="truncate text-xs">{activeTeam.plan}</span>
               </div>
               {/* <ChevronsUpDown className="ml-auto" /> */}
-              <p>V 1.0</p>
+              <p>V 1.0.1</p>
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           {/* <DropdownMenuContent

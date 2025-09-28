@@ -38,13 +38,25 @@ export function NavUser({ user }) {
   const [userInfo, setUserInfo] = useState(() => {
     // Try localStorage first
     const savedUserLocal = localStorage.getItem("user");
-    if (savedUserLocal) return JSON.parse(savedUserLocal);
+    if (savedUserLocal) {
+      const userData = JSON.parse(savedUserLocal);
+      // Ensure full URL for avatar
+      userData.avatar = userData.profile_image
+        ? `http://127.0.0.1:8000${userData.profile_image}`
+        : null;
+      return userData;
+    }
 
     // Fallback to sessionStorage
     const savedUserSession = sessionStorage.getItem("user");
-    if (savedUserSession) return JSON.parse(savedUserSession);
+    if (savedUserSession) {
+      const userData = JSON.parse(savedUserSession);
+      userData.avatar = userData.profile_image
+        ? `http://127.0.0.1:8000${userData.profile_image}`
+        : null;
+      return userData;
+    }
 
-    // Default if nothing is found
     return null;
   });
 
@@ -75,9 +87,14 @@ export function NavUser({ user }) {
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user.avatar} alt={user.name} />
+                <AvatarImage
+                  src={userInfo?.avatar}
+                  alt={userInfo?.name}
+                  className="object-cover"
+                />
                 <AvatarFallback className="rounded-lg">CN</AvatarFallback>
               </Avatar>
+
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">
                   {userInfo?.name?.toUpperCase()}
@@ -96,11 +113,18 @@ export function NavUser({ user }) {
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.avatar} alt={user.name} />
+                  <AvatarImage
+                    src={userInfo?.avatar}
+                    alt={userInfo?.name}
+                    className="object-cover"
+                  />
                   <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                 </Avatar>
+
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{userInfo?.name?.toUpperCase()}</span>
+                  <span className="truncate font-medium">
+                    {userInfo?.name?.toUpperCase()}
+                  </span>
                   <span className="truncate text-xs">{userInfo?.email}</span>
                 </div>
               </div>

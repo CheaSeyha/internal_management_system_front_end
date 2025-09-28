@@ -183,10 +183,6 @@ export default function CardGenerator() {
     setTimeout(() => searchInputRef.current?.focus(), 0);
   };
 
-  useEffect(() => {
-    console.log(currentEntry);
-  }, [currentEntry]);
-
   const handleRemoveBlock = (building, room = null) => {
     setCurrentEntry((prev) => {
       const updatedBlocks = prev.block
@@ -785,7 +781,7 @@ export default function CardGenerator() {
                   <span className="label-text mb-1">Select Blocks</span>
                   <Select
                     name="blockselection"
-                    value={undefined}
+                    value={undefined} // multi-select placeholder
                     onValueChange={handleAddBlock}
                   >
                     <SelectTrigger className="w-full cursor-pointer">
@@ -800,36 +796,39 @@ export default function CardGenerator() {
                           className="sticky top-0 z-10"
                           placeholder="Search blocks..."
                         />
-
                         <CommandEmpty>No block found.</CommandEmpty>
 
                         <ScrollArea className="h-60 w-full">
                           <div className="p-1">
                             {blocks.map((block) => {
-                              const buildingSelected = selectedBlocks.some(
+                              // Check if building fully selected
+                              const buildingEntry = currentEntry.block?.find(
                                 (b) => b.building === block.building
                               );
+                              const buildingFullySelected =
+                                buildingEntry &&
+                                buildingEntry.rooms.length === 0;
 
-                              const remainingRooms = block.room.filter(
-                                (roomName) => {
-                                  const roomSelected = selectedBlocks.some(
-                                    (b) =>
-                                      b.building === block.building &&
-                                      b.rooms.includes(roomName)
-                                  );
-                                  return !buildingSelected && !roomSelected;
-                                }
-                              );
+                              // Filter rooms that are not selected yet
+                              const remainingRooms =
+                                buildingEntry?.rooms?.length > 0
+                                  ? block.room.filter(
+                                      (r) => !buildingEntry.rooms.includes(r)
+                                    )
+                                  : buildingEntry
+                                  ? []
+                                  : block.room;
 
+                              // Hide building if fully selected or all rooms are selected
                               const hideBuilding =
-                                !buildingSelected &&
-                                block.room.length > 0 &&
-                                remainingRooms.length === 0;
+                                buildingFullySelected ||
+                                (block.room.length > 0 &&
+                                  remainingRooms.length === 0);
 
                               return (
                                 <CommandGroup key={block.building}>
                                   {/* Building */}
-                                  {!buildingSelected && !hideBuilding && (
+                                  {!hideBuilding && (
                                     <CommandItem
                                       value={block.building}
                                       onSelect={handleAddBlock}
@@ -869,7 +868,7 @@ export default function CardGenerator() {
                           <Button
                             onClick={() => handleRemoveBlock(b.building)}
                             variant="outline"
-                            className="px-3 py-1 rounded flex items-center gap-2 hover:bg-red-600"
+                            className="btn px-3 py-1 rounded flex items-center gap-2 hover:bg-red-600"
                           >
                             <span>{b.building}</span>
                           </Button>
@@ -881,7 +880,7 @@ export default function CardGenerator() {
                                 handleRemoveBlock(b.building, room)
                               }
                               variant="outline"
-                              className="px-3 py-1 rounded flex items-center gap-2 hover:bg-red-600"
+                              className="btn px-3 py-1 rounded flex items-center gap-2 hover:bg-red-600"
                             >
                               <span>{`${b.building}-${room}`}</span>
                             </Button>

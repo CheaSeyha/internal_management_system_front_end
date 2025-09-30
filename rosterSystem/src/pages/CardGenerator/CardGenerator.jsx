@@ -40,6 +40,7 @@ import {
   Rows2,
   Eye,
   EyeOff,
+  RotateCcw,
 } from "lucide-react";
 import {
   Tooltip,
@@ -789,12 +790,27 @@ export default function CardGenerator() {
 
                     <SelectContent>
                       <Command className="flex flex-col">
-                        <CommandInput
-                          value={searchText}
-                          onValueChange={(val) => setSearchText(val)}
-                          className="sticky top-0 z-10"
-                          placeholder="Search blocks..."
-                        />
+                        <div className="relative">
+                          <CommandInput
+                            value={searchText}
+                            onValueChange={(val) => setSearchText(val)}
+                            placeholder="Search blocks..."
+                            className="w-10/12 pr-12 sticky top-0 z-10"
+                          />
+
+                          <button
+                            onClick={() => {
+                              setSearchText(""); // clear search
+                              fetchBlocks(); // refresh logic
+                            }}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 flex items-center justify-center 
+               transition-transform duration-150 ease-in-out
+               active:scale-90" // 🔥 scales button on click
+                          >
+                            <RotateCcw className="w-4 h-4" />
+                          </button>
+                        </div>
+
                         <CommandEmpty>No block found.</CommandEmpty>
 
                         <ScrollArea className="h-60 w-full">

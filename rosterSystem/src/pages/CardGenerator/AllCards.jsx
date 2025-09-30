@@ -148,34 +148,43 @@ function AllCards() {
 
       if ((filter && filter !== "no_filter") || searchTerm) {
         // 🔥 Filtering or searching → POST
-        response = await axios.post(`card/cards_filter?page=${page}`, {
-          card_name: searchTerm,
-          filter: filter,
-          filterValue: filterVal || selectedFilterValue,
-        });
+        response = await axios.post(
+          `/card/cards_filter?page=${page}`,
+          {
+            card_name: searchTerm,
+            filter: filter,
+            filterValue: filterVal || selectedFilterValue,
+          },
+          { validateStatus: () => true } // Accept all HTTP statuses
+        );
       } else {
         // 🔥 Normal GET
-        response = await axios.get(`/cards?page=${page}`);
+        response = await axios.get(`/cards?page=${page}`, {
+          validateStatus: () => true,
+        });
       }
 
-      if (response.data.success) {
+      // ✅ Check if API returned success
+      if (response.data && response.data.success) {
         const data = response.data.data;
-
-        // ✅ Normalize array
         const cards = Array.isArray(data) ? data : data.data;
 
-        // Always set the visible cards
         setGetCards(cards || []);
         setPagination(Array.isArray(data) ? null : data);
 
-        // ✅ Only store "original" when NOT filtering
         if (!(filter && filter !== "no_filter") && !searchTerm) {
           setOriginalGetCards(cards || []);
           setOriginalPagination(Array.isArray(data) ? null : data);
         }
+      } else {
+        // 🔥 No cards found → show toast
+        toast.error(response.data?.message || "No cards found");
+        setGetCards([]);
+        setPagination(null);
       }
     } catch (error) {
       console.error("Error fetching cards:", error);
+      toast.error("Failed to fetch cards");
     } finally {
       setLoading(false);
     }

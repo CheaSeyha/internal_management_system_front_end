@@ -105,7 +105,6 @@ export default function BuildingTable() {
       ),
     },
     { accessorKey: "building", header: "Building" },
-    { accessorKey: "count", header: "Room Count" },
     {
       accessorKey: "room",
       header: "Rooms",

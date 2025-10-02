@@ -80,7 +80,14 @@ function App() {
               />
             </Route>
             {/* Rote Building Room */}
-            <Route path="buildings-rooms-manage" element={<BuildingRoom />} />
+            <Route
+              path="buildings-rooms-manage"
+              element={
+                <AnimatedPage>
+                  <BuildingRoom />
+                </AnimatedPage>
+              }
+            />
           </Route>
 
           <Route path="*" element={<NotFoundPage />} />

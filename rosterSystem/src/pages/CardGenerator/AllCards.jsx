@@ -53,6 +53,7 @@ import {
 } from "@/components/ui/pagination";
 import { useReactToPrint } from "react-to-print";
 import PrintCard from "./components/PrintCard";
+import { MonthYearPicker } from "../../components/MonthYearPicker";
 
 function AllCards() {
   // State management
@@ -75,6 +76,18 @@ function AllCards() {
   const [multiCardToPrint, setMultiCardToPrint] = useState([]);
   const [readyToPrint, setReadyToPrint] = useState(false);
   const [loadingPrint, setLoadingPrint] = useState(false);
+  const [date, setDate] = useState(new Date()); //get curretn date for date select component
+
+  const handleSelectDate = (date) => {
+    setDate(date);
+  };
+
+  useEffect(() => {
+    console.log("Mothn " + (date.getMonth() + 1));
+    console.log("Year " + date.getFullYear());
+    fetchCards();
+  }, [date]);
+  // Fetch filter options when filter type changes
 
   useEffect(() => {
     const fetchFilterOptions = async () => {
@@ -141,22 +154,18 @@ function AllCards() {
     );
   };
 
+  //Get Fetch Cards Fucntions
   const fetchCards = async (page = 1, searchTerm = "", filterVal = "") => {
     setLoading(true);
     try {
       let response;
-
-      if ((filter && filter !== "no_filter") || searchTerm) {
-        // 🔥 Filtering or searching → POST
-        response = await axios.post(`/card/cards_filter?page=${page}`, {
-          card_name: searchTerm,
-          filter: filter,
-          filterValue: filterVal || selectedFilterValue,
-        });
-      } else {
-        // 🔥 Normal GET
-        response = await axios.get(`/cards?page=${page}`);
-      }
+      response = await axios.post(`/card/cards_filter?page=${page}`, {
+        card_name: searchTerm,
+        filter: filter,
+        filterValue: filterVal || selectedFilterValue,
+        month: date.getMonth() + 1,
+        year: date.getFullYear(),
+      });
 
       // ✅ Check if API returned success
       if (response.data && response.data.success) {
@@ -171,7 +180,6 @@ function AllCards() {
           setOriginalPagination(Array.isArray(data) ? null : data);
         }
       }
-
     } catch (error) {
       if (error.response?.status === 404) {
         toast.error(error.response.data?.message || "No cards found");
@@ -190,12 +198,6 @@ function AllCards() {
   useEffect(() => {
     fetchCards(1);
   }, []);
-
-  const goToPage = (url) => {
-    if (!url) return;
-    const page = new URL(url).searchParams.get("page");
-    fetchCards(page);
-  };
 
   // Handle filter changes
   const handleFilterChange = (newFilter) => {
@@ -476,6 +478,8 @@ function AllCards() {
           </SelectContent>
         </Select>
 
+        <MonthYearPicker value={date} onChange={handleSelectDate} />
+
         {/* Filter value selector */}
         {filter !== "no_filter" && (
           <Select
@@ -561,6 +565,7 @@ function AllCards() {
               <TableHead>Name</TableHead>
               <TableHead>Card Type</TableHead>
               <TableHead>Block</TableHead>
+              <TableHead>Date</TableHead>
               <TableHead>Create By</TableHead>
               <TableHead className="w-[100px] text-center">
                 {(selectedCards.length >= 2 && (
@@ -652,6 +657,7 @@ function AllCards() {
                   <TableCell>{card.card_name}</TableCell>
                   <TableCell>{card.card_type}</TableCell>
                   <TableCell>{card.blocks_string}</TableCell>
+                  <TableCell>{card.created_at}</TableCell>
                   <TableCell>{card.create_by}</TableCell>
                   <TableCell className="w-[100px] text-center">
                     <DropdownMenu>

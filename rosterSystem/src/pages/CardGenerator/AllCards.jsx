@@ -148,20 +148,14 @@ function AllCards() {
 
       if ((filter && filter !== "no_filter") || searchTerm) {
         // 🔥 Filtering or searching → POST
-        response = await axios.post(
-          `/card/cards_filter?page=${page}`,
-          {
-            card_name: searchTerm,
-            filter: filter,
-            filterValue: filterVal || selectedFilterValue,
-          },
-          { validateStatus: () => true } // Accept all HTTP statuses
-        );
+        response = await axios.post(`/card/cards_filter?page=${page}`, {
+          card_name: searchTerm,
+          filter: filter,
+          filterValue: filterVal || selectedFilterValue,
+        });
       } else {
         // 🔥 Normal GET
-        response = await axios.get(`/cards?page=${page}`, {
-          validateStatus: () => true,
-        });
+        response = await axios.get(`/cards?page=${page}`);
       }
 
       // ✅ Check if API returned success
@@ -176,15 +170,17 @@ function AllCards() {
           setOriginalGetCards(cards || []);
           setOriginalPagination(Array.isArray(data) ? null : data);
         }
-      } else {
-        // 🔥 No cards found → show toast
-        toast.error(response.data?.message || "No cards found");
+      }
+
+    } catch (error) {
+      if (error.response?.status === 404) {
+        toast.error(error.response.data?.message || "No cards found");
         setGetCards([]);
         setPagination(null);
+      } else {
+        console.error("Error fetching cards:", error);
+        toast.error("Failed to fetch cards");
       }
-    } catch (error) {
-      console.error("Error fetching cards:", error);
-      toast.error("Failed to fetch cards");
     } finally {
       setLoading(false);
     }

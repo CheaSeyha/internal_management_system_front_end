@@ -66,6 +66,7 @@ function AllCards() {
   const [searchValue, setSearchValue] = useState("");
   const [filter, setFilter] = useState("no_filter");
   const [filterOptions, setFilterOptions] = useState([]);
+  const [typeFilter, setTypeFilter] = useState([]); //Store data of filter block or card type
   const [selectedFilterValue, setSelectedFilterValue] = useState("");
   const [isLoadingFilterOptions, setIsLoadingFilterOptions] = useState(false);
   // Fetch filter options when filter type changes
@@ -83,44 +84,50 @@ function AllCards() {
   };
 
   useEffect(() => {
-    console.log("Mothn " + (date.getMonth() + 1));
-    console.log("Year " + date.getFullYear());
+    console.log("Filter  ", filterOptions);
     fetchCards();
   }, [date]);
-  // Fetch filter options when filter type changes
 
   useEffect(() => {
-    const fetchFilterOptions = async () => {
-      if (filter === "no_filter") {
-        // reset back to original cards
-        setGetCards(originalGetCards);
-        setFilterOptions([]);
-        setSelectedFilterValue("");
-        return;
-      }
+    const checkFilterTyep =
+      filter === "block" ? filterOptions.blocks : filterOptions.cardTypes;
 
-      setIsLoadingFilterOptions(true);
-      try {
-        const endpoint =
-          filter === "block"
-            ? "blocks/all_buildings"
-            : "/cards/get_all_card_type";
+    setTypeFilter(checkFilterTyep || []);
+  }, [filter, filterOptions]);
+  // Fetch filter options when filter type changes
 
-        const res = await axios.get(endpoint);
+  // useEffect(() => {
+  //   const fetchFilterOptions = async () => {
+  //     if (filter === "no_filter" && (date.getMonth() === new Date().getMonth() && date.getFullYear() === new Date().getFullYear())) {
+  //       // reset back to original cards
+  //       setGetCards(originalGetCards);
+  //       setFilterOptions([]);
+  //       setSelectedFilterValue("");
+  //       return;
+  //     }
 
-        const options = res.data.data || [];
+  //     setIsLoadingFilterOptions(true);
+  //     try {
+  //       const endpoint =
+  //         filter === "block"
+  //           ? "blocks/all_buildings"
+  //           : "/cards/get_all_card_type";
 
-        setFilterOptions(options);
-      } catch (error) {
-        console.error("Failed to fetch filter options:", error);
-        setFilterOptions([]);
-      } finally {
-        setIsLoadingFilterOptions(false);
-      }
-    };
+  //       const res = await axios.get(endpoint);
 
-    fetchFilterOptions();
-  }, [filter, originalGetCards]); // 👈 add originalGetCards so it resets correctly
+  //       const options = res.data.data || [];
+
+  //       setFilterOptions(options);
+  //     } catch (error) {
+  //       console.error("Failed to fetch filter options:", error);
+  //       setFilterOptions([]);
+  //     } finally {
+  //       setIsLoadingFilterOptions(false);
+  //     }
+  //   };
+
+  //   fetchFilterOptions();
+  // }, [filter, originalGetCards]); // 👈 add originalGetCards so it resets correctly
 
   const renderPageNumbers = () => {
     if (!pagination) return null;
@@ -158,37 +165,41 @@ function AllCards() {
   const fetchCards = async (page = 1, searchTerm = "", filterVal = "") => {
     setLoading(true);
     try {
-      let response;
-      response = await axios.post(`/card/cards_filter?page=${page}`, {
+      const response = await axios.post(`/card/cards_filter?page=${page}`, {
         card_name: searchTerm,
-        filter: filter,
+        filter,
         filterValue: filterVal || selectedFilterValue,
         month: date.getMonth() + 1,
         year: date.getFullYear(),
       });
 
-      // ✅ Check if API returned success
-      if (response.data && response.data.success) {
+      if (response.data?.success) {
         const data = response.data.data;
-        const cards = Array.isArray(data) ? data : data.data;
 
-        setGetCards(cards || []);
-        setPagination(Array.isArray(data) ? null : data);
+        // cards array
+        const cards = data.data || [];
+        setGetCards(cards);
 
-        if (!(filter && filter !== "no_filter") && !searchTerm) {
-          setOriginalGetCards(cards || []);
-          setOriginalPagination(Array.isArray(data) ? null : data);
+        // 🔹 dynamically set filter options
+        setFilterOptions(data);
+
+        // pagination
+        setPagination(data);
+
+        // store original cards only if no filter
+        if (!filter || filter === "no_filter") {
+          setOriginalGetCards(cards);
+          setOriginalPagination(data);
         }
       }
-    } catch (error) {
-      if (error.response?.status === 404) {
-        toast.error(error.response.data?.message || "No cards found");
-        setGetCards([]);
-        setPagination(null);
-      } else {
-        console.error("Error fetching cards:", error);
-        toast.error("Failed to fetch cards");
+    } catch (err) {
+      console.error("Fetch cards error:", err);
+      setGetCards([]);
+      if (filter === "no_filter") {
+        setTypeFilter([]);
+        setFilterOptions([])
       }
+      setPagination(null);
     } finally {
       setLoading(false);
     }
@@ -203,14 +214,15 @@ function AllCards() {
   const handleFilterChange = (newFilter) => {
     setFilter(newFilter);
     setSelectedFilterValue("");
-    setGetCards(originalGetCards);
-    setPagination(originalPagination);
+
+    // 🔹 DO NOT reset cards here
+    // fetchCards will handle filtering when user selects a filter value
   };
 
   // Handle filter value selection
   const handleFilterValueChange = (value) => {
     setSelectedFilterValue(value);
-    fetchCards(1, searchValue, value); // ✅ page=1, searchTerm=searchValue, filterVal=value
+    fetchCards(1, searchValue, value); // ✅ call API with filter value
   };
 
   // Handle search input changes
@@ -355,6 +367,7 @@ function AllCards() {
     setPagination(originalPagination);
     setSearchValue("");
     setSelectedCards([]);
+    setDate(new Date());
   };
 
   useEffect(() => {
@@ -478,8 +491,6 @@ function AllCards() {
           </SelectContent>
         </Select>
 
-        <MonthYearPicker value={date} onChange={handleSelectDate} />
-
         {/* Filter value selector */}
         {filter !== "no_filter" && (
           <Select
@@ -506,7 +517,7 @@ function AllCards() {
                 <SelectLabel>
                   {filter === "block" ? "Select Block" : "Select Cards Type"}
                 </SelectLabel>
-                {filterOptions.map((item, index) => {
+                {typeFilter.map((item, index) => {
                   const key =
                     filter === "block" ? item.building : item.card_type;
                   const value = key;
@@ -537,6 +548,8 @@ function AllCards() {
             </SelectContent>
           </Select>
         )}
+
+        <MonthYearPicker value={date} onChange={handleSelectDate} />
 
         <Button variant="outline" onClick={restart}>
           <RotateCcw />

@@ -35,22 +35,10 @@ const months = [
 export function MonthYearPicker({
   value,
   onChange,
-  fromYear = 2025,
+  fromYear = 2024,
   toYear = new Date().getFullYear(),
 }) {
   const [open, setOpen] = React.useState(false);
-
-  const currentMonth = value ? value.getMonth() : new Date().getMonth();
-  const currentYear = value ? value.getFullYear() : new Date().getFullYear();
-
-  const [month, setMonth] = React.useState(currentMonth);
-  const [year, setYear] = React.useState(currentYear);
-
-  const handleSelect = (m, y) => {
-    const selectedDate = new Date(y, m, 1);
-    onChange?.(selectedDate);
-    setOpen(false);
-  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -75,11 +63,11 @@ export function MonthYearPicker({
         <div className="flex gap-4">
           {/* Month Select */}
           <Select
-            value={month.toString()}
+            value={(value?.getMonth() ?? new Date().getMonth()).toString()}
             onValueChange={(val) => {
               const newMonth = parseInt(val);
-              setMonth(newMonth);
-              handleSelect(newMonth, year);
+              onChange(new Date(value.getFullYear(), newMonth, 1));
+              setOpen(false); // 👈 close Popover
             }}
           >
             <SelectTrigger className="w-32">
@@ -96,11 +84,13 @@ export function MonthYearPicker({
 
           {/* Year Select */}
           <Select
-            value={year.toString()}
+            value={(
+              value?.getFullYear() ?? new Date().getFullYear()
+            ).toString()}
             onValueChange={(val) => {
               const newYear = parseInt(val);
-              setYear(newYear);
-              handleSelect(month, newYear);
+              onChange(new Date(newYear, value.getMonth(), 1));
+              setOpen(false); // 👈 close Popover
             }}
           >
             <SelectTrigger className="w-24">

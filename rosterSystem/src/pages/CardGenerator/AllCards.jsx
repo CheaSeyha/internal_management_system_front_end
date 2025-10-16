@@ -316,7 +316,7 @@ function AllCards() {
           Delete {selectedCards.length} selected cards?
         </p>
         <p className="text-sm mt-1">
-          Card Type IDs: {selectedCards.map((c) => c.card_type_id).join(", ")}
+          Card Name: {selectedCards.map((c) => c.card_name).join(", ")}
         </p>
         <div className="mt-2 flex gap-2">
           <Button
@@ -365,7 +365,10 @@ function AllCards() {
       <div>
         <p className="font-semibold text-red-500">Delete this card?</p>
         <p className="text-sm mt-1">
-          Card Type ID: {card.card_type_id} ({card.card_type})
+          Card Name: {card.card_name}
+        </p>
+        <p className="text-sm mt-1">
+          Card Type: {card.card_type}
         </p>
         <div className="mt-2 flex gap-2">
           <Button

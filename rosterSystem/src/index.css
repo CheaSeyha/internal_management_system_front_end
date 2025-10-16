@@ -139,6 +139,11 @@
   .text-stroke {
     -webkit-text-stroke: 1.3px #fafd00;
   }
+
+  /* Small stroke */
+  .text-stroke-sm {
+    -webkit-text-stroke: 0.8px #fafd00;
+  }
 }
 
 @theme inline {

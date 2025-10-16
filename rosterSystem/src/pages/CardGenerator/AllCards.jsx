@@ -8,7 +8,9 @@ import {
   Printer,
   School,
   IdCard,
+  LayoutGrid,
   RotateCcw,
+  LayoutList,
   School2,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -54,6 +56,9 @@ import {
 import { useReactToPrint } from "react-to-print";
 import PrintCard from "./components/PrintCard";
 import { MonthYearPicker } from "../../components/MonthYearPicker";
+import CardPreview from "./components/CardPreview";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import { downloadCardImages } from "../../utils/donwloadCardImage";
 
 function AllCards() {
   // State management
@@ -78,6 +83,40 @@ function AllCards() {
   const [readyToPrint, setReadyToPrint] = useState(false);
   const [loadingPrint, setLoadingPrint] = useState(false);
   const [date, setDate] = useState(new Date()); //get curretn date for date select component
+  // Initialize from localStorage, fallback to false
+  // Initialize tableView from localStorage (default false)
+  const [tableView, setTableView] = useState(() => {
+    const saved = localStorage.getItem("tableView");
+    return saved ? JSON.parse(saved) : false;
+  });
+
+  useEffect(() => {
+    fetchCards(1);
+  }, []); // Get Card When Reload
+
+  // Save tableView to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem("tableView", JSON.stringify(tableView));
+  }, [tableView]);
+
+  // Donwload image from card with profile_image_url
+  const donwloadImageFromCard = async () => {
+    setLoading(true);
+    try {
+      const updatedCards = await downloadCardImages(getCards);
+      console.log("donalod image yrl ", updatedCards);
+      setGetCards(updatedCards);
+    } catch (err) {
+      console.error("Error in handelChangeViewlayoutTable:", err);
+    } finally {
+      setLoading(false); // ✅ always resets
+    }
+  };
+
+  const handelChangeViewlayoutTable = async () => {
+    setTableView((prev) => !prev);
+    donwloadImageFromCard();
+  };
 
   const handleSelectDate = (date) => {
     setDate(date);
@@ -88,6 +127,7 @@ function AllCards() {
     fetchCards();
   }, [date]);
 
+  //Filter data
   useEffect(() => {
     const checkFilterTyep =
       filter === "block" ? filterOptions.blocks : filterOptions.cardTypes;
@@ -162,6 +202,7 @@ function AllCards() {
   };
 
   //Get Fetch Cards Fucntions
+  // fetchCards
   const fetchCards = async (page = 1, searchTerm = "", filterVal = "") => {
     setLoading(true);
     try {
@@ -174,47 +215,52 @@ function AllCards() {
       });
 
       if (response.data?.success) {
-        const data = response.data.data;
+        const cards = response.data.data.data || [];
 
-        // cards array
-        const cards = data.data || [];
-        setGetCards(cards);
-
-        // 🔹 dynamically set filter options
-        setFilterOptions(data);
-
-        // pagination
-        setPagination(data);
-
-        // store original cards only if no filter
-        if (!filter || filter === "no_filter") {
-          setOriginalGetCards(cards);
-          setOriginalPagination(data);
+        // download images only if tableView is false
+        let updatedCards = cards;
+        if (!tableView && cards.length > 0) {
+          updatedCards = await downloadCardImages(cards);
         }
+
+        setGetCards(updatedCards);
+
+        // store original cards only once (with images if downloaded)
+        if (!originalGetCards.length || filter === "no_filter") {
+          setOriginalGetCards(updatedCards);
+        }
+
+        setFilterOptions(response.data.data);
+        setPagination(response.data.data);
       }
     } catch (err) {
       console.error("Fetch cards error:", err);
       setGetCards([]);
-      if (filter === "no_filter") {
-        setTypeFilter([]);
-        setFilterOptions([])
-      }
       setPagination(null);
     } finally {
       setLoading(false);
     }
   };
 
-  // Initial data fetch
+  // useEffect to reset when no_filter
   useEffect(() => {
-    fetchCards(1);
-  }, []);
+    if (filter === "no_filter") {
+      setGetCards(originalGetCards);
+    }
+  }, [filter, originalGetCards]);
+
+  useEffect(() => {
+    console.log("Check Original card", originalGetCards);
+    if (!filter || filter === "no_filter") {
+      setGetCards(originalGetCards);
+      console.log("Orignal Card ", originalGetCards);
+    }
+  }, [filter]);
 
   // Handle filter changes
   const handleFilterChange = (newFilter) => {
     setFilter(newFilter);
     setSelectedFilterValue("");
-
     // 🔹 DO NOT reset cards here
     // fetchCards will handle filtering when user selects a filter value
   };
@@ -527,6 +573,7 @@ function AllCards() {
                     <SelectItem
                       key={`${key}-${index}`}
                       value={value}
+                      disabled={count === 0}
                       className="flex justify-between items-center"
                     >
                       <>
@@ -535,7 +582,11 @@ function AllCards() {
                         </span>
 
                         <Badge
-                          className="h-5 min-w-5 rounded-full bg-blue-500 text-white dark:bg-blue-600 font-mono tabular-nums"
+                          className={`h-5 min-w-5 rounded-full ${
+                            count === 0
+                              ? "bg-gray-500"
+                              : "bg-blue-500 dark:bg-blue-600"
+                          } text-white font-mono tabular-nums`}
                           variant="secondary"
                         >
                           {count}
@@ -554,6 +605,9 @@ function AllCards() {
         <Button variant="outline" onClick={restart}>
           <RotateCcw />
         </Button>
+        <Button variant="outline" onClick={handelChangeViewlayoutTable}>
+          {tableView ? <LayoutList /> : <LayoutGrid />}
+        </Button>
         <NavLink to={"/cards/card-generator"}>
           <Button className="bg-blue-500 text-accent-foreground">
             <Plus />
@@ -563,197 +617,231 @@ function AllCards() {
       </section>
 
       {/* Table */}
-      <main className="overflow-hidden rounded-md border">
-        <Table>
-          <TableHeader className="bg-accent rounded-md">
-            <TableRow>
-              <TableHead className="w-[80px]">
-                <Checkbox
-                  checked={allSelected}
-                  onCheckedChange={toggleSelectAll}
-                />
-              </TableHead>
-              <TableHead>Unique ID</TableHead>
-              <TableHead>Card ID</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Card Type</TableHead>
-              <TableHead>Block</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Create By</TableHead>
-              <TableHead className="w-[100px] text-center">
-                {(selectedCards.length >= 2 && (
-                  <div className="flex gap-1">
-                    <Button
-                      className="bg-[#077bff] hover:bg-[#035fc7] active:bg-[#035fc7] flex items-center justify-center"
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => multiplePrint(selectedCards)}
-                      disabled={loadingPrint || readyToPrint} // disable while loading or printing
-                    >
-                      {loadingPrint ? (
-                        <div className="flex items-center gap-2">
-                          <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
-                        </div>
-                      ) : (
-                        <div className="relative inline-flex">
-                          <Printer className="h-4 w-4 text-gray-300 left-0.5 bottom-0.5 relative" />
-                          <Printer className="h-4 w-4 text-gray-300 absolute fill-[#077bff]" />
-                        </div>
-                      )}
-                    </Button>
-
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={handleBulkDelete}
-                    >
-                      <div className="relative inline-flex">
-                        <Trash className="h-4 w-4 text-gray-300 left-0.5 bottom-0.5 relative" />
-                        <Trash className="h-4 w-4 text-gray-300 absolute fill-[#a44d4e]" />
-                      </div>
-                    </Button>
-                  </div>
-                )) ||
-                  "Actions"}
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-              [...Array(17)].map((_, idx) => (
-                <TableRow key={`skeleton-${idx}`}>
-                  <TableCell className="w-[80px]">
-                    <div className="w-5 h-5 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="w-12 h-4 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="w-24 h-4 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="w-20 h-4 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="w-16 h-4 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="w-20 h-4 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
-                  </TableCell>
-                  <TableCell className="w-[100px] text-center">
-                    <div className="w-8 h-4 mx-auto rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
-                  </TableCell>
-                  <TableCell className="w-[100px] text-center">
-                    <div className="w-8 h-4 mx-auto rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : getCards.length === 0 ? (
+      {tableView ? (
+        <main className="overflow-hidden rounded-md border">
+          <Table>
+            <TableHeader className="bg-accent rounded-md">
               <TableRow>
-                <TableCell colSpan={7} className="text-center">
-                  No cards found
-                </TableCell>
-              </TableRow>
-            ) : (
-              getCards.map((card) => (
-                <TableRow key={card.id}>
-                  <TableCell className="w-[80px]">
-                    <Checkbox
-                      checked={selectedCards.some((c) => c.id === card.id)}
-                      onCheckedChange={() => toggleSelect(card)}
-                    />
-                  </TableCell>
-                  <TableCell className="font-medium">{card.id}</TableCell>
-                  <TableCell className="font-medium">
-                    {card.card_type_id}
-                  </TableCell>
-                  <TableCell>{card.card_name}</TableCell>
-                  <TableCell>{card.card_type}</TableCell>
-                  <TableCell>{card.blocks_string}</TableCell>
-                  <TableCell>{card.created_at}</TableCell>
-                  <TableCell>{card.create_by}</TableCell>
-                  <TableCell className="w-[100px] text-center">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger
-                        asChild
-                        className={
-                          selectedCards.length >= 2 ? "hidden h-[20px]" : ""
-                        }
+                <TableHead className="w-[80px]">
+                  <Checkbox
+                    checked={allSelected}
+                    onCheckedChange={toggleSelectAll}
+                  />
+                </TableHead>
+                <TableHead>Unique ID</TableHead>
+                <TableHead>Card ID</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Card Type</TableHead>
+                <TableHead>Block</TableHead>
+                <TableHead>Created Date</TableHead>
+                <TableHead>Create By</TableHead>
+                <TableHead className="w-[100px] text-center">
+                  {(selectedCards.length >= 2 && (
+                    <div className="flex gap-1">
+                      <Button
+                        className="bg-[#077bff] hover:bg-[#035fc7] active:bg-[#035fc7] flex items-center justify-center"
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => multiplePrint(selectedCards)}
+                        disabled={loadingPrint || readyToPrint} // disable while loading or printing
                       >
-                        <Button variant="ghost" size="20">
-                          <Ellipsis />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem
-                          className=""
-                          onClick={(e) => printCard(e, card)}
-                          disabled={loadingPrint}
-                        >
-                          {loadingPrint ? (
-                            <>
-                              <Printer className="" />
-                              Printing...
-                            </>
-                          ) : (
-                            <>
-                              <Printer className="" />
-                              Print
-                            </>
-                          )}
-                        </DropdownMenuItem>
+                        {loadingPrint ? (
+                          <div className="flex items-center gap-2">
+                            <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                          </div>
+                        ) : (
+                          <div className="relative inline-flex">
+                            <Printer className="h-4 w-4 text-gray-300 left-0.5 bottom-0.5 relative" />
+                            <Printer className="h-4 w-4 text-gray-300 absolute fill-[#077bff]" />
+                          </div>
+                        )}
+                      </Button>
 
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="text-red-500"
-                          onClick={() => handleSingleDelete(card)}
-                        >
-                          <Trash className="text-red-500" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={handleBulkDelete}
+                      >
+                        <div className="relative inline-flex">
+                          <Trash className="h-4 w-4 text-gray-300 left-0.5 bottom-0.5 relative" />
+                          <Trash className="h-4 w-4 text-gray-300 absolute fill-[#a44d4e]" />
+                        </div>
+                      </Button>
+                    </div>
+                  )) ||
+                    "Actions"}
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                [...Array(17)].map((_, idx) => (
+                  <TableRow key={`skeleton-${idx}`}>
+                    <TableCell className="w-[80px]">
+                      <div className="w-5 h-5 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="w-12 h-4 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="w-24 h-4 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="w-20 h-4 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="w-16 h-4 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="w-20 h-4 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+                    </TableCell>
+                    <TableCell className="w-[100px] text-center">
+                      <div className="w-8 h-4 mx-auto rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+                    </TableCell>
+                    <TableCell className="w-[100px] text-center">
+                      <div className="w-8 h-4 mx-auto rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : getCards.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center">
+                    No cards found
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </main>
+              ) : (
+                getCards.map((card) => (
+                  <TableRow key={card.id}>
+                    <TableCell className="w-[80px]">
+                      <Checkbox
+                        checked={selectedCards.some((c) => c.id === card.id)}
+                        onCheckedChange={() => toggleSelect(card)}
+                      />
+                    </TableCell>
+                    <TableCell className="font-medium">{card.id}</TableCell>
+                    <TableCell className="font-medium">
+                      {card.card_type_id}
+                    </TableCell>
+                    <TableCell>{card.card_name}</TableCell>
+                    <TableCell>{card.card_type}</TableCell>
+                    <TableCell>{card.blocks_string}</TableCell>
+                    <TableCell>{card.created_at}</TableCell>
+                    <TableCell>{card.create_by}</TableCell>
+                    <TableCell className="w-[100px] text-center">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          asChild
+                          className={
+                            selectedCards.length >= 2 ? "hidden h-[20px]" : ""
+                          }
+                        >
+                          <Button variant="ghost" size="20">
+                            <Ellipsis />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem
+                            className=""
+                            onClick={(e) => printCard(e, card)}
+                            disabled={loadingPrint}
+                          >
+                            {loadingPrint ? (
+                              <>
+                                <Printer className="" />
+                                Printing...
+                              </>
+                            ) : (
+                              <>
+                                <Printer className="" />
+                                Print
+                              </>
+                            )}
+                          </DropdownMenuItem>
+
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            className="text-red-500"
+                            onClick={() => handleSingleDelete(card)}
+                          >
+                            <Trash className="text-red-500" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </main>
+      ) : loading ? (
+        <LoadingSpinner />
+      ) : (
+        // Show Real Card As Preview
+        <div className="flex flex-wrap justify-evenly w-full h-fit max-h-[700px] gap-y-10 overflow-auto">
+          {getCards.length <= 0 ? (
+            <>
+              <p>No cards found</p>
+            </>
+          ) : (
+            <>
+              {getCards.map((entry, index) => (
+                <CardPreview
+                  onRemove={() => handleSingleDelete(getCards[index])}
+                  key={entry.card_type_id}
+                  index={index}
+                  block={entry.block}
+                  cardType={entry.card_type}
+                  id={entry.card_type_id}
+                  image={entry.local_image_url}
+                  name={entry.card_name}
+                />
+              ))}
+            </>
+          )}
+        </div>
+      )}
       {/* paginatin  */}
-      <div className="absolute bottom-4">
-        <Pagination className="border-t mt-4 pt-2">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  fetchCards(
-                    pagination.prev_page_url &&
-                      new URL(pagination.prev_page_url).searchParams.get("page")
-                  );
-                }}
-              />
-            </PaginationItem>
+      {tableView && getCards.length > 0 && (
+        <div className="absolute bottom-4">
+          <Pagination className="border-t mt-4 pt-2">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    fetchCards(
+                      pagination.prev_page_url &&
+                        new URL(pagination.prev_page_url).searchParams.get(
+                          "page"
+                        )
+                    );
+                  }}
+                />
+              </PaginationItem>
 
-            {renderPageNumbers()}
+              {renderPageNumbers()}
 
-            <PaginationItem>
-              <PaginationNext
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  fetchCards(
-                    pagination.next_page_url &&
-                      new URL(pagination.next_page_url).searchParams.get("page")
-                  );
-                }}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      </div>
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    fetchCards(
+                      pagination.next_page_url &&
+                        new URL(pagination.next_page_url).searchParams.get(
+                          "page"
+                        )
+                    );
+                  }}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
 
       <div className="hidden">
         {cardToPrint && <PrintCard entries={[cardToPrint]} ref={contentRef} />}

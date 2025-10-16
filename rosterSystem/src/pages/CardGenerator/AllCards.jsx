@@ -104,7 +104,6 @@ function AllCards() {
     setLoading(true);
     try {
       const updatedCards = await downloadCardImages(getCards);
-      console.log("donalod image yrl ", updatedCards);
       setGetCards(updatedCards);
     } catch (err) {
       console.error("Error in handelChangeViewlayoutTable:", err);
@@ -779,7 +778,7 @@ function AllCards() {
         <LoadingSpinner />
       ) : (
         // Show Real Card As Preview
-        <div className="flex flex-wrap justify-evenly w-full h-fit max-h-[700px] gap-y-10 overflow-auto">
+        <div className="flex flex-wrap justify-evenly w-full h-fit max-h-[700px] gap-y-5 overflow-auto">
           {getCards.length <= 0 ? (
             <>
               <p>No cards found</p>
@@ -789,7 +788,7 @@ function AllCards() {
               {getCards.map((entry, index) => (
                 <CardPreview
                   onRemove={() => handleSingleDelete(getCards[index])}
-                  key={entry.card_type_id}
+                  key={entry.id}
                   index={index}
                   block={entry.block}
                   cardType={entry.card_type}

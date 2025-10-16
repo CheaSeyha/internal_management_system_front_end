@@ -434,7 +434,7 @@ export default function CardGenerator() {
         name: "",
         block: keepSameBlocks ? [...currentEntry.block] : [],
         id: "",
-        cardType: cardTypes.length > 0 ? cardTypes[0].card_type : "",
+        cardType: currentEntry.cardType,
         imageFile: null,
         imagePreviewUrl: null,
       });
@@ -455,7 +455,7 @@ export default function CardGenerator() {
       name: "",
       block: "",
       id: "",
-      cardType: "Staff",
+      cardType: currentEntry.cardType,
       imageFile: null,
       imagePreviewUrl: null,
     });

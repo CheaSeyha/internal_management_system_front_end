@@ -778,7 +778,7 @@ function AllCards() {
         <LoadingSpinner />
       ) : (
         // Show Real Card As Preview
-        <div className="flex flex-wrap justify-evenly w-full h-fit max-h-[700px] gap-y-5 overflow-auto">
+        <div className="flex flex-wrap justify-evenly w-full h-fit max-h-[696px] gap-y-5 overflow-auto rounded-s-2xl">
           {getCards.length <= 0 ? (
             <>
               <p>No cards found</p>
@@ -802,45 +802,40 @@ function AllCards() {
         </div>
       )}
       {/* paginatin  */}
-      {tableView && getCards.length > 0 && (
-        <div className="absolute bottom-4">
-          <Pagination className="border-t mt-4 pt-2">
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    fetchCards(
-                      pagination.prev_page_url &&
-                        new URL(pagination.prev_page_url).searchParams.get(
-                          "page"
-                        )
-                    );
-                  }}
-                />
-              </PaginationItem>
 
-              {renderPageNumbers()}
+      <div className="absolute bottom-4">
+        <Pagination className="border-t mt-4 pt-2">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  fetchCards(
+                    pagination.prev_page_url &&
+                      new URL(pagination.prev_page_url).searchParams.get("page")
+                  );
+                }}
+              />
+            </PaginationItem>
 
-              <PaginationItem>
-                <PaginationNext
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    fetchCards(
-                      pagination.next_page_url &&
-                        new URL(pagination.next_page_url).searchParams.get(
-                          "page"
-                        )
-                    );
-                  }}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        </div>
-      )}
+            {renderPageNumbers()}
+
+            <PaginationItem>
+              <PaginationNext
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  fetchCards(
+                    pagination.next_page_url &&
+                      new URL(pagination.next_page_url).searchParams.get("page")
+                  );
+                }}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      </div>
 
       <div className="hidden">
         {cardToPrint && <PrintCard entries={[cardToPrint]} ref={contentRef} />}

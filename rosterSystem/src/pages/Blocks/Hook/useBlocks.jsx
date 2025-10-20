@@ -6,6 +6,7 @@ export default function useBlocks() {
   const [blocks, setBlocks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false); // new state
 
   // --- Fetch all blocks ---
   const fetchBlocks = async () => {
@@ -24,6 +25,38 @@ export default function useBlocks() {
     }
   };
 
+  const deleteRoom = async (room_name, building_name) => {
+    if (!room_name || !building_name) return false;
+
+    setDeleteLoading(true); // start loading
+    try {
+      const response = await axios.delete(
+        `/blocks/delete_room/${room_name}/${building_name}`
+      );
+
+      if (response.data?.success) {
+        // Remove the room locally from blocks
+        setBlocks((prev) =>
+          prev.map((b) =>
+            b.building === building_name
+              ? { ...b, room: b.room.filter((r) => r !== room_name) }
+              : b
+          )
+        );
+        toast.success(response.data.message || "Room deleted successfully");
+        return true;
+      } else {
+        toast.error(response.data?.message || "Failed to delete room");
+        return false;
+      }
+    } catch (err) {
+      toast.error(err.message || "Error deleting room");
+      return false;
+    } finally {
+      setDeleteLoading(false); // stop loading
+    }
+  };
+
   // --- Add Block ---
   const addBlock = async (building_name) => {
     if (!building_name?.trim()) {
@@ -32,18 +65,25 @@ export default function useBlocks() {
     }
     setLoading(true);
     try {
-      const response = await axios.post("/blocks/add_building", { building_name });
+      const response = await axios.post("/blocks/add_building", {
+        building_name,
+      });
       if (response.data?.success) {
         toast.success(response.data.message || "Block added successfully");
-        const newBlock = response.data.data || { building: building_name, room: [] };
+        const newBlock = response.data.data || {
+          building: building_name,
+          room: [],
+        };
         setBlocks((prev) => [...prev, newBlock]);
         return newBlock;
       } else {
-        toast.error(response.data?.errors?.building_name || "Failed to add block");
+        toast.error(
+          response.data?.errors?.building_name || "Failed to add block"
+        );
         return null;
       }
     } catch (error) {
-      toast.error(error.message || "Error adding block");
+      toast.error(error.data.message || "Error adding block");
       return null;
     } finally {
       setLoading(false);
@@ -58,7 +98,10 @@ export default function useBlocks() {
     }
     setLoading(true);
     try {
-      const response = await axios.post("/blocks/add_room", { building_name, room_name });
+      const response = await axios.post("/blocks/add_room", {
+        building_name,
+        room_name,
+      });
       if (response.data?.success) {
         toast.success(response.data.message || "Room added successfully");
         const updatedRoom = response.data.data;
@@ -87,7 +130,9 @@ export default function useBlocks() {
     if (!building_name) return;
     setLoading(true);
     try {
-      const response = await axios.delete(`/blocks/delete_building/${building_name}`);
+      const response = await axios.delete(
+        `/blocks/delete_building/${building_name}`
+      );
       if (response.data?.success) {
         toast.success(response.data.message || "Building deleted");
         setBlocks((prev) => prev.filter((b) => b.building !== building_name));
@@ -109,9 +154,15 @@ export default function useBlocks() {
     if (!buildingNames.length) return;
     setLoading(true);
     try {
-      await Promise.all(buildingNames.map((name) => axios.delete(`/blocks/delete_building/${name}`)));
+      await Promise.all(
+        buildingNames.map((name) =>
+          axios.delete(`/blocks/delete_building/${name}`)
+        )
+      );
       toast.success("Buildings deleted successfully");
-      setBlocks((prev) => prev.filter((b) => !buildingNames.includes(b.building)));
+      setBlocks((prev) =>
+        prev.filter((b) => !buildingNames.includes(b.building))
+      );
       return true;
     } catch (error) {
       toast.error(error.message || "Error deleting buildings");
@@ -125,10 +176,12 @@ export default function useBlocks() {
     blocks,
     loading,
     fetching,
+    deleteLoading, // expose it
     fetchBlocks,
     addBlock,
     addRoom,
     deleteBuilding,
     deleteMultipleBuildings,
+    deleteRoom,
   };
 }

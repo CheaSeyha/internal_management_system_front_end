@@ -25,6 +25,7 @@ import {
   DialogContent,
   DialogFooter,
   DialogHeader,
+  DialogDescription,
   DialogTitle,
   DialogTrigger,
   DialogClose,
@@ -38,24 +39,54 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import useBlocks from "./Hook/useBlocks";
-
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 export default function BuildingTable() {
-  const { blocks, fetchBlocks, addBlock, addRoom, loading, fetching } =
-    useBlocks();
+  const {
+    blocks,
+    fetchBlocks,
+    addBlock,
+    addRoom,
+    deleteRoom,
+    loading,
+    fetching,
+    deleteLoading,
+  } = useBlocks();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [buildingName, setBuildingName] = useState(""); // for Add Block
   const [addRoomOpen, setAddRoomOpen] = useState(false);
   const [selectedBuilding, setSelectedBuilding] = useState(""); // for Add Room
   const [roomName, setRoomName] = useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [roomToDelete, setRoomToDelete] = useState({ room: "", building: "" });
+
+  // Function called when confirming delete
+  const handleConfirmDelete = async () => {
+    // deleteRoom sets deleteLoading=true, runs operation, then sets deleteLoading=false.
+    const success = await deleteRoom(roomToDelete.room, roomToDelete.building);
+
+    // We now only check for success. If successful, we close the dialog.
+    if (success) {
+      setDeleteDialogOpen(false);
+      setRoomToDelete({ room: "", building: "" });
+    }
+    // If NOT successful (success === false), the dialog remains open,
+    // and deleteLoading is already false (re-enabling the button).
+  };
 
   useEffect(() => {
     fetchBlocks();
   }, []);
-
-  useEffect(() => {
-    console.table(blocks);
-  }, [blocks]);
 
   // --- Add Block ---
   const handleAddBlock = async (e) => {
@@ -108,8 +139,29 @@ export default function BuildingTable() {
     {
       accessorKey: "room",
       header: "Rooms",
-      cell: ({ row }) =>
-        row.getValue("room")?.length ? row.getValue("room").join(", ") : "-",
+      cell: ({ row }) => {
+        const rooms = row.getValue("room");
+        const building = row.original.building;
+
+        if (!rooms?.length) return "-";
+
+        return (
+          <div className="flex flex-wrap gap-2">
+            {rooms.map((roomName, idx) => (
+              <button
+                key={idx}
+                className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition"
+                onClick={() => {
+                  setRoomToDelete({ room: roomName, building });
+                  setDeleteDialogOpen(true);
+                }}
+              >
+                {roomName}
+              </button>
+            ))}
+          </div>
+        );
+      },
     },
   ];
 
@@ -141,10 +193,14 @@ export default function BuildingTable() {
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add New Block</DialogTitle>
+            <DialogDescription>
+              Enter the name of the building you want to add.
+            </DialogDescription>
+          </DialogHeader>
+
           <form onSubmit={handleAddBlock}>
-            <DialogHeader>
-              <DialogTitle>Add New Block</DialogTitle>
-            </DialogHeader>
             <div className="grid gap-3 mt-3">
               <Label>Building Name</Label>
               <Input
@@ -153,7 +209,7 @@ export default function BuildingTable() {
                 onChange={(e) => setBuildingName(e.target.value)}
               />
             </div>
-            <DialogFooter>
+            <DialogFooter className="mt-3">
               <DialogClose asChild>
                 <Button variant="outline">Cancel</Button>
               </DialogClose>
@@ -173,17 +229,21 @@ export default function BuildingTable() {
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add New Room</DialogTitle>
+            <DialogDescription>
+              Select a building and enter the room name.
+            </DialogDescription>
+          </DialogHeader>
+
           <form onSubmit={handleAddRoom}>
-            <DialogHeader>
-              <DialogTitle>Add New Room</DialogTitle>
-            </DialogHeader>
             <div className="grid gap-3 mt-3">
               <Label>Select Building</Label>
               <Select
                 value={selectedBuilding}
                 onValueChange={setSelectedBuilding}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select building" />
                 </SelectTrigger>
                 <SelectContent>
@@ -203,7 +263,7 @@ export default function BuildingTable() {
                 onChange={(e) => setRoomName(e.target.value)}
               />
             </div>
-            <DialogFooter>
+            <DialogFooter className="flex mt-3">
               <DialogClose asChild>
                 <Button variant="outline">Cancel</Button>
               </DialogClose>
@@ -214,6 +274,47 @@ export default function BuildingTable() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Delete room */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent className="sm:max-w-[400px]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Room</AlertDialogTitle>
+          </AlertDialogHeader>
+
+          <AlertDialogDescription>
+            Are you sure you want to delete room{" "}
+            <span className="font-bold text-red-500">{roomToDelete.room}</span>{" "}
+            of building{" "}
+            <span className="font-bold text-red-500">
+              {roomToDelete.building}
+            </span>
+            ? This action cannot be undone.
+          </AlertDialogDescription>
+
+          <AlertDialogFooter className="mt-4 flex justify-end gap-2">
+            <AlertDialogCancel asChild>
+              <Button variant="outline">Cancel</Button>
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                // Prevent the default Radix UI closure behavior on click.
+                // This allows us to control the closure manually in the async function.
+                e.preventDefault();
+                handleConfirmDelete();
+              }}
+              className="bg-red-600 text-white hover:bg-red-700"
+              disabled={deleteLoading}
+            >
+              {deleteLoading ? (
+                <span className="loading loading-spinner loading-sm"></span>
+              ) : (
+                "Delete"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Table */}
       {/* Table */}

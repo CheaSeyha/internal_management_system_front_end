@@ -793,6 +793,7 @@ function AllCards() {
                   onRemove={() => handleSingleDelete(getCards[index])}
                   key={entry.id}
                   index={index}
+                  created_at={entry.created_at}
                   block={entry.block}
                   cardType={entry.card_type}
                   id={entry.card_type_id}

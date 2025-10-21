@@ -12,6 +12,7 @@ function CardPreview({
   name,
   block,
   id,
+  created_at,
   image,
   cardType,
   onRemove,
@@ -94,6 +95,25 @@ function CardPreview({
     monthName.toUpperCase() +
     " " +
     getDate.getFullYear();
+
+  function formatDate(dateStr) {
+    // Try native parsing first
+    let date = new Date(dateStr);
+
+    // If invalid, manually parse DD-MM-YYYY
+    if (isNaN(date)) {
+      const [day, month, year] = dateStr.split("-");
+      date = new Date(`${year}-${month}-${day}`);
+    }
+
+    return date
+      .toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      })
+      .toUpperCase();
+  }
 
   return (
     <>
@@ -258,7 +278,7 @@ function CardPreview({
               {id}
             </p>
             <p className="forDate absolute text-[16px] top-[4.33cm] left-[4.86cm]">
-              {getDayMonthYear}
+              {formatDate(created_at)}
             </p>
             <div className="image-tamplete w-full h-full">
               <img src={construction} alt="" />

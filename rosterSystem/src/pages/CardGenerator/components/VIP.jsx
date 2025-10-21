@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import vipcard from "../../../assets/CardTamplete/VIP.png";
 import staffcard from "../../../assets/CardTamplete/STAFF.png";
+import rolling from "../../../assets/CardTamplete/ROLLING.png";
 import deliverycard from "../../../assets/CardTamplete/DELIVERY.png";
 import tuktuk from "../../../assets/CardTamplete/TUKTUK.png";
 import carcard1 from "../../../assets/CardTamplete/CAR1.png";
@@ -229,6 +230,39 @@ function VIP({
             </p>
             <div className="image-tamplete w-full h-full">
               <img src={staffcard} alt="" />
+            </div>
+          </main>
+        )}
+
+        {/* Rolling Card */}
+        {normalizedCardType === "rolling" && (
+          <main className="relative font-cardFont2 w-[9cm] h-[6cm] text-black  bg-white">
+            <div className="image-profile w-[2.7cm] border-[1.5px] border-[#fb2603] h-[3.2cm] absolute top-[1.8cm] left-[0.45cm]">
+              <img src={image} className="w-full h-full object-cover" alt="" />
+            </div>
+            <div
+              className="absolute top-[2.32cm] left-[5.13cm] flex items-end"
+              style={{ height: "20px" }} // Fixed height container
+            >
+              <p
+                ref={nameRef}
+                className="forName text-[#090688]"
+                style={{
+                  fontSize: `${fontSizeName}px`,
+                  lineHeight: `${fontSizeName + lineHight}px`, // prevents vertical jump
+                }}
+              >
+                {name}
+              </p>
+            </div>
+            {/* <p className="rollingcard forBlock absolute text-[18px] top-[3.26cm] left-[5.21cm]">
+              {formattedBlock}
+            </p> */}
+            <p className="forID text-[#090688] absolute text-[18px] top-[3.37cm] left-[5.13cm]">
+              {id}
+            </p>
+            <div className="image-tamplete w-full h-full">
+              <img src={rolling} alt="" />
             </div>
           </main>
         )}

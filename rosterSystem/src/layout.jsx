@@ -52,7 +52,7 @@ export default function Layout() {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <main className="w-full bg-background p-5">
+      <main className="w-full bg-background p-5 overflow-auto">
         <div className="flex justify-center place-items-center mb-5 gap-2">
           <SidebarTrigger />
           <DarkModeToggle />

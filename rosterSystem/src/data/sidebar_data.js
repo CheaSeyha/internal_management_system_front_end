@@ -29,7 +29,7 @@ export const data = {
     {
       title: "Blocks Manage",
       url: "buildings-rooms-manage",
-      icon: University ,
+      icon: University,
     },
     {
       title: "Card Access",
@@ -38,6 +38,7 @@ export const data = {
       isActive: false,
       items: [
         { title: "All Cards", url: "all-cards" },
+        { title: "Cards Summary", url: "cards-summary" },
         { title: "Generate Card", url: "card-generator" },
       ],
     },

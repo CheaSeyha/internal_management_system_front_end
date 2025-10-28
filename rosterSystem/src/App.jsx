@@ -13,6 +13,7 @@ import RosterForm from "./pages/RosterForm/RosterForm";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import NotFoundPage from "./pages/NotFoundPage";
 import BuildingRoom from "./pages/Blocks/BuildingRoom";
+import CardIcome from "./pages/CardGenerator/CardSummery";
 function App() {
   const location = useLocation(); // Get the current location
 
@@ -56,6 +57,14 @@ function App() {
                 element={
                   <AnimatedPage>
                     <AllCards />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="cards-summary"
+                element={
+                  <AnimatedPage>
+                    <CardIcome />
                   </AnimatedPage>
                 }
               />

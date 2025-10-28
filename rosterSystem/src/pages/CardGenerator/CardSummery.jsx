@@ -7,7 +7,6 @@ import "swiper/css/free-mode";
 import "swiper/css/mousewheel";
 
 import CardOfAmount from "./components/CardOfAmount";
-import { Calendar22 } from "../../components/Calendar22";
 
 function CardIcome() {
   const cardContainerVariants = {
@@ -33,7 +32,7 @@ function CardIcome() {
   return (
     <>
       <div className="filter-button-controller">
-        <Calendar22/>
+        
       </div>
       <motion.div
         variants={cardContainerVariants}

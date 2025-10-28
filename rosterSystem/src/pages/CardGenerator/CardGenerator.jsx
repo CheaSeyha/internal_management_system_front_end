@@ -333,10 +333,6 @@ export default function CardGenerator() {
     return blockArray.join(",");
   }
 
-  useEffect(() => {
-    console.log(currentEntry.cardType);
-  }, [currentEntry]);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 

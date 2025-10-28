@@ -71,21 +71,35 @@ function CardPreview({
     setPlatFontSize(fontSize);
   }, [name]);
 
+  // Suggested improvement for the name font scaling
   useEffect(() => {
-    if (normalizedCardType === "construction") setFontSizeName(16);
+    let currentFontSize = 18; // Start with default
+
+    if (normalizedCardType === "construction") currentFontSize = 16;
     if (normalizedCardType === "delivery" || normalizedCardType === "tuktuk")
-      setFontSizeName(17);
+      currentFontSize = 17;
 
     if (name.length >= 20) setLineHight(2);
     else setLineHight(0);
 
     if (nameRef.current) {
-      const width = nameRef.current.getBoundingClientRect().width;
-      if (width > 134 && fontSizeName > 1) {
-        setFontSizeName((prev) => prev - 1);
+      // Ensure the element is set to the current calculated initial size for measurement
+      nameRef.current.style.fontSize = `${currentFontSize}px`;
+
+      const maxWidth = 134;
+      let width = nameRef.current.getBoundingClientRect().width;
+
+      // Loop to continuously shrink the font and re-measure until it fits
+      while (width > maxWidth && currentFontSize > 1) {
+        currentFontSize -= 1; // Decrease font size by 1px
+        nameRef.current.style.fontSize = `${currentFontSize}px`; // Update the DOM element directly
+        width = nameRef.current.getBoundingClientRect().width; // Re-measure the width
       }
+
+      // Set the final calculated font size to state only once
+      setFontSizeName(currentFontSize);
     }
-  }, [name, fontSizeName, normalizedCardType]);
+  }, [name, normalizedCardType]); // Remove fontSizeName from dependency array
 
   const getDate = new Date();
   const monthName = getDate.toLocaleString("default", { month: "long" });
@@ -97,15 +111,27 @@ function CardPreview({
     getDate.getFullYear();
 
   function formatDate(dateStr) {
-    // Try native parsing first
-    let date = new Date(dateStr);
+    // 1. Manually parse the DD-MM-YYYY input
+    const parts = dateStr.split("-");
 
-    // If invalid, manually parse DD-MM-YYYY
-    if (isNaN(date)) {
-      const [day, month, year] = dateStr.split("-");
-      date = new Date(`${year}-${month}-${day}`);
+    // Check if the input is valid (e.g., has 3 parts)
+    if (parts.length !== 3) {
+      // Handle invalid format, e.g., return "Invalid Date" or throw an error
+      return "Invalid Date Format";
     }
 
+    const [day, month, year] = parts;
+
+    // 2. Create the Date object using the reliable YYYY-MM-DD format.
+    // NOTE: Month is 1-based (1-12) in this string format.
+    const date = new Date(`${year}-${month}-${day}`);
+
+    // Check if the date object is valid after manual parsing
+    if (isNaN(date)) {
+      return "Invalid Date Value";
+    }
+
+    // 3. Format the date to DD MONTH YYYY (e.g., 23 OCTOBER 2025)
     return date
       .toLocaleDateString("en-GB", {
         day: "2-digit",
@@ -114,6 +140,10 @@ function CardPreview({
       })
       .toUpperCase();
   }
+
+  // Example:
+  // formatDate("23-10-2025") -> "23 OCTOBER 2025"
+  // formatDate("03-10-2025") -> "03 OCTOBER 2025"
 
   return (
     <>

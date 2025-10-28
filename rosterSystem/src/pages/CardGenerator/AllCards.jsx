@@ -249,7 +249,6 @@ function AllCards() {
   }, [filter, originalGetCards]);
 
   useEffect(() => {
-    console.log("Check Original card", originalGetCards);
     if (!filter || filter === "no_filter") {
       setGetCards(originalGetCards);
       console.log("Orignal Card ", originalGetCards);

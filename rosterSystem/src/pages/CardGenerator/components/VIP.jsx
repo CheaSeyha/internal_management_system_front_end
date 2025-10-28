@@ -74,21 +74,35 @@ function VIP({
     }
   }, [name]);
 
+  // Suggested improvement for the name font scaling
   useEffect(() => {
-    if (normalizedCardType === "construction") setFontSizeName(16);
+    let currentFontSize = 18; // Start with default
+
+    if (normalizedCardType === "construction") currentFontSize = 16;
     if (normalizedCardType === "delivery" || normalizedCardType === "tuktuk")
-      setFontSizeName(17);
+      currentFontSize = 17;
 
     if (name.length >= 20) setLineHight(2);
     else setLineHight(0);
 
     if (nameRef.current) {
-      const width = nameRef.current.getBoundingClientRect().width;
-      if (width > 134 && fontSizeName > 1) {
-        setFontSizeName((prev) => prev - 1);
+      // Ensure the element is set to the current calculated initial size for measurement
+      nameRef.current.style.fontSize = `${currentFontSize}px`;
+
+      const maxWidth = 134;
+      let width = nameRef.current.getBoundingClientRect().width;
+
+      // Loop to continuously shrink the font and re-measure until it fits
+      while (width > maxWidth && currentFontSize > 1) {
+        currentFontSize -= 0.05; // Decrease font size by 1px
+        nameRef.current.style.fontSize = `${currentFontSize}px`; // Update the DOM element directly
+        width = nameRef.current.getBoundingClientRect().width; // Re-measure the width
       }
+
+      // Set the final calculated font size to state only once
+      setFontSizeName(currentFontSize);
     }
-  }, [name, fontSizeName, normalizedCardType]);
+  }, [name, normalizedCardType]); // Remove fontSizeName from dependency array
 
   const getDate = new Date();
   const monthName = getDate.toLocaleString("default", { month: "long" });

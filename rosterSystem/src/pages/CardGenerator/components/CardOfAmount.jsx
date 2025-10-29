@@ -4,9 +4,9 @@ import {
   Crown,
   HelpCircle,
   Pickaxe,
-  Navigation ,
+  Navigation,
   PackageOpen,
-  SendToBack 
+  SendToBack,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
@@ -44,7 +44,7 @@ const cardStyles = {
     toColorClass: "to-red-300",
   },
   tuktuk: {
-    Icon: Navigation ,
+    Icon: Navigation,
     // FIX: Include 'bg-' and 'to-' prefix in the string
     bgColorClass: "bg-red-300",
     toColorClass: "to-red-300",
@@ -134,7 +134,9 @@ function CardOfAmount({ cardType, amount }) {
         <h1 className="text-3xl font-bold">
           <CountUp endValue={amount} duration={1800} />
         </h1>
-        <p className="text-sm capitalize text-white darktext-gray-300">All {cardType} Cards</p>
+        <p className="text-sm capitalize text-white darktext-gray-300">
+          All {cardType} Cards
+        </p>
       </div>
     </motion.section>
   );

@@ -21,19 +21,21 @@ function formatDate(date) {
   });
 }
 
-// Add onChange prop
 export function CalendarRangePicker({ onChange }) {
+  // ===== Default to current month =====
+  const today = new Date();
+  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
   const [open, setOpen] = React.useState(false);
   const [dateRange, setDateRange] = React.useState({
-    from: undefined,
-    to: undefined,
+    from: firstDayOfMonth,
+    to: lastDayOfMonth,
   });
 
   // separate month states for each calendar
-  const [fromMonth, setFromMonth] = React.useState(new Date());
-  const [toMonth, setToMonth] = React.useState(
-    new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1)
-  );
+  const [fromMonth, setFromMonth] = React.useState(firstDayOfMonth);
+  const [toMonth, setToMonth] = React.useState(lastDayOfMonth);
 
   const value =
     dateRange.from && dateRange.to
@@ -42,18 +44,24 @@ export function CalendarRangePicker({ onChange }) {
       ? formatDate(dateRange.from)
       : "";
 
-  // === Helper range selectors ===
+  // Notify parent of default value on mount
+  React.useEffect(() => {
+    if (onChange) onChange(dateRange);
+  }, []);
+
+  // ===== Helper function to update range and notify parent =====
   const setRange = (range) => {
     setDateRange(range);
-    if (onChange) onChange(range); // notify parent
+    if (onChange) onChange(range);
   };
 
+  // ===== Helper buttons =====
   const handleToday = () => {
     const today = new Date();
     const range = { from: today, to: today };
     setRange(range);
     setFromMonth(today);
-    setToMonth(new Date(today.getFullYear(), today.getMonth() + 1, 1));
+    setToMonth(today);
     setOpen(false);
   };
 
@@ -65,23 +73,22 @@ export function CalendarRangePicker({ onChange }) {
     const range = { from: start, to: end };
     setRange(range);
     setFromMonth(start);
-    setToMonth(start);
+    setToMonth(end);
     setOpen(false);
   };
 
   const handleThisMonth = () => {
-    const today = new Date();
     const start = new Date(today.getFullYear(), today.getMonth(), 1);
     const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
     const range = { from: start, to: end };
     setRange(range);
     setFromMonth(start);
-    setToMonth(start);
+    setToMonth(end);
     setOpen(false);
   };
 
   const handleThisYear = () => {
-    const year = new Date().getFullYear();
+    const year = today.getFullYear();
     const start = new Date(year, 0, 1);
     const end = new Date(year, 11, 31);
     const range = { from: start, to: end };
@@ -126,7 +133,7 @@ export function CalendarRangePicker({ onChange }) {
             className="w-fit p-0"
           >
             <div className="flex">
-              {/* Helper buttons */}
+              {/* Helper buttons (right side) */}
               <div className="lg:grid hidden justify-end gap-2 p-2 bg-muted/40">
                 <Button size="sm" variant="outline" onClick={handleToday}>
                   Today
@@ -145,8 +152,8 @@ export function CalendarRangePicker({ onChange }) {
                 </Button>
               </div>
 
-              {/* --- Two independent month calendars --- */}
-              <div className="grid grid-cols-1 lg:grid-cols-2">
+              {/* Two independent calendars */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 border-l">
                 <Calendar
                   mode="range"
                   selected={dateRange}

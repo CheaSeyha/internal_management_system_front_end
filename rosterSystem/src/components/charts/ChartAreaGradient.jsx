@@ -35,14 +35,12 @@ const chartConfig = {
   mobile: { label: "Mobile", color: "var(--chart-2)" },
 };
 
-export function ChartAreaGradient() {
+export function ChartAreaGradient({ tittle, description,percent,start_end_date }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Area Chart - Gradient</CardTitle>
-        <CardDescription>
-          Showing total visitors for the last 6 months
-        </CardDescription>
+        <CardTitle>{tittle}</CardTitle>
+        <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer
@@ -113,10 +111,10 @@ export function ChartAreaGradient() {
         <div className="flex w-full items-start gap-2 text-sm">
           <div className="grid gap-2">
             <div className="flex items-center gap-2 leading-none font-medium">
-              Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
+              {percent}% this month <TrendingUp className="h-4 w-4" />
             </div>
             <div className="text-muted-foreground flex items-center gap-2 leading-none">
-              January - June 2024
+              {start_end_date}
             </div>
           </div>
         </div>

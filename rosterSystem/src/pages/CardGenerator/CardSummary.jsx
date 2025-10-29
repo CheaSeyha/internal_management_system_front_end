@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { FreeMode, Mousewheel } from "swiper/modules";
@@ -12,6 +12,8 @@ import { ChartAreaGradient } from "../../components/charts/ChartAreaGradient";
 import { CalendarRangePicker } from "../../components/CalendarRangePicker";
 
 function CardSummary() {
+  const [getDate, setDate] = useState(null);
+
   const cardContainerVariants = {
     hidden: { opacity: 0 },
     show: {
@@ -31,14 +33,15 @@ function CardSummary() {
     { id: 5, amount: 0, cardType: "tuktuk" },
     { id: 6, amount: 45, cardType: "delivery" },
   ];
-
+  useEffect(() => {
+    console.log(getDate);
+  }, [getDate]);
   return (
     <div className="space-y-5">
       <div className="filter-button-controller w-full lg:w-[240px]">
         <CalendarRangePicker
           onChange={(range) => {
-            console.log("Selected range:", range);
-            // range.from and range.to contain the start and end dates
+            setDate(range);
           }}
         />
       </div>
@@ -77,7 +80,12 @@ function CardSummary() {
       </div>
       <div className="div grid grid-cols-1 lg:grid-cols-2 gap-5">
         <ChartBarInteractive />
-        <ChartAreaGradient />
+        <ChartAreaGradient
+          tittle={"Income From Card"}
+          description={"Compare Chart Of Card Income"}
+          percent={8}
+          start_end_date={"Jan - Dec 2025"}
+        />
       </div>
     </div>
   );

@@ -28,8 +28,8 @@ const cardStyles = {
   vip: {
     Icon: Crown,
     // FIX: Include 'bg-' and 'to-' prefix in the string
-    bgColorClass: "bg-purple-500",
-    toColorClass: "to-purple-500",
+    bgColorClass: "bg-yellow-500",
+    toColorClass: "to-yellow-500",
   },
   construction: {
     Icon: Pickaxe,
@@ -110,7 +110,7 @@ function CountUp({ endValue, duration = 2000 }) {
   return <motion.span>{formattedCount}</motion.span>;
 }
 
-function CardOfAmount({ cardType, amount }) {
+function CardOfAmount({ cardType, moneyAmount, cardAmount }) {
   // 2. Look up the styles for the current cardType, or use the default
   // Destructure the FULL class names
   const cardItemVariants = {
@@ -125,17 +125,18 @@ function CardOfAmount({ cardType, amount }) {
       // Apply the card variants here
       variants={cardItemVariants}
       // Ensure the text is white against the dark background
-      className={`h-[150px] w-[290px] rounded-lg bg-gradient-to-br from-gray-200 dark:from-gray-700 ${toColorClass} p-3 text-white shadow-xl`}
+      className={`h-[150px] w-[290px] relative overflow-hidden rounded-lg bg-gradient-to-br  from-gray-200 ${toColorClass} dark:from-gray-700 p-3 text-white shadow-xl`}
     >
+      <Icon className="size-30 opacity-15 left-40 text-white absolute" />
       <div className="content flex h-full flex-col justify-between">
         <div className={`h-fit w-fit rounded-lg p-3 ${bgColorClass}`}>
           <Icon className="size-6 text-white" />
         </div>
-        <h1 className="text-3xl font-bold">
-          <CountUp endValue={amount} duration={1800} />
+        <h1 className="text-2xl font-bold">
+          $ <CountUp endValue={moneyAmount} duration={1800} />
         </h1>
         <p className="text-sm capitalize text-white darktext-gray-300">
-          All {cardType} Cards
+          All <b>{cardType}</b> Cards <b>{cardAmount}</b>
         </p>
       </div>
     </motion.section>

@@ -26,12 +26,12 @@ function CardSummary() {
   };
 
   const cards = [
-    { id: 1, amount: 73, cardType: "car" },
-    { id: 2, amount: 37, cardType: "vip" },
-    { id: 3, amount: 346, cardType: "staff" },
-    { id: 4, amount: 23, cardType: "construction" },
-    { id: 5, amount: 0, cardType: "tuktuk" },
-    { id: 6, amount: 45, cardType: "delivery" },
+    { moneyAmount: 283, cardType: "car", cardAmount: 235 },
+    { moneyAmount: 234, cardType: "vip", cardAmount: 234 },
+    { moneyAmount: 1257, cardType: "staff", cardAmount: 45 },
+    { moneyAmount: 345, cardType: "construction", cardAmount: 234 },
+    { moneyAmount: 2342, cardType: "tuktuk", cardAmount: 456 },
+    { moneyAmount: 45, cardType: "delivery", cardAmount: 345 },
   ];
   useEffect(() => {
     console.log(getDate);
@@ -71,7 +71,7 @@ function CardSummary() {
                     show: { opacity: 1, y: 0, transition: { duration: 0.3 } },
                   }}
                 >
-                  <CardOfAmount amount={card.amount} cardType={card.cardType} />
+                  <CardOfAmount moneyAmount={card.moneyAmount} cardType={card.cardType} cardAmount={card.cardAmount} />
                 </motion.div>
               </SwiperSlide>
             ))}

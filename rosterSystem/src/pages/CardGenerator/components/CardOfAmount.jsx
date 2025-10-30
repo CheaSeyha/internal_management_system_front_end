@@ -13,43 +13,43 @@ import { useEffect, useRef, useState } from "react";
 // 1. Create a style map object
 // Store the FULL Tailwind utility classes (e.g., 'bg-blue-500', 'to-green-500')
 const cardStyles = {
-  car: {
+  "CAR CARD": {
     Icon: Car,
     // FIX: Include 'bg-' and 'to-' prefix in the string
     bgColorClass: "bg-blue-500",
     toColorClass: "to-blue-500",
   },
-  staff: {
+  STAFF: {
     Icon: PersonStanding,
     // FIX: Include 'bg-' and 'to-' prefix in the string
     bgColorClass: "bg-green-500",
     toColorClass: "to-green-500",
   },
-  vip: {
+  "VIP CARD": {
     Icon: Crown,
     // FIX: Include 'bg-' and 'to-' prefix in the string
     bgColorClass: "bg-yellow-500",
     toColorClass: "to-yellow-500",
   },
-  construction: {
+  CONSTRUCTION: {
     Icon: Pickaxe,
     // FIX: Include 'bg-' and 'to-' prefix in the string
     bgColorClass: "bg-yellow-500",
     toColorClass: "to-yellow-500",
   },
-  rolling: {
+  ROLLING: {
     Icon: SendToBack,
     // FIX: Include 'bg-' and 'to-' prefix in the string
     bgColorClass: "bg-red-300",
     toColorClass: "to-red-300",
   },
-  tuktuk: {
+  TUKTUK: {
     Icon: Navigation,
     // FIX: Include 'bg-' and 'to-' prefix in the string
     bgColorClass: "bg-red-300",
     toColorClass: "to-red-300",
   },
-  delivery: {
+  DELIVERY: {
     Icon: PackageOpen,
     // FIX: Include 'bg-' and 'to-' prefix in the string
     bgColorClass: "bg-red-300",
@@ -136,7 +136,7 @@ function CardOfAmount({ cardType, moneyAmount, cardAmount }) {
           $ <CountUp endValue={moneyAmount} duration={1800} />
         </h1>
         <p className="text-sm capitalize text-white darktext-gray-300">
-          All <b>{cardType}</b> Cards <b>{cardAmount}</b>
+          <b>{cardType}</b> Total <b>{cardAmount}</b>
         </p>
       </div>
     </motion.section>

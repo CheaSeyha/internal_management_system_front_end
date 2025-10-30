@@ -3,8 +3,24 @@ import axios from "../../../../api/axios";
 
 export const useCardHook = () => {
   const [cardTypes, setCardTypes] = useState([]);
+  const [cardSummary, setCardSummary] = useState([]);
   const [loadings, setLoadings] = useState(true);
   const [error, setError] = useState(null);
+
+  const fetchSummary = async (start_date, end_date) => {
+    
+    try {
+      const response = await axios.post("/cards_summary", {
+        start_date,
+        end_date,
+      });
+      setCardSummary(response.data.data || []);
+    } catch (error) {
+      setError(error);
+    } finally {
+      setLoadings(false);
+    }
+  };
 
   useEffect(() => {
     let isMounted = true; // prevent state updates if component unmounts
@@ -34,5 +50,5 @@ export const useCardHook = () => {
     };
   }, []);
 
-  return { cardTypes, loadings, error };
+  return { fetchSummary, cardSummary, cardTypes, loadings, error };
 };

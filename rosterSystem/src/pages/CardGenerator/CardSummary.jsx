@@ -10,9 +10,13 @@ import CardOfAmount from "./components/CardOfAmount";
 import { ChartBarInteractive } from "../../components/charts/ChartBarInteractive";
 import { ChartAreaGradient } from "../../components/charts/ChartAreaGradient";
 import { CalendarRangePicker } from "../../components/CalendarRangePicker";
+import { useCardHook } from "./components/Hook/useCardHook";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import ErrorMessage from "../../components/ErrorMessage";
 
 function CardSummary() {
   const [getDate, setDate] = useState(null);
+  const { fetchSummary, cardSummary, loadings, error } = useCardHook();
 
   const cardContainerVariants = {
     hidden: { opacity: 0 },
@@ -24,7 +28,7 @@ function CardSummary() {
       },
     },
   };
-
+  //fake data
   const cards = [
     { moneyAmount: 283, cardType: "car", cardAmount: 235 },
     { moneyAmount: 234, cardType: "vip", cardAmount: 234 },
@@ -33,17 +37,71 @@ function CardSummary() {
     { moneyAmount: 2342, cardType: "tuktuk", cardAmount: 456 },
     { moneyAmount: 45, cardType: "delivery", cardAmount: 345 },
   ];
+
+  const handleChange = (range) => {
+    const formatDate = (isoString) => {
+      const date = new Date(isoString);
+      const day = String(date.getDate()).padStart(2, "0");
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const year = date.getFullYear();
+      return `${day}-${month}-${year}`;
+    };
+
+    const formattedRange = {
+      from: formatDate(range.from),
+      to: formatDate(range.to),
+    };
+
+    console.log("🗓 Selected Range:", formattedRange);
+
+    // ✅ update state
+    setDate(formattedRange);
+
+    // ✅ call fetchSummary using the new range immediately
+    fetchSummary(formattedRange.from, formattedRange.to);
+  };
+
+  // Inside your CardSummary component
   useEffect(() => {
-    console.log(getDate);
-  }, [getDate]);
+    // Get today
+    const today = new Date();
+
+    // First day of current month
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    // Last day of current month
+    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+    // Format function dd-mm-yyyy
+    const formatDate = (date) => {
+      const day = String(date.getDate()).padStart(2, "0");
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const year = date.getFullYear();
+      return `${day}-${month}-${year}`;
+    };
+
+    // Formatted default range
+    const defaultRange = {
+      from: formatDate(firstDay),
+      to: formatDate(lastDay),
+    };
+
+    console.log("📅 Default month range:", defaultRange);
+
+    // Set state if needed
+    setDate(defaultRange);
+
+    // Call your fetchSummary from hook
+    fetchSummary(defaultRange.from, defaultRange.to);
+  }, []); // run once on mount
+
+  if (loadings) return <LoadingSpinner />;
+  if (error) return <ErrorMessage />;
+
   return (
     <div className="space-y-5">
       <div className="filter-button-controller w-full lg:w-[240px]">
-        <CalendarRangePicker
-          onChange={(range) => {
-            setDate(range);
-          }}
-        />
+        <CalendarRangePicker onChange={handleChange} />
       </div>
       <div className="chart-layout">
         <motion.div
@@ -63,15 +121,19 @@ function CardSummary() {
             observeParents={true}
             className="cursor-grab"
           >
-            {cards.map((card) => (
-              <SwiperSlide key={card.id} className="!w-auto flex-shrink-0">
+            {cardSummary.map((card, index) => (
+              <SwiperSlide key={index} className="!w-auto flex-shrink-0">
                 <motion.div
                   variants={{
                     hidden: { opacity: 0, y: 10 },
                     show: { opacity: 1, y: 0, transition: { duration: 0.3 } },
                   }}
                 >
-                  <CardOfAmount moneyAmount={card.moneyAmount} cardType={card.cardType} cardAmount={card.cardAmount} />
+                  <CardOfAmount
+                    moneyAmount={card.moneyAmount}
+                    cardType={card.cardType}
+                    cardAmount={card.cardAmount}
+                  />
                 </motion.div>
               </SwiperSlide>
             ))}

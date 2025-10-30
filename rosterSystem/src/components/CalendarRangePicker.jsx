@@ -105,7 +105,7 @@ export function CalendarRangePicker({ onChange }) {
 
   return (
     <div className="flex flex-col gap-2">
-      <Label htmlFor="date-range">Select Date Range</Label>
+      {/* <Label htmlFor="date-range">Select Date Range</Label> */}
       <div className="relative flex items-center">
         <Input
           id="date-range"

@@ -1,3 +1,6 @@
+import { RefreshCcw } from "lucide-react";
+import { Button } from "./ui/button";
+
 export default function ErrorMessage({ message, onRetry }) {
   return (
     <div className="flex flex-col items-center justify-center h-64 gap-4">
@@ -7,7 +10,7 @@ export default function ErrorMessage({ message, onRetry }) {
         onClick={onRetry}
         className="flex items-center gap-2"
       >
-        <RefreshCw size={16} />
+        <RefreshCcw size={16} />
         Retry
       </Button>
     </div>

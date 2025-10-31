@@ -5,13 +5,19 @@ import axios from "../../../../api/axios";
 export const useCardHook = () => {
   const [cardTypes, setCardTypes] = useState([]);
 
-  const [cardSummary, setCardSummary] = useState([]);
+  const [cardSummary, setCardSummary] = useState({
+    cards_data: [],
+    ChartAreaInteractive: { data: [], config: {} },
+    ChartBarInteractive: { summaryData: [], config: {} },
+  });
 
-  const [loadings, setLoadings] = useState(true);
+  const [loadings, setLoadings] = useState(false);
 
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(false);
+  const [errorMsx, setErrorMsx] = useState("");
 
   const fetchSummary = async (start_date, end_date) => {
+    setLoadings(true);
     try {
       const response = await axios.post("/cards_summary", {
         start_date,
@@ -20,7 +26,8 @@ export const useCardHook = () => {
 
       setCardSummary(response.data.data || []);
     } catch (error) {
-      setError(error);
+      setError(true);
+      setErrorMsx(error)
     } finally {
       setLoadings(false);
     }
@@ -56,5 +63,5 @@ export const useCardHook = () => {
     };
   }, []);
 
-  return { fetchSummary, cardSummary, cardTypes, loadings, error };
+  return { fetchSummary, cardSummary, cardTypes, loadings, error,errorMsx };
 };

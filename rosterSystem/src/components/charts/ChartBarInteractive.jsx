@@ -98,7 +98,6 @@ export function ChartBarInteractive({
                 <ChartTooltipContent
                   className="w-[150px]"
                   nameKey={activeChart}
-                  rou
                   labelFormatter={(value) => {
                     return new Date(value).toLocaleDateString("en-US", {
                       month: "short",

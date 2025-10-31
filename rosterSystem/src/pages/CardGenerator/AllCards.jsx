@@ -363,12 +363,8 @@ function AllCards() {
     toast((t) => (
       <div>
         <p className="font-semibold text-red-500">Delete this card?</p>
-        <p className="text-sm mt-1">
-          Card Name: {card.card_name}
-        </p>
-        <p className="text-sm mt-1">
-          Card Type: {card.card_type}
-        </p>
+        <p className="text-sm mt-1">Card Name: {card.card_name}</p>
+        <p className="text-sm mt-1">Card Type: {card.card_type}</p>
         <div className="mt-2 flex gap-2">
           <Button
             size="sm"

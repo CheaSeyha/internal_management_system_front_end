@@ -62,7 +62,7 @@ export function TeamSwitcher({ teams }) {
                   <code>Fix Card Not Auto Change Font Size</code>
                 </pre>
                 <pre data-prefix=">" className="text-success">
-                  <code>Add New Page Card Income</code>
+                  <code>Add New Page Cards Summary</code>
                 </pre>
               </div>
             </DropdownMenuItem>

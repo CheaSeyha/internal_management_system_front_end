@@ -34,8 +34,8 @@ const cardStyles = {
   CONSTRUCTION: {
     Icon: Pickaxe,
     // FIX: Include 'bg-' and 'to-' prefix in the string
-    bgColorClass: "bg-yellow-500",
-    toColorClass: "to-yellow-500",
+    bgColorClass: "bg-yellow-300",
+    toColorClass: "to-yellow-300",
   },
   ROLLING: {
     Icon: SendToBack,
@@ -46,14 +46,14 @@ const cardStyles = {
   TUKTUK: {
     Icon: Navigation,
     // FIX: Include 'bg-' and 'to-' prefix in the string
-    bgColorClass: "bg-red-300",
-    toColorClass: "to-red-300",
+    bgColorClass: "bg-red-500",
+    toColorClass: "to-red-500",
   },
   DELIVERY: {
     Icon: PackageOpen,
     // FIX: Include 'bg-' and 'to-' prefix in the string
-    bgColorClass: "bg-red-300",
-    toColorClass: "to-red-300",
+    bgColorClass: "bg-red-400",
+    toColorClass: "to-red-400",
   },
 };
 
@@ -125,17 +125,17 @@ function CardOfAmount({ cardType, moneyAmount, cardAmount }) {
       // Apply the card variants here
       variants={cardItemVariants}
       // Ensure the text is white against the dark background
-      className={`h-[150px] w-[290px] relative overflow-hidden rounded-lg bg-gradient-to-br  from-gray-200 ${toColorClass} dark:from-gray-700 p-3 text-white shadow-xl`}
+      className={`h-[150px] w-[290px] relative overflow-hidden rounded-lg bg-gradient-to-br  from-gray-400 to-gray-100 dark:to-background dark:from-gray-700 p-3 text-white`}
     >
       <Icon className="size-30 opacity-15 left-40 text-white absolute" />
       <div className="content flex h-full flex-col justify-between">
         <div className={`h-fit w-fit rounded-lg p-3 ${bgColorClass}`}>
           <Icon className="size-6 text-white" />
         </div>
-        <h1 className="text-2xl font-bold">
+        <h1 className="text-2xl font-bold text-gray-700 dark:text-white">
           $ <CountUp endValue={moneyAmount} duration={1800} />
         </h1>
-        <p className="text-sm capitalize text-white darktext-gray-300">
+        <p className="text-sm capitalize text-gray-700 dark:text-white">
           <b>{cardType}</b> Total <b>{cardAmount}</b>
         </p>
       </div>

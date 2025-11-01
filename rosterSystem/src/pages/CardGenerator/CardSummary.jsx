@@ -17,6 +17,7 @@ import { ChartAreaInteractive } from "../../components/charts/ChartAreaInteracti
 import { toast } from "sonner";
 function CardSummary() {
   const [getDate, setDate] = useState(null);
+  const [totalCardIncome, setTotalCardIncome] = useState(0);
   const { fetchSummary, cardSummary, loadings, error, errorMsx } =
     useCardHook();
 
@@ -48,7 +49,17 @@ function CardSummary() {
     setDate(defaultDate);
     fetchSummary(defaultDate.from, defaultDate.to);
   }, []);
-
+  // ✅ When cardSummary updates, recalc total
+  useEffect(() => {
+    if (cardSummary?.cards_data?.length) {
+      const total = cardSummary.cards_data.reduce(
+        (sum, card) => sum + (card.moneyAmount || 0),
+        0
+      );
+      setTotalCardIncome(total);
+      console.log("Total cards:", total);
+    }
+  }, [cardSummary]);
   // Called when user selects new date range
   const handleChange = (range) => {
     if (!range?.from || !range?.to) return;
@@ -162,6 +173,7 @@ function CardSummary() {
               data={cardSummary.ChartAreaInteractive.data}
               description={"Cards created by type over time"}
               title={"Card Summary Chart"}
+              totalIncome={totalCardIncome}
             />
             <ChartBarInteractive
               title="Card Creator Overview"

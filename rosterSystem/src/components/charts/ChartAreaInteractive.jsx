@@ -18,7 +18,13 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 
-export const ChartAreaInteractive = ({ data, config, title, description }) => {
+export const ChartAreaInteractive = ({
+  data,
+  config,
+  title,
+  description,
+  totalIncome,
+}) => {
   const [timeRange, setTimeRange] = React.useState("90d");
 
   const filteredData = React.useMemo(() => {
@@ -43,6 +49,12 @@ export const ChartAreaInteractive = ({ data, config, title, description }) => {
           <CardDescription>
             {description || "Showing total visitors"}
           </CardDescription>
+        </div>
+        <div className="grid gap-1">
+          <h1 className="text-2xl font-bold">
+            $ {totalIncome.toLocaleString()}
+          </h1>
+          <CardDescription>Total Card Revenue</CardDescription>
         </div>
       </CardHeader>
 

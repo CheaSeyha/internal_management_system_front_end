@@ -21,7 +21,7 @@ function StaffInfor({
           Name : <span className="font-bold ">{staff_name}</span>
         </p>
         <p className="text-[12px] text-gray-700 dark:text-gray-400">
-          ID : {staff_id} - Position : {staff_position} - Gender :{" "}
+          ID : {staff_id}, Position : {staff_position}, Gender :{" "}
           {staff_gender}
         </p>
       </div>

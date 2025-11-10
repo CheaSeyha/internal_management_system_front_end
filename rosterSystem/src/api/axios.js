@@ -42,58 +42,65 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        })
-          .then((token) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-            return api(originalRequest);
+    if (
+      localStorage.getItem("access_token") ||
+      sessionStorage.getItem("access_token")
+    ) {
+      if (error.response?.status === 401 && !originalRequest._retry) {
+        if (isRefreshing) {
+          return new Promise((resolve, reject) => {
+            failedQueue.push({ resolve, reject });
           })
-          .catch((err) => Promise.reject(err));
-      }
-
-      originalRequest._retry = true;
-      isRefreshing = true;
-
-      try {
-        const res = await api.post("/refresh-token");
-
-        // ✅ FIX: Token is inside res.data.data.access_token
-        const newToken = res.data?.data?.access_token;
-
-        if (!newToken) {
-          throw new Error("No new access token returned from refresh endpoint");
+            .then((token) => {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+              return api(originalRequest);
+            })
+            .catch((err) => Promise.reject(err));
         }
 
-        // Store new token
-        localStorage.setItem("access_token", newToken);
-        sessionStorage.setItem("access_token", newToken);
+        originalRequest._retry = true;
+        isRefreshing = true;
 
-        // Update Axios default
-        api.defaults.headers.Authorization = `Bearer ${newToken}`;
+        try {
+          const res = await api.post("/refresh-token");
 
-        processQueue(null, newToken);
+          // ✅ FIX: Token is inside res.data.data.access_token
+          const newToken = res.data?.data?.access_token;
 
-        // Retry original request
-        originalRequest.headers.Authorization = `Bearer ${newToken}`;
-        return api(originalRequest);
-      } catch (refreshError) {
-        processQueue(refreshError, null);
+          if (!newToken) {
+            throw new Error(
+              "No new access token returned from refresh endpoint"
+            );
+          }
 
-        // Clear and redirect to login
-        localStorage.removeItem("access_token");
-        sessionStorage.removeItem("access_token");
-        window.location.href = "/auth/login";
+          // Store new token
+          if (localStorage.getItem("access_token")) {
+            localStorage.setItem("access_token", newToken);
+          } else {
+            sessionStorage.setItem("access_token", newToken);
+          }
+          // Update Axios default
+          api.defaults.headers.Authorization = `Bearer ${newToken}`;
 
-        return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
+          processQueue(null, newToken);
+
+          // Retry original request
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          return api(originalRequest);
+        } catch (refreshError) {
+          processQueue(refreshError, null);
+
+          // Clear and redirect to login
+          localStorage.removeItem("access_token");
+          sessionStorage.removeItem("access_token");
+          window.location.href = "/auth/login";
+
+          return Promise.reject(refreshError);
+        } finally {
+          isRefreshing = false;
+        }
       }
     }
-
     return Promise.reject(error);
   }
 );

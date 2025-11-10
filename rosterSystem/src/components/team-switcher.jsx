@@ -43,7 +43,7 @@ export function TeamSwitcher({ teams }) {
                 <span className="truncate text-xs">{activeTeam.plan}</span>
               </div>
               {/* <ChevronsUpDown className="ml-auto" /> */}
-              <p>v1.0.8</p>
+              <p>v1.0.9</p>
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -59,10 +59,10 @@ export function TeamSwitcher({ teams }) {
             <DropdownMenuItem className="gap-2 p-2 grid">
               <div className="mockup-code w-full">
                 <pre data-prefix=">" className="text-success">
-                  <code>Fix Card Not Auto Change Font Size</code>
+                  <code>Add Roster Form</code>
                 </pre>
                 <pre data-prefix=">" className="text-success">
-                  <code>Add New Page Cards Summary</code>
+                  <code>Improve Login Logic</code>
                 </pre>
               </div>
             </DropdownMenuItem>

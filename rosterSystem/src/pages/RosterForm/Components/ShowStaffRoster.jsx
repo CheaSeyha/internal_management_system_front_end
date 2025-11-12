@@ -12,9 +12,10 @@ import {
 import { Button } from "@/components/ui/button";
 import StaffInfor from "./StaffInfor";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
+
 export default function RosterTable() {
-  // Demo Data ----------------------
+  // -------------------- State --------------------
   const [staff_shift_data, setStaff_shift_data] = useState([
     {
       staff_profile:
@@ -25,12 +26,7 @@ export default function RosterTable() {
       staff_id: "16888",
       staff_gender: "M",
       shift_data: Array(30).fill("7"),
-      day_off: {
-        last_month_off: 2, // mean the off days left from last month
-        this_month_off: 4, // mean how many day off use in this month
-        balance_off: 0, // mean the total of day off left include from last month and this month
-        upl: 0, // mean unpaid leave taken
-      },
+      day_off: { last_month_off: 2, this_month_off: 4, balance_off: 0, upl: 0 },
     },
     {
       staff_profile:
@@ -57,15 +53,10 @@ export default function RosterTable() {
       staff_id: "16904",
       staff_gender: "F",
       shift_data: Array(30).fill("7"),
-      day_off: {
-        last_month_off: 0,
-        this_month_off: 4,
-        balance_off: 0,
-        upl: 0,
-      },
+      day_off: { last_month_off: 0, this_month_off: 4, balance_off: 0, upl: 0 },
     },
   ]);
-  // Days of month
+
   const now = new Date();
   const daysOfMonth = Array.from(
     { length: new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() },
@@ -76,6 +67,7 @@ export default function RosterTable() {
     }
   );
   const currentDay = now.getDate();
+
   const timeShiftOptions = [
     { label: "07:00 - 15:00 (8h)", value: "7", color: "#0045ff" },
     { label: "09:00 - 17:00 (8h)", value: "9", color: "#ff00d0" },
@@ -85,63 +77,118 @@ export default function RosterTable() {
     { label: "OFF", value: "OFF", color: "#de0101" },
     { label: "UPL", value: "UPL", color: "#414141" },
   ];
-  // Demo Data ----------------------
-  // Scroll Logic  ----------------------
+
+  const defaultShift = "7";
+
+  // -------------------- Scroll & Paint --------------------
   const scrollRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
+  const [editMode, setEditMode] = useState(false);
+  const [updateTimeShift, setUpdateTimeShift] = useState("7");
+  const [isPainting, setIsPainting] = useState(false);
+  const [isRightPainting, setIsRightPainting] = useState(false);
 
+  // Table scroll logic
   const handleMouseDown = (e) => {
+    if (isPainting || isRightPainting) return; // Disable scroll while painting
     setIsDragging(true);
     setStartX(e.pageX - scrollRef.current.offsetLeft);
     setScrollLeft(scrollRef.current.scrollLeft);
   };
-
-  const handleMouseLeave = () => setIsDragging(false);
-  const handleMouseUp = () => setIsDragging(false);
-
   const handleMouseMove = (e) => {
-    if (!isDragging) return;
+    if (!isDragging || isPainting || isRightPainting) return;
     e.preventDefault();
     const x = e.pageX - scrollRef.current.offsetLeft;
-    const walk = (x - startX) * 1; // scroll-fast multiplier
+    const walk = (x - startX) * 1;
     scrollRef.current.scrollLeft = scrollLeft - walk;
   };
-  // Scroll Logic  ----------------------
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    setIsPainting(false);
+    setIsRightPainting(false);
+  };
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+    setIsPainting(false);
+    setIsRightPainting(false);
+  };
 
-  // Edit Roster Logic -----------------
-  const [isPainting, setIsPainting] = useState(false);//Track if user is painting
-  const [editMode, setEditMode] = useState(false);
-  const [updateTimeShift, setUpdateTimeShift] = useState("7");
-
-  //get value from time shift select
+  // -------------------- Paint Logic --------------------
   const selectedOption = timeShiftOptions.find(
     (opt) => opt.value === updateTimeShift
   );
 
-  //handle edit roster cell
-  const handleEditRoster = (staff_id, dayIndex) => {
-    // allow edit if edit mode is on 
-    if (editMode) {
-      // change get from dayIndex represtn the time of work example 7,8,OFF base on staff if
-      setStaff_shift_data((prevData) =>
-        prevData.map((staff) => {
-          if (staff.staff_id === staff_id) {
-            const updated = [...staff.shift_data];
-            updated[dayIndex] = updateTimeShift;
-            return { ...staff, shift_data: updated };
-          }
-          return staff;
-        })
-      );
-    }
+  const handleEditRoster = (staff_id, dayIndex, isRightClick = false) => {
+    if (!editMode) return;
+    setStaff_shift_data((prevData) =>
+      prevData.map((staff) => {
+        if (staff.staff_id === staff_id) {
+          const updated = [...staff.shift_data];
+          updated[dayIndex] = isRightClick ? defaultShift : updateTimeShift;
+          return { ...staff, shift_data: updated };
+        }
+        return staff;
+      })
+    );
   };
 
-  // Edit Roster Logic -----------------
+  const handleCellMouseDown = (staff_id, dayIndex, e) => {
+    e.preventDefault();
+    if (!editMode) return;
+    if (e.button === 2) {
+      setIsRightPainting(true);
+      handleEditRoster(staff_id, dayIndex, true);
+    } else if (e.button === 0) {
+      setIsPainting(true);
+      handleEditRoster(staff_id, dayIndex, false);
+    }
+  };
+  const handleCellMouseEnter = (staff_id, dayIndex) => {
+    if (!editMode) return;
+    if (isPainting) handleEditRoster(staff_id, dayIndex, false);
+    if (isRightPainting) handleEditRoster(staff_id, dayIndex, true);
+  };
+  const handleCellMouseUp = () => {
+    setIsPainting(false);
+    setIsRightPainting(false);
+  };
+  const disableContextMenu = (e) => e.preventDefault();
+
+  // -------------------- Keyboard Shortcuts --------------------
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!editMode) return;
+      const key = e.key.toLowerCase();
+      switch (key) {
+        case "7":
+          setUpdateTimeShift("7");
+          break;
+        case "o":
+          setUpdateTimeShift("OFF");
+          break;
+        case "u":
+          setUpdateTimeShift("UPL");
+          break;
+        case "9":
+          setUpdateTimeShift("9");
+          break;
+        case "1":
+          setUpdateTimeShift("15"); // press 1 then 5 if needed
+          break;
+        default:
+          break;
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [editMode]);
+
+  // -------------------- Render --------------------
   return (
     <>
-      {/* BUTTON + SLIDE SELECT */}
+      {/* BUTTON + SELECT */}
       <div className="button-controller flex items-center gap-3 relative mb-4">
         <Button
           variant="outline"
@@ -202,6 +249,7 @@ export default function RosterTable() {
         </AnimatePresence>
       </div>
 
+      {/* TABLE */}
       <div
         ref={scrollRef}
         className="overflow-x-auto max-w-full rounded-lg scroll-smooth cursor-grab"
@@ -210,8 +258,8 @@ export default function RosterTable() {
         onMouseUp={handleMouseUp}
         onMouseMove={handleMouseMove}
         style={{
-          scrollbarWidth: "none", // Firefox
-          msOverflowStyle: "none", // IE 10+
+          scrollbarWidth: "none",
+          msOverflowStyle: "none",
         }}
       >
         <table className="min-w-max select-none border-separate border-spacing-0 w-full">
@@ -233,7 +281,6 @@ export default function RosterTable() {
                   <div>{day.day}</div>
                 </th>
               ))}
-
               <th className="border sticky left-0 bg-card z-30 px-2">Off</th>
               <th className="border sticky left-0 bg-card z-30 px-2">
                 Balance
@@ -247,29 +294,32 @@ export default function RosterTable() {
           <tbody>
             {staff_shift_data.map((data, i) => (
               <tr key={i}>
-                {/* Staff info */}
                 <td className="border sticky left-0 bg-card z-20 p-2">
                   <StaffInfor {...data} />
                 </td>
 
-                {/* Shift data for each day */}
                 {data.shift_data.map((shift_time, index) => {
                   const option = timeShiftOptions.find(
                     (opt) => opt.value === shift_time
                   );
                   return (
                     <td
-                      onClick={() => handleEditRoster(data.staff_id, index)}
                       key={index}
-                      className="border text-center text-white"
+                      onMouseDown={(e) =>
+                        handleCellMouseDown(data.staff_id, index, e)
+                      }
+                      onMouseEnter={() =>
+                        handleCellMouseEnter(data.staff_id, index)
+                      }
+                      onMouseUp={handleCellMouseUp}
+                      onContextMenu={disableContextMenu}
+                      className="border text-center text-white select-none cursor-pointer"
                       style={{ backgroundColor: option?.color || "#ffbb01" }}
                     >
                       {shift_time}
                     </td>
                   );
                 })}
-
-                {/* Day off columns */}
 
                 <td className="border text-center px-2">
                   {data.day_off.this_month_off}

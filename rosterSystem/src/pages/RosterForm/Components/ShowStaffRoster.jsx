@@ -117,7 +117,7 @@ export default function RosterTable() {
         <tbody>
           {staff_shift_data.map((data, i) => (
             <tr key={i}>
-              <td className="border sticky left-0 bg-card z-20 p-3">
+              <td className="border sticky left-0 bg-card z-20 p-2">
                 <StaffInfor {...data} />
               </td>
               {data.shift_data.map((shift_time, index) => {

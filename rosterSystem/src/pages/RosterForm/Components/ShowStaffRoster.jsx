@@ -82,6 +82,9 @@ export default function RosterTable() {
 
   // -------------------- Scroll & Paint --------------------
   const scrollRef = useRef(null);
+  // Add this state at the top
+  const [hoveredCell, setHoveredCell] = useState(null);
+
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
@@ -101,7 +104,7 @@ export default function RosterTable() {
     if (!isDragging || isPainting || isRightPainting) return;
     e.preventDefault();
     const x = e.pageX - scrollRef.current.offsetLeft;
-    const walk = (x - startX) * 1;
+    const walk = (x - startX) * 100;
     scrollRef.current.scrollLeft = scrollLeft - walk;
   };
   const handleMouseUp = () => {
@@ -113,6 +116,7 @@ export default function RosterTable() {
     setIsDragging(false);
     setIsPainting(false);
     setIsRightPainting(false);
+    setHoveredCell(null);
   };
 
   // -------------------- Paint Logic --------------------
@@ -147,9 +151,13 @@ export default function RosterTable() {
   };
   const handleCellMouseEnter = (staff_id, dayIndex) => {
     if (!editMode) return;
+
+    setHoveredCell({ staff_id, dayIndex });
+
     if (isPainting) handleEditRoster(staff_id, dayIndex, false);
     if (isRightPainting) handleEditRoster(staff_id, dayIndex, true);
   };
+
   const handleCellMouseUp = () => {
     setIsPainting(false);
     setIsRightPainting(false);
@@ -160,30 +168,46 @@ export default function RosterTable() {
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (!editMode) return;
+      let newShift = null;
       const key = e.key.toLowerCase();
+
       switch (key) {
         case "7":
-          setUpdateTimeShift("7");
+          newShift = "7";
           break;
         case "o":
-          setUpdateTimeShift("OFF");
+          newShift = "OFF";
           break;
         case "u":
-          setUpdateTimeShift("UPL");
+          newShift = "UPL";
           break;
         case "9":
-          setUpdateTimeShift("9");
+          newShift = "9";
           break;
-        case "1":
-          setUpdateTimeShift("15"); // press 1 then 5 if needed
+        case "3":
+          newShift = "15";
+          break;
+        case "11":
+          3;
+          newShift = "11";
           break;
         default:
           break;
       }
+
+      if (newShift) {
+        setUpdateTimeShift(newShift);
+
+        // Apply immediately if hovering over a cell
+        if (hoveredCell) {
+          handleEditRoster(hoveredCell.staff_id, hoveredCell.dayIndex, false);
+        }
+      }
     };
+
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [editMode]);
+  }, [editMode, hoveredCell]);
 
   // -------------------- Render --------------------
   return (
@@ -265,7 +289,9 @@ export default function RosterTable() {
         <table className="min-w-max select-none border-separate border-spacing-0 w-full">
           <thead>
             <tr className="bg-card">
-              <th className="border sticky left-0 bg-card z-30">Staff Info</th>
+              <th className="border sticky left-0 top-0 bg-card z-30 ">
+                Staff Info
+              </th>
               {daysOfMonth.map((day, index) => (
                 <th
                   key={index}
@@ -281,14 +307,18 @@ export default function RosterTable() {
                   <div>{day.day}</div>
                 </th>
               ))}
-              <th className="border sticky left-0 bg-card z-30 px-2">Off</th>
-              <th className="border sticky left-0 bg-card z-30 px-2">
+              <th className="border sticky left-0 top-0 bg-card z-30 px-2">
+                Off
+              </th>
+              <th className="border sticky left-0 top-0 bg-card z-30 px-2">
                 Balance
               </th>
-              <th className="border sticky left-0 bg-card z-30 px-2">
+              <th className="border sticky left-0 top-0 bg-card z-30 px-2">
                 Last Month
               </th>
-              <th className="border sticky left-0 bg-card z-30 px-2">UPL</th>
+              <th className="border sticky left-0 top-0 bg-card z-30 px-2">
+                UPL
+              </th>
             </tr>
           </thead>
           <tbody>

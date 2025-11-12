@@ -1,43 +1,9 @@
 "use client";
 
-import React, { useLayoutEffect, useRef, useState } from "react";
-import { CalendarSync, PencilLine, Save } from "lucide-react";
-import {
-  Table,
-  TableHeader,
-  TableHead,
-  TableBody,
-  TableRow,
-  TableCell,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
+import React, { useLayoutEffect, useRef, useState, useEffect } from "react";
 import StaffInfor from "./StaffInfor";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { FreeMode, Mousewheel } from "swiper/modules";
-import "swiper/css";
-import "swiper/css/free-mode";
-import "swiper/css/mousewheel";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { motion, AnimatePresence } from "framer-motion";
-import { toast } from "sonner";
 
 export default function RosterTable() {
-  // ------------------------------
-  // Mock logged-in user (change role to test)
-  // ------------------------------
-  const [authUser, setAuthUser] = useState({
-    staff_id: "16901",
-    staff_role: "STAFF", // Change to "ADMIN" or "SHIFT_LEADER" to test
-  });
-
   const [staff_shift_data, setStaff_shift_data] = useState([
     {
       staff_profile:
@@ -70,7 +36,6 @@ export default function RosterTable() {
       shift_data: Array(30).fill("7"),
     },
   ]);
-
   // Days of month
   const now = new Date();
   const daysOfMonth = Array.from(
@@ -81,33 +46,7 @@ export default function RosterTable() {
       return { date: date.getDate(), day: dayNames[date.getDay()] };
     }
   );
-
-  const leftTableRef = useRef(null);
-  const [leftWidth, setLeftWidth] = useState(0);
-  const leftRowsRef = useRef([]);
-  const rightRowsRef = useRef([]);
-
-  useLayoutEffect(() => {
-    if (leftTableRef.current) setLeftWidth(leftTableRef.current.offsetWidth);
-  }, []);
-
-  useLayoutEffect(() => {
-    leftRowsRef.current.forEach((leftRow, i) => {
-      const rightRow = rightRowsRef.current[i];
-      if (leftRow && rightRow) {
-        const maxHeight = Math.max(leftRow.offsetHeight, rightRow.offsetHeight);
-        leftRow.style.height = `${maxHeight}px`;
-        rightRow.style.height = `${maxHeight}px`;
-      }
-    });
-  }, [staff_shift_data, leftWidth]);
-
-  // ------------------------------
-  // EDIT MODE + SELECT SHIFT
-  // ------------------------------
-  const [updateTimeShift, setUpdateTimeShift] = useState("");
-  const [isEditing, setIsEditing] = useState(false);
-
+  const currentDay = now.getDate();
   const timeShiftOptions = [
     { label: "07:00 - 15:00 (8h)", value: "7", color: "#0045ff" },
     { label: "09:00 - 17:00 (8h)", value: "9", color: "#ff00d0" },
@@ -118,212 +57,87 @@ export default function RosterTable() {
     { label: "UPL", value: "UPL", color: "#414141" },
   ];
 
-  const selectedOption = timeShiftOptions.find(
-    (opt) => opt.value === updateTimeShift
-  );
+  // Scroll Logic  ----------------------
+  const scrollRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
 
-  // ------------------------------
-  // ROLE BASED SHIFT UPDATE
-  // ------------------------------
-  const canEditShift = (targetStaff) => {
-    // STAFF can only edit themselves
-    if (authUser.staff_role === "STAFF") {
-      return authUser.staff_id === targetStaff.staff_id;
-    }
-    // SHIFT_LEADER cannot edit ADMIN
-    if (authUser.staff_role === "SHIFT_LEADER") {
-      return targetStaff.staff_role !== "ADMIN";
-    }
-    // ADMIN can edit anyone
-    if (authUser.staff_role === "ADMIN") return true;
-
-    return false;
+  const handleMouseDown = (e) => {
+    setIsDragging(true);
+    setStartX(e.pageX - scrollRef.current.offsetLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
   };
 
-  const handleUpdateShift = (staff_name, staff_id, dayIndex) => {
-    if (!isEditing) return;
+  const handleMouseLeave = () => setIsDragging(false);
+  const handleMouseUp = () => setIsDragging(false);
 
-    const targetStaff = staff_shift_data.find(
-      (s) => s.staff_name === staff_name && s.staff_id === staff_id
-    );
-
-    if (!canEditShift(targetStaff)) {
-      toast.error("❌ You cannot edit this staff shift!");
-      return;
-    }
-
-    if (updateTimeShift === "") {
-      toast.warning("⚠️ Please select a shift type first!");
-      return;
-    }
-
-    setStaff_shift_data((prevData) =>
-      prevData.map((staff) => {
-        if (staff.staff_name === staff_name && staff.staff_id === staff_id) {
-          const updated = [...staff.shift_data];
-          updated[dayIndex] = updateTimeShift;
-          return { ...staff, shift_data: updated };
-        }
-        return staff;
-      })
-    );
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX) * 1; // scroll-fast multiplier
+    scrollRef.current.scrollLeft = scrollLeft - walk;
   };
+
+  // Scroll Logic  ----------------------
 
   return (
-    <div className="space-y-4">
-      {/* Pretend login user selector */}
-      <div className="flex gap-2">
-        <span>Pretend as:</span>
-        <Button onClick={() => setAuthUser({ staff_id: "16901", staff_role: "STAFF" })}>
-          STAFF
-        </Button>
-        <Button onClick={() => setAuthUser({ staff_id: "16888", staff_role: "ADMIN" })}>
-          ADMIN
-        </Button>
-        <Button onClick={() => setAuthUser({ staff_id: "16904", staff_role: "SHIFT_LEADER" })}>
-          SHIFT_LEADER
-        </Button>
-        <span className="ml-2 font-bold">{authUser.staff_role}</span>
-      </div>
-
-      {/* BUTTON + SLIDE SELECT */}
-      <div className="button-controller flex items-center gap-3 relative">
-        <Button
-          variant="outline"
-          onClick={() => setIsEditing(!isEditing)}
-          className="relative z-20"
-        >
-          {isEditing ? (
-            <>
-              <Save className="w-4 h-4 mr-2" />
-              Save
-            </>
-          ) : (
-            <>
-              <PencilLine className="w-4 h-4 mr-2" />
-              Edit Roster
-            </>
-          )}
-        </Button>
-
-        <AnimatePresence>
-          {isEditing && (
-            <motion.div
-              initial={{ x: -40, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -40, opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              className="z-10"
-            >
-              <Select value={updateTimeShift} onValueChange={setUpdateTimeShift}>
-                <SelectTrigger
-                  className="w-[180px] text-white"
-                  style={{ backgroundColor: selectedOption?.color || "#000" }}
-                >
-                  <CalendarSync className="mr-2" />
-                  <SelectValue placeholder="Select Time Shift" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Select Time Shift</SelectLabel>
-                    {timeShiftOptions.map((opt) => (
-                      <SelectItem
-                        key={opt.value}
-                        value={opt.value}
-                        style={{ backgroundColor: opt.color, color: "#fff" }}
-                      >
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* TABLE */}
-      <div className="rounded-xl border relative bg-card shadow-sm max-h-[450px] overflow-auto">
-        {/* LEFT FIXED TABLE */}
-        <div ref={leftTableRef} className="absolute top-0 left-0 z-30 bg-card border-r">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="sticky top-0 text-center font-bold">
-                  Employee Info
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {staff_shift_data.map((data, i) => (
-                <TableRow key={i} ref={(el) => (leftRowsRef.current[i] = el)}>
-                  <TableCell className="border-b">
-                    <StaffInfor {...data} />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-
-        {/* RIGHT SCROLLABLE TABLE */}
-        <Swiper
-          modules={[FreeMode, Mousewheel]}
-          freeMode
-          mousewheel={{ forceToAxis: true }}
-          spaceBetween={16}
-          slidesPerView="auto"
-          className="cursor-grab"
-        >
-          <SwiperSlide className="!w-auto" style={{ marginLeft: leftWidth + "px" }}>
-            <Table className="min-w-max">
-              <TableHeader>
-                <TableRow>
-                  {daysOfMonth.map((d, i) => (
-                    <TableHead
-                      key={i}
-                      className={`text-center border font-medium ${
-                        d.day === "Sun" ? "text-red-500" : "text-muted-foreground"
-                      }`}
-                    >
-                      {d.day} {d.date}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
-
-              <TableBody>
-                {staff_shift_data.map((staff, rowIndex) => (
-                  <TableRow key={rowIndex} ref={(el) => (rightRowsRef.current[rowIndex] = el)}>
-                    {staff.shift_data.map((shift, colIndex) => {
-                      const option = timeShiftOptions.find((opt) => opt.value === shift);
-                      const editable = canEditShift(staff);
-
-                      return (
-                        <TableCell
-                          key={colIndex}
-                          onClick={() =>
-                            editable &&
-                            handleUpdateShift(staff.staff_name, staff.staff_id, colIndex)
-                          }
-                          className={`border text-center text-white hover:opacity-70 ${
-                            !editable ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
-                          }`}
-                          style={{ backgroundColor: option?.color || "#ffbb01" }}
-                        >
-                          {shift}
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </SwiperSlide>
-        </Swiper>
-      </div>
+    <div
+      ref={scrollRef}
+      className="overflow-x-auto max-w-full rounded-lg scroll-smooth cursor-grab border-2"
+      onMouseDown={handleMouseDown}
+      onMouseLeave={handleMouseLeave}
+      onMouseUp={handleMouseUp}
+      onMouseMove={handleMouseMove}
+      style={{
+        scrollbarWidth: "none", // Firefox
+        msOverflowStyle: "none", // IE 10+
+      }}
+    >
+      <table className="min-w-max select-none border-separate border-spacing-0 w-full">
+        <thead>
+          <tr className="bg-card">
+            <th className="border sticky left-0 bg-card z-30">Staff Info</th>
+            {daysOfMonth.map((day, index) => (
+              <th
+                key={index}
+                className={`border sticky top-0 bg-card z-10 w-[50px] p-3 text-center ${
+                  day.day === "Sun" ? "text-red-600" : ""
+                } ${
+                  day.date === currentDay ? "bg-gray-300 dark:bg-gray-700" : ""
+                }`}
+              >
+                <div>{day.date}</div>
+                <div>{day.day}</div>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {staff_shift_data.map((data, i) => (
+            <tr key={i}>
+              <td className="border sticky left-0 bg-card z-20 p-3">
+                <StaffInfor {...data} />
+              </td>
+              {data.shift_data.map((shift_time, index) => {
+                const option = timeShiftOptions.find(
+                  (opt) => opt.value === shift_time
+                );
+                return (
+                  <td
+                    key={index}
+                    className="border text-center text-white"
+                    style={{ backgroundColor: option?.color || "#ffbb01" }}
+                  >
+                    {shift_time}
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

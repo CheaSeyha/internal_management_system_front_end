@@ -1,9 +1,20 @@
 "use client";
-
-import React, { useLayoutEffect, useRef, useState, useEffect } from "react";
+import { CalendarSync, PencilLine, Save } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import StaffInfor from "./StaffInfor";
-
+import { motion, AnimatePresence } from "framer-motion";
+import { useRef, useState } from "react";
 export default function RosterTable() {
+  // Demo Data ----------------------
   const [staff_shift_data, setStaff_shift_data] = useState([
     {
       staff_profile:
@@ -14,6 +25,12 @@ export default function RosterTable() {
       staff_id: "16888",
       staff_gender: "M",
       shift_data: Array(30).fill("7"),
+      day_off: {
+        last_month_off: 2, // mean the off days left from last month
+        this_month_off: 4, // mean how many day off use in this month
+        balance_off: 0, // mean the total of day off left include from last month and this month
+        upl: 0, // mean unpaid leave taken
+      },
     },
     {
       staff_profile:
@@ -24,6 +41,12 @@ export default function RosterTable() {
       staff_id: "16901",
       staff_gender: "F",
       shift_data: Array(30).fill("7"),
+      day_off: {
+        last_month_off: "-2",
+        this_month_off: 2,
+        balance_off: 0,
+        upl: 0,
+      },
     },
     {
       staff_profile:
@@ -34,6 +57,12 @@ export default function RosterTable() {
       staff_id: "16904",
       staff_gender: "F",
       shift_data: Array(30).fill("7"),
+      day_off: {
+        last_month_off: 0,
+        this_month_off: 4,
+        balance_off: 0,
+        upl: 0,
+      },
     },
   ]);
   // Days of month
@@ -56,7 +85,7 @@ export default function RosterTable() {
     { label: "OFF", value: "OFF", color: "#de0101" },
     { label: "UPL", value: "UPL", color: "#414141" },
   ];
-
+  // Demo Data ----------------------
   // Scroll Logic  ----------------------
   const scrollRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -79,65 +108,184 @@ export default function RosterTable() {
     const walk = (x - startX) * 1; // scroll-fast multiplier
     scrollRef.current.scrollLeft = scrollLeft - walk;
   };
-
   // Scroll Logic  ----------------------
 
+  // Edit Roster Logic -----------------
+  const [isPainting, setIsPainting] = useState(false);//Track if user is painting
+  const [editMode, setEditMode] = useState(false);
+  const [updateTimeShift, setUpdateTimeShift] = useState("7");
+
+  //get value from time shift select
+  const selectedOption = timeShiftOptions.find(
+    (opt) => opt.value === updateTimeShift
+  );
+
+  //handle edit roster cell
+  const handleEditRoster = (staff_id, dayIndex) => {
+    // allow edit if edit mode is on 
+    if (editMode) {
+      // change get from dayIndex represtn the time of work example 7,8,OFF base on staff if
+      setStaff_shift_data((prevData) =>
+        prevData.map((staff) => {
+          if (staff.staff_id === staff_id) {
+            const updated = [...staff.shift_data];
+            updated[dayIndex] = updateTimeShift;
+            return { ...staff, shift_data: updated };
+          }
+          return staff;
+        })
+      );
+    }
+  };
+
+  // Edit Roster Logic -----------------
   return (
-    <div
-      ref={scrollRef}
-      className="overflow-x-auto max-w-full rounded-lg scroll-smooth cursor-grab border-2"
-      onMouseDown={handleMouseDown}
-      onMouseLeave={handleMouseLeave}
-      onMouseUp={handleMouseUp}
-      onMouseMove={handleMouseMove}
-      style={{
-        scrollbarWidth: "none", // Firefox
-        msOverflowStyle: "none", // IE 10+
-      }}
-    >
-      <table className="min-w-max select-none border-separate border-spacing-0 w-full">
-        <thead>
-          <tr className="bg-card">
-            <th className="border sticky left-0 bg-card z-30">Staff Info</th>
-            {daysOfMonth.map((day, index) => (
-              <th
-                key={index}
-                className={`border sticky top-0 bg-card z-10 w-[50px] p-3 text-center ${
-                  day.day === "Sun" ? "text-red-600" : ""
-                } ${
-                  day.date === currentDay ? "bg-gray-300 dark:bg-gray-700" : ""
-                }`}
+    <>
+      {/* BUTTON + SLIDE SELECT */}
+      <div className="button-controller flex items-center gap-3 relative mb-4">
+        <Button
+          variant="outline"
+          onClick={() => setEditMode(!editMode)}
+          className="relative z-20"
+        >
+          {editMode ? (
+            <>
+              <Save className="w-4 h-4 mr-2" />
+              Save
+            </>
+          ) : (
+            <>
+              <PencilLine className="w-4 h-4 mr-2" />
+              Edit Roster
+            </>
+          )}
+        </Button>
+
+        <AnimatePresence>
+          {editMode && (
+            <motion.div
+              initial={{ x: -40, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -40, opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="z-10"
+            >
+              <Select
+                value={updateTimeShift}
+                onValueChange={setUpdateTimeShift}
               >
-                <div>{day.date}</div>
-                <div>{day.day}</div>
+                <SelectTrigger
+                  className="w-[180px] text-white"
+                  style={{ backgroundColor: selectedOption?.color || "#000" }}
+                >
+                  <CalendarSync className="mr-2" />
+                  <SelectValue placeholder="Select Time Shift" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Select Time Shift</SelectLabel>
+                    {timeShiftOptions.map((opt) => (
+                      <SelectItem
+                        key={opt.value}
+                        value={opt.value}
+                        style={{ backgroundColor: opt.color, color: "#fff" }}
+                      >
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      <div
+        ref={scrollRef}
+        className="overflow-x-auto max-w-full rounded-lg scroll-smooth cursor-grab"
+        onMouseDown={handleMouseDown}
+        onMouseLeave={handleMouseLeave}
+        onMouseUp={handleMouseUp}
+        onMouseMove={handleMouseMove}
+        style={{
+          scrollbarWidth: "none", // Firefox
+          msOverflowStyle: "none", // IE 10+
+        }}
+      >
+        <table className="min-w-max select-none border-separate border-spacing-0 w-full">
+          <thead>
+            <tr className="bg-card">
+              <th className="border sticky left-0 bg-card z-30">Staff Info</th>
+              {daysOfMonth.map((day, index) => (
+                <th
+                  key={index}
+                  className={`border sticky top-0 bg-card z-10 w-[50px] p-3 text-center ${
+                    day.day === "Sun" ? "text-red-600" : ""
+                  } ${
+                    day.date === currentDay
+                      ? "bg-gray-300 dark:bg-gray-700"
+                      : ""
+                  }`}
+                >
+                  <div>{day.date}</div>
+                  <div>{day.day}</div>
+                </th>
+              ))}
+
+              <th className="border sticky left-0 bg-card z-30 px-2">Off</th>
+              <th className="border sticky left-0 bg-card z-30 px-2">
+                Balance
               </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {staff_shift_data.map((data, i) => (
-            <tr key={i}>
-              <td className="border sticky left-0 bg-card z-20 p-2">
-                <StaffInfor {...data} />
-              </td>
-              {data.shift_data.map((shift_time, index) => {
-                const option = timeShiftOptions.find(
-                  (opt) => opt.value === shift_time
-                );
-                return (
-                  <td
-                    key={index}
-                    className="border text-center text-white"
-                    style={{ backgroundColor: option?.color || "#ffbb01" }}
-                  >
-                    {shift_time}
-                  </td>
-                );
-              })}
+              <th className="border sticky left-0 bg-card z-30 px-2">
+                Last Month
+              </th>
+              <th className="border sticky left-0 bg-card z-30 px-2">UPL</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {staff_shift_data.map((data, i) => (
+              <tr key={i}>
+                {/* Staff info */}
+                <td className="border sticky left-0 bg-card z-20 p-2">
+                  <StaffInfor {...data} />
+                </td>
+
+                {/* Shift data for each day */}
+                {data.shift_data.map((shift_time, index) => {
+                  const option = timeShiftOptions.find(
+                    (opt) => opt.value === shift_time
+                  );
+                  return (
+                    <td
+                      onClick={() => handleEditRoster(data.staff_id, index)}
+                      key={index}
+                      className="border text-center text-white"
+                      style={{ backgroundColor: option?.color || "#ffbb01" }}
+                    >
+                      {shift_time}
+                    </td>
+                  );
+                })}
+
+                {/* Day off columns */}
+
+                <td className="border text-center px-2">
+                  {data.day_off.this_month_off}
+                </td>
+                <td className="border text-center px-2">
+                  {data.day_off.balance_off}
+                </td>
+                <td className="border text-center px-2">
+                  {data.day_off.last_month_off}
+                </td>
+                <td className="border text-center px-2">{data.day_off.upl}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }

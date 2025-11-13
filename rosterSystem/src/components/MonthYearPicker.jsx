@@ -32,7 +32,7 @@ const months = [
   "December",
 ];
 
-export function MonthYearPicker({
+export default function MonthYearPicker({
   value,
   onChange,
   fromYear = 2024,

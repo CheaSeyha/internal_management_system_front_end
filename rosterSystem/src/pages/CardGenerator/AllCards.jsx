@@ -55,7 +55,7 @@ import {
 } from "@/components/ui/pagination";
 import { useReactToPrint } from "react-to-print";
 import PrintCard from "./components/PrintCard";
-import { MonthYearPicker } from "../../components/MonthYearPicker";
+import MonthYearPicker from "../../components/MonthYearPicker";
 import CardPreview from "./components/CardPreview";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { downloadCardImages } from "../../utils/donwloadCardImage";

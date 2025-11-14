@@ -14,6 +14,7 @@ import StaffInfor from "./StaffInfor";
 import { motion, AnimatePresence, time } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
 import MonthYearPicker from "../../../components/MonthYearPicker";
+import DropUploadButton from "../../../components/DropUploadButton";
 
 export default function RosterTable() {
   // -------------------- State --------------------
@@ -509,6 +510,7 @@ export default function RosterTable() {
     { label: "23:00 - 07:00 (8h)", value: "23", color: "#3F3F3F" },
     { label: "OFF", value: "OFF", color: "#de0101" },
     { label: "UPL", value: "UPL", color: "#414141" },
+    { label: "AL", value: "AL", color: "#7c9fd9" },
   ];
 
   const defaultShift = "7";
@@ -540,8 +542,10 @@ export default function RosterTable() {
   const handleMouseMove = (e) => {
     if (!isDragging || isPainting || isRightPainting) return;
     e.preventDefault();
+
     const x = e.pageX - scrollRef.current.offsetLeft;
-    const walk = (x - startX) * 100;
+    const walk = x - startX; // exact pixel movement (no multiplier)
+
     scrollRef.current.scrollLeft = scrollLeft - walk;
   };
   const handleMouseUp = () => {
@@ -646,6 +650,40 @@ export default function RosterTable() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [editMode, hoveredCell]);
 
+  // Function to update staff_shift_data state
+  // Function to insert new roster data into staff_shift_data
+  // Insert new roster data into staff_shift_data (ignores month keys)
+  const insertNewStaffShiftData = (monthRoster) => {
+    const allStaff = [];
+
+    // Flatten all months into a single array
+    Object.values(monthRoster).forEach((monthData) => {
+      if (!monthData) return;
+
+      const transformed = monthData.map((s) => ({
+        staff_profile: "", // default empty or random profile
+        staff_name: s.staff_name,
+        staff_position: "STAFF", // default
+        staff_role: "STAFF", // default
+        staff_id: s.staff_id,
+        staff_gender: s.staff_gender,
+        shift_data: s.shift_data.map((v) => v.toString()), // ensure string
+        day_off: {
+          last_month_off: 0,
+          this_month_off: 0,
+          balance_off: 0,
+          upl: 0,
+          AL: 0,
+        },
+      }));
+
+      allStaff.push(...transformed);
+    });
+
+    // Replace the state with the new staff list
+    setStaff_shift_data(allStaff);
+  };
+
   return (
     <>
       {/* BUTTON + SELECT */}
@@ -730,12 +768,17 @@ export default function RosterTable() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* File Upload  */}
+        <DropUploadButton
+          onRoster={(monthData) => insertNewStaffShiftData(monthData)}
+        />
       </div>
 
       {/* TABLE */}
       <div
         ref={scrollRef}
-        className="overflow-x-auto max-w-full rounded-lg scroll-smooth cursor-grab h-[750px]"
+        className="overflow-x-auto max-w-full rounded-lg cursor-grab h-[750px]"
         onMouseDown={handleMouseDown}
         onMouseLeave={handleMouseLeave}
         onMouseUp={handleMouseUp}
@@ -865,19 +908,17 @@ export default function RosterTable() {
                     ).length;
 
                     return (
-                      <td key={dayIndex} className="border text-center text-sm">
+                      <td
+                        key={dayIndex}
+                        className={`border text-center text-sm${
+                          count === 0 ? " text-blue-500" : ""
+                        } `}
+                      >
                         {count}
                       </td>
                     );
                   }
                 )}
-
-                {/* Empty summary cells for Off/Balance/etc */}
-                <td className="border"></td>
-                <td className="border"></td>
-                <td className="border"></td>
-                <td className="border"></td>
-                <td className="border"></td>
               </tr>
             ))}
           </tbody>

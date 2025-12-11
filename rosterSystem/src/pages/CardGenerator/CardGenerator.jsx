@@ -782,157 +782,155 @@ export default function CardGenerator() {
               </div>
               {/* Block select  */}
               {/* check if rolling user can skip select block  */}
-              {currentEntry.cardType.toLocaleLowerCase() !== "rolling" && (
-                <>
-                  <div className="form-control">
-                    <label className="label flex flex-col items-start">
-                      <span className="label-text mb-1">Select Blocks</span>
-                      <Select
-                        name="blockselection"
-                        value={undefined} // multi-select placeholder
-                        onValueChange={handleAddBlock}
-                      >
-                        <SelectTrigger className="w-full cursor-pointer">
-                          <SelectValue placeholder="Select a block or room" />
-                        </SelectTrigger>
 
-                        <SelectContent>
-                          <Command className="flex flex-col">
-                            <div className="relative">
-                              <CommandInput
-                                value={searchText}
-                                onValueChange={(val) => setSearchText(val)}
-                                placeholder="Search blocks..."
-                                className="w-10/12 pr-12 sticky top-0 z-10"
-                              />
+              <>
+                <div className="form-control">
+                  <label className="label flex flex-col items-start">
+                    <span className="label-text mb-1">Select Blocks</span>
+                    <Select
+                      name="blockselection"
+                      value={undefined} // multi-select placeholder
+                      onValueChange={handleAddBlock}
+                    >
+                      <SelectTrigger className="w-full cursor-pointer">
+                        <SelectValue placeholder="Select a block or room" />
+                      </SelectTrigger>
 
-                              <button
-                                onClick={() => {
-                                  setSearchText(""); // clear search
-                                  fetchBlocks(); // refresh logic
-                                }}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 flex items-center justify-center 
+                      <SelectContent>
+                        <Command className="flex flex-col">
+                          <div className="relative">
+                            <CommandInput
+                              value={searchText}
+                              onValueChange={(val) => setSearchText(val)}
+                              placeholder="Search blocks..."
+                              className="w-10/12 pr-12 sticky top-0 z-10"
+                            />
+
+                            <button
+                              onClick={() => {
+                                setSearchText(""); // clear search
+                                fetchBlocks(); // refresh logic
+                              }}
+                              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 flex items-center justify-center 
                transition-transform duration-150 ease-in-out
                active:scale-90" // 🔥 scales button on click
-                              >
-                                <RotateCcw className="w-4 h-4" />
-                              </button>
+                            >
+                              <RotateCcw className="w-4 h-4" />
+                            </button>
+                          </div>
+
+                          <CommandEmpty>No block found.</CommandEmpty>
+
+                          <ScrollArea className="h-60 w-full">
+                            <div className="p-1">
+                              {blocks.map((block) => {
+                                // Check if building fully selected
+                                const buildingEntry = (
+                                  Array.isArray(currentEntry.block)
+                                    ? currentEntry.block
+                                    : []
+                                ).find((b) => b.building === block.building);
+
+                                const buildingFullySelected =
+                                  buildingEntry &&
+                                  buildingEntry.rooms.length === 0;
+
+                                // Filter rooms that are not selected yet
+                                const remainingRooms =
+                                  buildingEntry?.rooms?.length > 0
+                                    ? block.room.filter(
+                                        (r) => !buildingEntry.rooms.includes(r)
+                                      )
+                                    : buildingEntry
+                                    ? []
+                                    : block.room;
+
+                                // Hide building if fully selected or all rooms are selected
+                                const hideBuilding =
+                                  buildingFullySelected ||
+                                  (block.room.length > 0 &&
+                                    remainingRooms.length === 0);
+
+                                return (
+                                  <CommandGroup key={block.building}>
+                                    {/* Building */}
+                                    {!hideBuilding && (
+                                      <CommandItem
+                                        value={block.building}
+                                        onSelect={handleAddBlock}
+                                        className="font-semibold cursor-pointer"
+                                      >
+                                        {block.building}
+                                      </CommandItem>
+                                    )}
+
+                                    {/* Rooms */}
+                                    {remainingRooms.map((roomName) => (
+                                      <CommandItem
+                                        key={`${block.building}-${roomName}`}
+                                        value={`${block.building}-${roomName}`}
+                                        onSelect={handleAddBlock}
+                                        className="pl-4 cursor-pointer"
+                                      >
+                                        {roomName}
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                );
+                              })}
                             </div>
+                          </ScrollArea>
+                        </Command>
+                      </SelectContent>
+                    </Select>
+                  </label>
 
-                            <CommandEmpty>No block found.</CommandEmpty>
-
-                            <ScrollArea className="h-60 w-full">
-                              <div className="p-1">
-                                {blocks.map((block) => {
-                                  // Check if building fully selected
-                                  const buildingEntry = (
-                                    Array.isArray(currentEntry.block)
-                                      ? currentEntry.block
-                                      : []
-                                  ).find((b) => b.building === block.building);
-
-                                  const buildingFullySelected =
-                                    buildingEntry &&
-                                    buildingEntry.rooms.length === 0;
-
-                                  // Filter rooms that are not selected yet
-                                  const remainingRooms =
-                                    buildingEntry?.rooms?.length > 0
-                                      ? block.room.filter(
-                                          (r) =>
-                                            !buildingEntry.rooms.includes(r)
-                                        )
-                                      : buildingEntry
-                                      ? []
-                                      : block.room;
-
-                                  // Hide building if fully selected or all rooms are selected
-                                  const hideBuilding =
-                                    buildingFullySelected ||
-                                    (block.room.length > 0 &&
-                                      remainingRooms.length === 0);
-
-                                  return (
-                                    <CommandGroup key={block.building}>
-                                      {/* Building */}
-                                      {!hideBuilding && (
-                                        <CommandItem
-                                          value={block.building}
-                                          onSelect={handleAddBlock}
-                                          className="font-semibold cursor-pointer"
-                                        >
-                                          {block.building}
-                                        </CommandItem>
-                                      )}
-
-                                      {/* Rooms */}
-                                      {remainingRooms.map((roomName) => (
-                                        <CommandItem
-                                          key={`${block.building}-${roomName}`}
-                                          value={`${block.building}-${roomName}`}
-                                          onSelect={handleAddBlock}
-                                          className="pl-4 cursor-pointer"
-                                        >
-                                          {roomName}
-                                        </CommandItem>
-                                      ))}
-                                    </CommandGroup>
-                                  );
-                                })}
-                              </div>
-                            </ScrollArea>
-                          </Command>
-                        </SelectContent>
-                      </Select>
-                    </label>
-
-                    {/* Preview selected blocks */}
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {Array.isArray(currentEntry.block) &&
-                        currentEntry.block.map((b) => (
-                          <React.Fragment key={b.building}>
-                            {b.rooms.length === 0 ? (
+                  {/* Preview selected blocks */}
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {Array.isArray(currentEntry.block) &&
+                      currentEntry.block.map((b) => (
+                        <React.Fragment key={b.building}>
+                          {b.rooms.length === 0 ? (
+                            <Button
+                              onClick={() => handleRemoveBlock(b.building)}
+                              variant="outline"
+                              className="btn px-3 py-1 rounded flex items-center gap-2 hover:bg-red-600"
+                            >
+                              <span>{b.building}</span>
+                            </Button>
+                          ) : (
+                            b.rooms.map((room) => (
                               <Button
-                                onClick={() => handleRemoveBlock(b.building)}
+                                key={`${b.building}-${room}`}
+                                onClick={() =>
+                                  handleRemoveBlock(b.building, room)
+                                }
                                 variant="outline"
                                 className="btn px-3 py-1 rounded flex items-center gap-2 hover:bg-red-600"
                               >
-                                <span>{b.building}</span>
+                                <span>{`${b.building}-${room}`}</span>
                               </Button>
-                            ) : (
-                              b.rooms.map((room) => (
-                                <Button
-                                  key={`${b.building}-${room}`}
-                                  onClick={() =>
-                                    handleRemoveBlock(b.building, room)
-                                  }
-                                  variant="outline"
-                                  className="btn px-3 py-1 rounded flex items-center gap-2 hover:bg-red-600"
-                                >
-                                  <span>{`${b.building}-${room}`}</span>
-                                </Button>
-                              ))
-                            )}
-                          </React.Fragment>
-                        ))}
-                    </div>
+                            ))
+                          )}
+                        </React.Fragment>
+                      ))}
                   </div>
+                </div>
 
-                  {/* Check keep block the same */}
-                  <div className="flex justify-end w-full gap-3">
-                    <Label htmlFor="terms" className="text-gray-400">
-                      Keep Same Blocks
-                    </Label>
-                    <Checkbox
-                      id="terms"
-                      checked={keepSameBlocks}
-                      onCheckedChange={(value) => {
-                        setKeepSameBlocks(value === true); // store boolean
-                      }}
-                    />
-                  </div>
-                </>
-              )}
+                {/* Check keep block the same */}
+                <div className="flex justify-end w-full gap-3">
+                  <Label htmlFor="terms" className="text-gray-400">
+                    Keep Same Blocks
+                  </Label>
+                  <Checkbox
+                    id="terms"
+                    checked={keepSameBlocks}
+                    onCheckedChange={(value) => {
+                      setKeepSameBlocks(value === true); // store boolean
+                    }}
+                  />
+                </div>
+              </>
               {/* button for save card or update card  */}
               <Button
                 type="submit"

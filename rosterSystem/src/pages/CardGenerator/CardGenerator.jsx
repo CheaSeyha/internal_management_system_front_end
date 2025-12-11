@@ -527,7 +527,7 @@ export default function CardGenerator() {
                   image={rawImage.url}
                   crop={crop}
                   zoom={zoom}
-                  aspect={85 / 100}
+                  aspect={1/1}
                   onCropChange={setCrop}
                   onZoomChange={setZoom}
                   onCropComplete={onCropComplete}

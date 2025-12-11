@@ -25,6 +25,36 @@
 }
 
 
+@font-face {
+  font-family: 'luxury-display';
+  src: url('./assets/fonts/Luxia-Display.otf');
+}
+
+@font-face {
+  font-family: 'luxury-regular';
+  src: url('./assets/fonts/Luxia-Regular.otf');
+}
+
+@font-face {
+  font-family: 'californian-font';
+  src: url('./assets/fonts/californian-fb.ttf');
+}
+
+/* theme.pcss */
+@theme {
+  --font-cardFont1: cardFont1, 'News706BT-BoldC';
+  --font-cardFont2: cardFont2, 'swiss-721-bt-black-condensed';
+  --font-News706BT: News706BT, 'News 706 BT';
+  --font-KantumruyPro: KantumruyPro, 'KantumruyPro';
+  --font-luxury-display: luxury-display, 'luxury-display';
+  --font-luxury-regular: luxury-regular, 'luxury-regular';
+  --font-californian-font: californian-font, 'californian-font';                                     
+
+  --color-background: var(--color-background);
+  --color-sidebar: var(--color-sidebar);
+  --color-text: var(--color-text);
+  --color-sidebarActive: var(--color-sidebarActive);
+}
 
 
 /* styles/theme.css */
@@ -110,18 +140,7 @@
   --color-sidebarActive: #46565e;
 }
 
-/* theme.pcss */
-@theme {
-  --font-cardFont1: cardFont1, 'News706BT-BoldC';
-  --font-cardFont2: cardFont2, 'swiss-721-bt-black-condensed';
-  --font-News706BT: News706BT, 'News 706 BT';
-  --font-KantumruyPro: KantumruyPro, 'KantumruyPro';
 
-  --color-background: var(--color-background);
-  --color-sidebar: var(--color-sidebar);
-  --color-text: var(--color-text);
-  --color-sidebarActive: var(--color-sidebarActive);
-}
 
 .multi-border::before {
   content: '';

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import vipcard from "../../../assets/CardTamplete/VIP 2026.png";
-import staffcard from "../../../assets/CardTamplete/Staff 2026.png";
+import vipcard from "../../../assets/CardTamplete/VIP.png";
+import staffcard from "../../../assets/CardTamplete/STAFF.png";
 import rolling from "../../../assets/CardTamplete/ROLLING.png";
 import deliverycard from "../../../assets/CardTamplete/DELIVERY.png";
 import tuktuk from "../../../assets/CardTamplete/TUKTUK.png";
@@ -116,7 +116,7 @@ function VIP({
   return (
     <>
       <div className="container-card relative ">
-        <div className="absolute inset-0 z-2 flex items-center justify-center opacity-0 hover:opacity-100 transition-all delay-100 backdrop-blur-sm gap-2">
+        <div className="absolute inset-0 z-2 flex items-center rounded-2xl justify-center opacity-0 hover:opacity-100 transition-all delay-100 backdrop-blur-sm gap-2">
           <Button
             className="btn border-none group bg-gray-800 hover:bg-gray-600"
             onClick={() => onHideCard(id, cardType)}
@@ -319,16 +319,27 @@ function VIP({
 
         {/* VIP Card */}
         {normalizedCardType === "vip card" && (
-          <main className="vipcard relative w-[9cm] h-[6cm] text-black  bg-white rounded-br-[7px] rounded-tl-[7px]">
+          <main className="vipcard relative font-cardFont2 w-[9cm] h-[6cm] text-black  bg-white rounded-2xl">
+            <div
+              className="absolute top-[2.20cm] left-[5.25cm] flex items-end"
+              style={{ height: "20px" }} // Fixed height container
+            >
+              <p
+                ref={nameRef}
+                className="forName"
+                style={{
+                  fontSize: `${fontSizeName}px`,
+                  lineHeight: `${fontSizeName + lineHight}px`, // prevents vertical jump
+                }}
+              >
+                {name}
+              </p>
+            </div>
 
-            <p className="staffcard forBlock absolute text-[12pt] font-luxury-regular top-[147.5px] left-[98px]">
-              {name}
-            </p>
-
-            <p className="staffcard forBlock absolute text-[9pt] font-luxury-regular top-[168.5px] left-[86px]">
+            <p className="staffcard forBlock absolute text-[18px] top-[3.21cm] left-[5.25cm]">
               {formattedBlock}
             </p>
-            <p className="forID absolute text-[9pt] font-luxury-regular top-[185.5px] left-[59px]">
+            <p className="forID absolute text-[18px] top-[3.76cm] left-[5.25cm]">
               {id}
             </p>
             <div className="image-tamplete w-full h-full">
@@ -363,4 +374,4 @@ function VIP({
   );
 }
 
-export default VIP;
+export default VIPOld;

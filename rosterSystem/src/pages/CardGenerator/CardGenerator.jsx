@@ -510,7 +510,7 @@ export default function CardGenerator() {
       }
     >
       {cropModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 overflow-auto">
+        <div className="fixed h-screen inset-0 backdrop-blur-md flex items-center justify-center z-50 overflow-auto">
           <div className="bg-base-200 p-4 rounded-lg shadow-xl w-full max-w-lg">
             <div className="relative h-80 bg-black">
               <div
@@ -1163,7 +1163,7 @@ export default function CardGenerator() {
                       entry.cardType === "CAR CARD"
                         ? "w-full flex justify-center py-4 print:border-y print:border-dashed print:border-blue-600"
                         : `w-auto ${
-                            noSpace ? "-mx-[1.1px] -my-[2px]" : "mx-2 my-2"
+                            noSpace ? "mx-[0.5px] my-[0.5px]" : "mx-2 my-2"
                           }`
                     }
                     id={`card-${index}`}

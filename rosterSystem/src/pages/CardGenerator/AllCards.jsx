@@ -56,7 +56,8 @@ import {
 import { useReactToPrint } from "react-to-print";
 import PrintCard from "./components/PrintCard";
 import MonthYearPicker from "../../components/MonthYearPicker";
-import CardPreview from "./components/CardPreview";
+import CardPreview2025 from "./components/CardPreview2025";
+import CardPreview2026 from "./components/CardPreview2026";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { downloadCardImages } from "../../utils/donwloadCardImage";
 
@@ -783,19 +784,43 @@ function AllCards() {
             </>
           ) : (
             <>
-              {getCards.map((entry, index) => (
-                <CardPreview
-                  onRemove={() => handleSingleDelete(getCards[index])}
-                  key={entry.id}
-                  index={index}
-                  created_at={entry.created_at}
-                  block={entry.block}
-                  cardType={entry.card_type}
-                  id={entry.card_type_id}
-                  image={entry.local_image_url}
-                  name={entry.card_name}
-                />
-              ))}
+              {getCards.map((entry, index) => {
+                // Parse "dd-mm-yyyy" into JS Date
+                const [day, month, year] = entry.created_at
+                  .split("-")
+                  .map(Number);
+                const createdDate = new Date(year, month - 1, day); // JS months are 0-indexed
+
+                // Cutoff date: 10 Dec 2025
+                const cutoffDate = new Date(2025, 11, 10); // 11 = December
+
+                // Use ternary operator to choose which card to render
+                return createdDate >= cutoffDate ? (
+                  <CardPreview2026
+                    onRemove={() => handleSingleDelete(getCards[index])}
+                    key={entry.id}
+                    index={index}
+                    created_at={entry.created_at}
+                    block={entry.block}
+                    cardType={entry.card_type}
+                    id={entry.card_type_id}
+                    image={entry.local_image_url}
+                    name={entry.card_name}
+                  />
+                ) : (
+                  <CardPreview2025
+                    onRemove={() => handleSingleDelete(getCards[index])}
+                    key={entry.id}
+                    index={index}
+                    created_at={entry.created_at}
+                    block={entry.block}
+                    cardType={entry.card_type}
+                    id={entry.card_type_id}
+                    image={entry.local_image_url}
+                    name={entry.card_name}
+                  />
+                );
+              })}
             </>
           )}
         </div>

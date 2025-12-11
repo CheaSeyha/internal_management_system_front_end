@@ -8,7 +8,7 @@ import construction from "../../../assets/CardTamplete/CONSTRUCTION.png";
 import rolling from "../../../assets/CardTamplete/ROLLING.png";
 import { Trash, Edit, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
-function CardPreview({
+function CardPreview2025({
   name,
   block,
   id,
@@ -405,4 +405,4 @@ function CardPreview({
   );
 }
 
-export default CardPreview;
+export default CardPreview2025;

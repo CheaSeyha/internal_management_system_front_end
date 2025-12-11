@@ -9,7 +9,7 @@ import carcard1 from "../../../assets/CardTamplete/Card Car 2026.png";
 import construction from "../../../assets/CardTamplete/CONSTRUCTION.png";
 import { Trash, Edit, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
-function VIP({
+function CardPreview2026({
   name,
   block,
   id,
@@ -42,77 +42,6 @@ function VIP({
   }
 
   const formattedBlock = formatBlocks(block); // ✅ call the function
-
-  const [fontSizeName, setFontSizeName] = useState(18);
-  const nameRef = useRef();
-  const platRef = useRef();
-  const DEFAULT_FONT_SIZE_CM = 2.9;
-  const [platFontSize, setPlatFontSize] = useState(DEFAULT_FONT_SIZE_CM);
-
-  const [lineHight, setLineHight] = useState(0);
-
-  useEffect(() => {
-    if (platRef.current) {
-      // Reset to default font size before measuring
-      platRef.current.style.fontSize = `${DEFAULT_FONT_SIZE_CM}cm`;
-      setPlatFontSize(DEFAULT_FONT_SIZE_CM);
-
-      let width = platRef.current.getBoundingClientRect().width;
-
-      // Assume your plate container max width in px (1cm ≈ 37.8px)
-      const containerWidth = 18 * 37.8; // adjust to your card width
-
-      let fontSize = DEFAULT_FONT_SIZE_CM;
-
-      // Shrink font if text is too wide
-      while (width > containerWidth && fontSize > 0.5) {
-        fontSize -= 0.05; // small decrement for smoother scaling
-        platRef.current.style.fontSize = `${fontSize}cm`;
-        width = platRef.current.getBoundingClientRect().width;
-      }
-
-      setPlatFontSize(fontSize);
-    }
-  }, [name]);
-
-  // Suggested improvement for the name font scaling
-  useEffect(() => {
-    let currentFontSize = 18; // Start with default
-
-    if (normalizedCardType === "construction") currentFontSize = 16;
-    if (normalizedCardType === "delivery" || normalizedCardType === "tuktuk")
-      currentFontSize = 17;
-
-    if (name.length >= 20) setLineHight(2);
-    else setLineHight(0);
-
-    if (nameRef.current) {
-      // Ensure the element is set to the current calculated initial size for measurement
-      nameRef.current.style.fontSize = `${currentFontSize}px`;
-
-      const maxWidth = 134;
-      let width = nameRef.current.getBoundingClientRect().width;
-
-      // Loop to continuously shrink the font and re-measure until it fits
-      while (width > maxWidth && currentFontSize > 1) {
-        currentFontSize -= 0.05; // Decrease font size by 1px
-        nameRef.current.style.fontSize = `${currentFontSize}px`; // Update the DOM element directly
-        width = nameRef.current.getBoundingClientRect().width; // Re-measure the width
-      }
-
-      // Set the final calculated font size to state only once
-      setFontSizeName(currentFontSize);
-    }
-  }, [name, normalizedCardType]); // Remove fontSizeName from dependency array
-
-  const getDate = new Date();
-  const monthName = getDate.toLocaleString("default", { month: "long" });
-  const getDayMonthYear =
-    getDate.getDate() +
-    " " +
-    monthName.toUpperCase() +
-    " " +
-    getDate.getFullYear();
 
   return (
     <>
@@ -349,20 +278,19 @@ function VIP({
 
         {/* Car Card */}
         {normalizedCardType === "car card" && (
-          <main className="carcard relative font-cardFont1 w-[20cm] h-[13.34cm] text-black  bg-white rounded-4xl">
-            <div className="w-full h-[4cm] absolute top-[6.2cm] flex items-center justify-center text-center">
+          <main className="carcard relative font-cardFont1 w-[9cm] h-[6cm] text-black  bg-white rounded-2xl">
+            <div className="w-full h-[4cm] absolute top-[1.7cm] flex items-center justify-center text-center">
               <p
-                ref={platRef}
-                className="plat-number text-[80pt] text-[#dcfd07]"
+                className="plat-number text-[35pt] text-[#dcfd07]"
                 style={{
-                  WebkitTextStroke: "2px #000000",
+                  WebkitTextStroke: "0.5px #000000",
                 }}
               >
                 {name}
               </p>
             </div>
-            <div className="w-full absolute top-[11.7cm] flex items-center justify-center text-center">
-              <p className="plat-number text-[20pt] text-[#0030ff]">
+            <div className="w-full absolute top-[5.2cm] flex items-center justify-center text-center">
+              <p className="plat-number text-[12pt] text-[#0030ff]">
                 BLOCK : {formattedBlock}
               </p>
             </div>
@@ -376,4 +304,4 @@ function VIP({
   );
 }
 
-export default VIP;
+export default CardPreview2026;

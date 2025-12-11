@@ -687,92 +687,115 @@ export default function RosterTable() {
   return (
     <>
       {/* BUTTON + SELECT */}
-      <div className="button-controller flex items-center gap-3 relative mb-4">
-        <Select defaultValue="all-department">
-          <SelectTrigger className="w-fit">
-            <span>
-              <ChartBarStacked />
-            </span>
-            <SelectValue placeholder="Select a Department" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectItem value="all-department">All Department</SelectItem>
-              <SelectItem value="IT">IT</SelectItem>
-              <SelectItem value="HR">HR</SelectItem>
-              <SelectItem value="gaming">Gaming</SelectItem>
-              <SelectItem value="f-and-B">F & B</SelectItem>
-              <SelectItem value="Security">Security</SelectItem>
-              <SelectItem value="external-security">
-                External Security
-              </SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-
-        <MonthYearPicker value={date} onChange={handleSelectDate} />
-
-        <Button
-          variant="outline"
-          onClick={() => setEditMode(!editMode)}
-          className="relative z-20"
-        >
-          {editMode ? (
+      <div className="button-controller flex flex-col lg:flex-row items-center gap-3 relative mb-4">
+        <AnimatePresence>
+          {!editMode && (
             <>
-              <Save className="w-4 h-4 mr-2" />
-              Save
-            </>
-          ) : (
-            <>
-              <PencilLine className="w-4 h-4 mr-2" />
-              Edit Roster
+              <motion.div
+                initial={{ x: -40, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: -40, opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                className="z-10 flex gap-3"
+              >
+                <Select defaultValue="all-department">
+                  <SelectTrigger className="w-full lg:w-fit">
+                    <span>
+                      <ChartBarStacked />
+                    </span>
+                    <SelectValue placeholder="Select a Department" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="all-department">
+                        All Department
+                      </SelectItem>
+                      <SelectItem value="IT">IT</SelectItem>
+                      <SelectItem value="HR">HR</SelectItem>
+                      <SelectItem value="gaming">Gaming</SelectItem>
+                      <SelectItem value="f-and-B">F & B</SelectItem>
+                      <SelectItem value="Security">Security</SelectItem>
+                      <SelectItem value="external-security">
+                        External Security
+                      </SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+
+                <MonthYearPicker value={date} onChange={handleSelectDate} />
+              </motion.div>
             </>
           )}
-        </Button>
-        <AnimatePresence>
+          <Button
+            variant="outline"
+            onClick={() => setEditMode(!editMode)}
+            className="relative z-20 w-full lg:w-fit"
+          >
+            {editMode ? (
+              <>
+                <Save className="w-4 h-4 mr-2" />
+                Save
+              </>
+            ) : (
+              <>
+                <PencilLine className="w-4 h-4 mr-2" />
+                Edit Roster
+              </>
+            )}
+          </Button>
           {editMode && (
-            <motion.div
-              initial={{ x: -40, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -40, opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              className="z-10"
-            >
-              <Select
-                value={updateTimeShift}
-                onValueChange={setUpdateTimeShift}
+            <>
+              <motion.div
+                initial={{ x: -40, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: -40, opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                className="z-10"
               >
-                <SelectTrigger
-                  className="w-[180px] text-white"
-                  style={{ backgroundColor: selectedOption?.color || "#000" }}
+                <Select
+                  value={updateTimeShift}
+                  onValueChange={setUpdateTimeShift}
                 >
-                  <CalendarSync className="mr-2" />
-                  <SelectValue placeholder="Select Time Shift" />
-                </SelectTrigger>
+                  <SelectTrigger
+                    className="w-full lg:w-fit text-white"
+                    style={{ backgroundColor: selectedOption?.color || "#000" }}
+                  >
+                    <CalendarSync className="mr-2" />
+                    <SelectValue placeholder="Select Time Shift" />
+                  </SelectTrigger>
 
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Select Time Shift</SelectLabel>
-                    {timeShiftOptions.map((opt) => (
-                      <SelectItem
-                        key={opt.value}
-                        value={opt.value}
-                        style={{ backgroundColor: opt.color, color: "#fff" }}
-                      >
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </motion.div>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Select Time Shift</SelectLabel>
+                      {timeShiftOptions.map((opt) => (
+                        <SelectItem
+                          key={opt.value}
+                          value={opt.value}
+                          style={{ backgroundColor: opt.color, color: "#fff" }}
+                        >
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </motion.div>
+              <motion.div
+                initial={{ x: -40, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: -40, opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                className="z-10"
+              >
+                <DropUploadButton
+                  onRoster={(monthData) => insertNewStaffShiftData(monthData)}
+                />
+              </motion.div>
+            </>
           )}
         </AnimatePresence>
 
         {/* File Upload  */}
-        <DropUploadButton
-          onRoster={(monthData) => insertNewStaffShiftData(monthData)}
-        />
       </div>
 
       {/* TABLE */}

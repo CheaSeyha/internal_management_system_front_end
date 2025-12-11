@@ -43,7 +43,7 @@ export default function MonthYearPicker({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" className="w-fit justify-between font-normal">
+        <Button variant="outline" className="w-full lg:w-fit justify-between font-normal">
           <CalendarDays />
 
           {value

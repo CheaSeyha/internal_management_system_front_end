@@ -190,7 +190,11 @@ export default function DropUploadButton({ onRoster }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="default" onClick={() => setOpen(true)}>
+        <Button
+          className="w-full lg:w-fit"
+          variant="default"
+          onClick={() => setOpen(true)}
+        >
           <UploadCloud className="mr-2 h-4 w-4" /> Upload Excel
         </Button>
       </DialogTrigger>

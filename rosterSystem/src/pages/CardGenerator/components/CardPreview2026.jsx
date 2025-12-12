@@ -47,7 +47,7 @@ function CardPreview2026({
     <>
       <div className="container-card relative ">
         <div className="absolute inset-0 z-2 flex items-center justify-center opacity-0 hover:opacity-100 transition-all delay-100 backdrop-blur-sm gap-2 rounded-2xl">
-          <Button
+          {/* <Button
             className="btn border-none group bg-gray-800 hover:bg-gray-600"
             onClick={() => onHideCard(id, cardType)}
             variant="secondary"
@@ -56,7 +56,7 @@ function CardPreview2026({
               color="white"
               className="group-hover:mb-2 delay-75 transition-all"
             />
-          </Button>
+          </Button> */}
 
           <Button
             className="btn border-none group"
@@ -68,7 +68,7 @@ function CardPreview2026({
               className="group-hover:mb-2 delay-75 transition-all"
             />
           </Button>
-          <Button
+          {/* <Button
             className="btn bg-blue-600 border-none group"
             onClick={() => onEdit(index)}
           >
@@ -76,7 +76,7 @@ function CardPreview2026({
               color="white"
               className="group-hover:mb-2 delay-75 transition-all"
             />
-          </Button>
+          </Button> */}
         </div>
         {/* Delivery Card */}
         {normalizedCardType === "delivery" && (

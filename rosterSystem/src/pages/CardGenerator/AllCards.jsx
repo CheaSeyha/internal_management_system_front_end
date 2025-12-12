@@ -785,16 +785,17 @@ function AllCards() {
           ) : (
             <>
               {getCards.map((entry, index) => {
-                // Parse "dd-mm-yyyy" into JS Date
-                const [day, month, year] = entry.created_at
-                  .split("-")
-                  .map(Number);
-                const createdDate = new Date(year, month - 1, day); // JS months are 0-indexed
+                // entry.created_at = "11/12/2025 23:59"
+                const onlyDate = entry.created_at.split(" ")[0]; // "11/12/2025"
 
-                // Cutoff date: 10 Dec 2025
-                const cutoffDate = new Date(2025, 11, 10); // 11 = December
+                // Convert "dd/mm/yyyy" → day, month, year
+                const [day, month, year] = onlyDate.split("/").map(Number);
 
-                // Use ternary operator to choose which card to render
+                const createdDate = new Date(year, month - 1, day);
+
+                // Cutoff date: 10 December 2025
+                const cutoffDate = new Date(2025, 11, 10);
+
                 return createdDate >= cutoffDate ? (
                   <CardPreview2026
                     onRemove={() => handleSingleDelete(getCards[index])}

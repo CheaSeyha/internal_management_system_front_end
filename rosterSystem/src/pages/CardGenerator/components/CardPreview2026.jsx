@@ -259,7 +259,7 @@ function CardPreview2026({
 
         {/* VIP Card */}
         {normalizedCardType === "vip card" && (
-          <main className="vipcard relative w-[9cm] h-[6cm] text-black  bg-white rounded-br-[7px] rounded-tl-[7px]">
+          <main className="vipcard relative w-[9cm] h-[6cm] text-black  bg-white rounded-br-[15px] rounded-tl-[15px]">
             <p className="staffcard forBlock absolute text-[12pt] font-luxury-display top-[146px] left-[99px]">
               {name}
             </p>

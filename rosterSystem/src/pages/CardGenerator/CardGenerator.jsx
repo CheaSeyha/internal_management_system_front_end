@@ -41,6 +41,7 @@ import {
   Eye,
   EyeOff,
   RotateCcw,
+  LucideTrash2,
 } from "lucide-react";
 import {
   Tooltip,
@@ -500,6 +501,14 @@ export default function CardGenerator() {
     }
   }, [loadings, cardTypes]);
 
+  const removeProfileImage = () => {
+    setCurrentEntry((prev) => ({
+      ...prev,
+      imageFile: null,
+      imagePreviewUrl: null,
+    }));
+  };
+
   if (!ready) return <LoadingSpinner />; // show loading until ready
   return (
     <div
@@ -527,7 +536,7 @@ export default function CardGenerator() {
                   image={rawImage.url}
                   crop={crop}
                   zoom={zoom}
-                  aspect={1/1}
+                  aspect={1 / 1}
                   onCropChange={setCrop}
                   onZoomChange={setZoom}
                   onCropComplete={onCropComplete}
@@ -707,11 +716,35 @@ export default function CardGenerator() {
                   onDragOver={handleDragOver}
                 >
                   {currentEntry.imagePreviewUrl ? (
-                    <img
-                      src={currentEntry.imagePreviewUrl}
-                      alt="Preview"
-                      className="w-[80%] h-full object-contain"
-                    />
+                    <div className="relative flex justify-center items-center group">
+                      <div
+                        className="
+                         absolute inset-0
+                         flex justify-center items-center
+                         bg-black/20
+                         backdrop-blur-none
+                         opacity-0
+                         pointer-events-none
+                         transition-all duration-300 ease-out
+                         group-hover:opacity-100
+                         group-hover:backdrop-blur-sm
+                         group-hover:pointer-events-auto"
+                      >
+                        <Button
+                          onClick={() => removeProfileImage()}
+                          type="button"
+                          className="bg-red-500 text-white cursor-pointer"
+                        >
+                          <LucideTrash2 />
+                        </Button>
+                      </div>
+
+                      <img
+                        src={currentEntry.imagePreviewUrl}
+                        alt="Preview"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
                   ) : (
                     <p className="text-center text-gray-500">
                       Drag & drop or Ctrl+V to paste image

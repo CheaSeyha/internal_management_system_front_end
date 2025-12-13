@@ -777,7 +777,7 @@ function AllCards() {
         <LoadingSpinner />
       ) : (
         // Show Real Card As Preview
-        <div className="flex flex-wrap justify-evenly w-full h-fit max-h-[696px] gap-y-5 overflow-auto rounded-s-2xl">
+        <div className="flex flex-wrap justify-evenly items-center w-full h-fit max-h-[696px] gap-y-5 overflow-auto rounded-s-2xl">
           {getCards.length <= 0 ? (
             <>
               <p>No cards found</p>

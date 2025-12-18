@@ -51,6 +51,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "../../api/axios";
 import { useCardHook } from "./components/Hook/useCardHook";
+import useISPHook from "../Internet/Hook/useISPHook";
 export default function CardGenerator() {
   const contentRef = useRef(null);
   const reactToPrintFn = useReactToPrint({ contentRef });
@@ -58,6 +59,9 @@ export default function CardGenerator() {
     name: "",
     block: [],
     id: "",
+    isp_name: "",
+    isp_position: "",
+    rolling_link: "",
     cardType: "",
     imageFile: null,
     imagePreviewUrl: null,
@@ -85,6 +89,7 @@ export default function CardGenerator() {
   //Hide Card State-----------------------------------------
   const [keepSameBlocks, setKeepSameBlocks] = useState(false); //for store block the same when add new card
   const { cardTypes, loadings, error } = useCardHook();
+  const { isps, fetchISPs } = useISPHook();
 
   // 🔹 Create a ref for the search box in select blocks
   const searchInputRef = React.useRef(null);
@@ -144,6 +149,7 @@ export default function CardGenerator() {
 
   useEffect(() => {
     fetchBlocks();
+    fetchISPs();
   }, []);
 
   const [selectedBlocks, setSelectedBlocks] = useState([]);
@@ -348,7 +354,7 @@ export default function CardGenerator() {
         return;
       }
     }
-    if (currentEntry.cardType.toLocaleLowerCase() === "rolling") {
+    if (currentEntry.cardType.toLocaleLowerCase() === "rolling" || currentEntry.cardType.toLocaleLowerCase() === "isp") {
       // Allow skipping block
     } else if (
       !currentEntry.block ||
@@ -375,6 +381,11 @@ export default function CardGenerator() {
       formData.append("card_type", currentEntry.cardType);
       if (currentEntry.imageFile)
         formData.append("profile_image", currentEntry.imageFile);
+
+      // Add ISP or Rolling specific fields if present
+      if (currentEntry.isp_name) formData.append("isp_name", currentEntry.isp_name);
+      if (currentEntry.isp_position) formData.append("isp_position", currentEntry.isp_position);
+      if (currentEntry.rolling_link) formData.append("rolling_link", currentEntry.rolling_link);
 
       if (editingIndex !== null) {
         // Edit existing card
@@ -441,6 +452,9 @@ export default function CardGenerator() {
         block: keepSameBlocks ? [...currentEntry.block] : [],
         id: "",
         cardType: currentEntry.cardType,
+        isp_name: "",
+        isp_position: "",
+        rolling_link: "",
         imageFile: null,
         imagePreviewUrl: null,
       });
@@ -459,9 +473,12 @@ export default function CardGenerator() {
     setEditingIndex(null);
     setCurrentEntry({
       name: "",
-      block: "",
+      block: [],
       id: "",
       cardType: currentEntry.cardType,
+      isp_name: "",
+      isp_position: "",
+      rolling_link: "",
       imageFile: null,
       imagePreviewUrl: null,
     });
@@ -481,8 +498,8 @@ export default function CardGenerator() {
     const blocks = Array.isArray(card.block)
       ? card.block
       : card.block
-      ? JSON.parse(card.block)
-      : [];
+        ? JSON.parse(card.block)
+        : [];
 
     setSelectedBlocks(blocks);
 
@@ -754,11 +771,10 @@ export default function CardGenerator() {
               )}
 
             <div
-              className={`space-y-4 ${
-                ["VIP CARD", "CAR CARD"].includes(currentEntry.cardType)
-                  ? "w-full"
-                  : "flex-1"
-              }`}
+              className={`space-y-4 ${["VIP CARD", "CAR CARD"].includes(currentEntry.cardType)
+                ? "w-full"
+                : "flex-1"
+                }`}
             >
               {/* select card type  */}
               <div className="form-control">
@@ -815,155 +831,214 @@ export default function CardGenerator() {
               </div>
               {/* Block select  */}
               {/* check if rolling user can skip select block  */}
+              {(currentEntry.cardType !== "ISP" && currentEntry.cardType !== "ROLLING") ? (
+                <>
+                  <div className="form-control">
+                    <label className="label flex flex-col items-start">
+                      <span className="label-text mb-1">Select Blocks</span>
+                      <Select
+                        name="blockselection"
+                        value={undefined} // multi-select placeholder
+                        onValueChange={handleAddBlock}
+                      >
+                        <SelectTrigger className="w-full cursor-pointer">
+                          <SelectValue placeholder="Select a block or room" />
+                        </SelectTrigger>
 
-              <>
-                <div className="form-control">
-                  <label className="label flex flex-col items-start">
-                    <span className="label-text mb-1">Select Blocks</span>
-                    <Select
-                      name="blockselection"
-                      value={undefined} // multi-select placeholder
-                      onValueChange={handleAddBlock}
-                    >
-                      <SelectTrigger className="w-full cursor-pointer">
-                        <SelectValue placeholder="Select a block or room" />
-                      </SelectTrigger>
+                        <SelectContent>
+                          <Command className="flex flex-col">
+                            <div className="relative">
+                              <CommandInput
+                                value={searchText}
+                                onValueChange={(val) => setSearchText(val)}
+                                placeholder="Search blocks..."
+                                className="w-10/12 pr-12 sticky top-0 z-10"
+                              />
 
-                      <SelectContent>
-                        <Command className="flex flex-col">
-                          <div className="relative">
-                            <CommandInput
-                              value={searchText}
-                              onValueChange={(val) => setSearchText(val)}
-                              placeholder="Search blocks..."
-                              className="w-10/12 pr-12 sticky top-0 z-10"
-                            />
-
-                            <button
-                              onClick={() => {
-                                setSearchText(""); // clear search
-                                fetchBlocks(); // refresh logic
-                              }}
-                              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 flex items-center justify-center 
+                              <button
+                                onClick={() => {
+                                  setSearchText(""); // clear search
+                                  fetchBlocks(); // refresh logic
+                                }}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 flex items-center justify-center 
                transition-transform duration-150 ease-in-out
                active:scale-90" // 🔥 scales button on click
-                            >
-                              <RotateCcw className="w-4 h-4" />
-                            </button>
-                          </div>
+                              >
+                                <RotateCcw className="w-4 h-4" />
+                              </button>
+                            </div>
 
-                          <CommandEmpty>No block found.</CommandEmpty>
+                            <CommandEmpty>No block found.</CommandEmpty>
 
-                          <ScrollArea className="h-60 w-full">
-                            <div className="p-1">
-                              {blocks.map((block) => {
-                                // Check if building fully selected
-                                const buildingEntry = (
-                                  Array.isArray(currentEntry.block)
-                                    ? currentEntry.block
-                                    : []
-                                ).find((b) => b.building === block.building);
+                            <ScrollArea className="h-60 w-full">
+                              <div className="p-1">
+                                {blocks.map((block) => {
+                                  // Check if building fully selected
+                                  const buildingEntry = (
+                                    Array.isArray(currentEntry.block)
+                                      ? currentEntry.block
+                                      : []
+                                  ).find((b) => b.building === block.building);
 
-                                const buildingFullySelected =
-                                  buildingEntry &&
-                                  buildingEntry.rooms.length === 0;
+                                  const buildingFullySelected =
+                                    buildingEntry &&
+                                    buildingEntry.rooms.length === 0;
 
-                                // Filter rooms that are not selected yet
-                                const remainingRooms =
-                                  buildingEntry?.rooms?.length > 0
-                                    ? block.room.filter(
+                                  // Filter rooms that are not selected yet
+                                  const remainingRooms =
+                                    buildingEntry?.rooms?.length > 0
+                                      ? block.room.filter(
                                         (r) => !buildingEntry.rooms.includes(r)
                                       )
-                                    : buildingEntry
-                                    ? []
-                                    : block.room;
+                                      : buildingEntry
+                                        ? []
+                                        : block.room;
 
-                                // Hide building if fully selected or all rooms are selected
-                                const hideBuilding =
-                                  buildingFullySelected ||
-                                  (block.room.length > 0 &&
-                                    remainingRooms.length === 0);
+                                  // Hide building if fully selected or all rooms are selected
+                                  const hideBuilding =
+                                    buildingFullySelected ||
+                                    (block.room.length > 0 &&
+                                      remainingRooms.length === 0);
 
-                                return (
-                                  <CommandGroup key={block.building}>
-                                    {/* Building */}
-                                    {!hideBuilding && (
-                                      <CommandItem
-                                        value={block.building}
-                                        onSelect={handleAddBlock}
-                                        className="font-semibold cursor-pointer"
-                                      >
-                                        {block.building}
-                                      </CommandItem>
-                                    )}
+                                  return (
+                                    <CommandGroup key={block.building}>
+                                      {/* Building */}
+                                      {!hideBuilding && (
+                                        <CommandItem
+                                          value={block.building}
+                                          onSelect={handleAddBlock}
+                                          className="font-semibold cursor-pointer"
+                                        >
+                                          {block.building}
+                                        </CommandItem>
+                                      )}
 
-                                    {/* Rooms */}
-                                    {remainingRooms.map((roomName) => (
-                                      <CommandItem
-                                        key={`${block.building}-${roomName}`}
-                                        value={`${block.building}-${roomName}`}
-                                        onSelect={handleAddBlock}
-                                        className="pl-4 cursor-pointer"
-                                      >
-                                        {roomName}
-                                      </CommandItem>
-                                    ))}
-                                  </CommandGroup>
-                                );
-                              })}
-                            </div>
-                          </ScrollArea>
-                        </Command>
-                      </SelectContent>
-                    </Select>
-                  </label>
+                                      {/* Rooms */}
+                                      {remainingRooms.map((roomName) => (
+                                        <CommandItem
+                                          key={`${block.building}-${roomName}`}
+                                          value={`${block.building}-${roomName}`}
+                                          onSelect={handleAddBlock}
+                                          className="pl-4 cursor-pointer"
+                                        >
+                                          {roomName}
+                                        </CommandItem>
+                                      ))}
+                                    </CommandGroup>
+                                  );
+                                })}
+                              </div>
+                            </ScrollArea>
+                          </Command>
+                        </SelectContent>
+                      </Select>
+                    </label>
 
-                  {/* Preview selected blocks */}
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {Array.isArray(currentEntry.block) &&
-                      currentEntry.block.map((b) => (
-                        <React.Fragment key={b.building}>
-                          {b.rooms.length === 0 ? (
-                            <Button
-                              onClick={() => handleRemoveBlock(b.building)}
-                              variant="outline"
-                              className="btn px-3 py-1 rounded flex items-center gap-2 hover:bg-red-600"
-                            >
-                              <span>{b.building}</span>
-                            </Button>
-                          ) : (
-                            b.rooms.map((room) => (
+                    {/* Preview selected blocks */}
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {Array.isArray(currentEntry.block) &&
+                        currentEntry.block.map((b) => (
+                          <React.Fragment key={b.building}>
+                            {b.rooms.length === 0 ? (
                               <Button
-                                key={`${b.building}-${room}`}
-                                onClick={() =>
-                                  handleRemoveBlock(b.building, room)
-                                }
+                                onClick={() => handleRemoveBlock(b.building)}
                                 variant="outline"
                                 className="btn px-3 py-1 rounded flex items-center gap-2 hover:bg-red-600"
                               >
-                                <span>{`${b.building}-${room}`}</span>
+                                <span>{b.building}</span>
                               </Button>
-                            ))
-                          )}
-                        </React.Fragment>
-                      ))}
+                            ) : (
+                              b.rooms.map((room) => (
+                                <Button
+                                  key={`${b.building}-${room}`}
+                                  onClick={() =>
+                                    handleRemoveBlock(b.building, room)
+                                  }
+                                  variant="outline"
+                                  className="btn px-3 py-1 rounded flex items-center gap-2 hover:bg-red-600"
+                                >
+                                  <span>{`${b.building}-${room}`}</span>
+                                </Button>
+                              ))
+                            )}
+                          </React.Fragment>
+                        ))}
+                    </div>
                   </div>
-                </div>
 
-                {/* Check keep block the same */}
-                <div className="flex justify-end w-full gap-3">
-                  <Label htmlFor="terms" className="text-gray-400">
-                    Keep Same Blocks
-                  </Label>
-                  <Checkbox
-                    id="terms"
-                    checked={keepSameBlocks}
-                    onCheckedChange={(value) => {
-                      setKeepSameBlocks(value === true); // store boolean
-                    }}
+                  {/* Check keep block the same */}
+                  <div className="flex justify-end w-full gap-3">
+                    <Label htmlFor="terms" className="text-gray-400">
+                      Keep Same Blocks
+                    </Label>
+                    <Checkbox
+                      id="terms"
+                      checked={keepSameBlocks}
+                      onCheckedChange={(value) => {
+                        setKeepSameBlocks(value === true); // store boolean
+                      }}
+                    />
+                  </div>
+                </>
+              ) : currentEntry.cardType === "ISP" ? (
+                <>
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text">Select ISP</span>
+                    </label>
+                    <Select
+                      name="isp_name"
+                      value={currentEntry.isp_name || ""}
+                      onValueChange={(value) =>
+                        setCurrentEntry((prev) => ({ ...prev, isp_name: value }))
+                      }
+                    >
+                      <SelectTrigger className="w-full bg-white text-black dark:text-white border border-gray-300 dark:border-gray-700">
+                        <SelectValue placeholder="Select ISP" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          {isps.map((isp) => (
+                            <SelectItem key={isp.id} value={isp.isp_name} className="cursor-pointer">
+                              {isp.isp_name}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text">ISP Position</span>
+                    </label>
+                    <Input
+                      name="isp_position"
+                      value={currentEntry.isp_position || ""}
+                      onChange={handleInputChange}
+                      placeholder="e.g. Bottom Right"
+                      className="input input-bordered w-full"
+                    />
+                  </div>
+                </>
+              ) : currentEntry.cardType === "ROLLING" ? (
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Link</span>
+                  </label>
+                  <Input
+                    name="rolling_link"
+                    value={currentEntry.rolling_link || ""}
+                    onChange={handleInputChange}
+                    placeholder="Enter link for rolling"
+                    className="input input-bordered w-full"
                   />
                 </div>
-              </>
+              ) : (
+                <>
+                  <p>Generic Card - No additional fields</p>
+                </>
+              )}
               {/* button for save card or update card  */}
               <Button
                 type="submit"
@@ -1142,9 +1217,8 @@ export default function CardGenerator() {
                     className={
                       entry.cardType === "CAR CARD"
                         ? "w-full flex justify-center py-4"
-                        : `w-auto ${
-                            noSpace ? "-mx-[1.1px] -my-[2px]" : "mx-2 my-2"
-                          }`
+                        : `w-auto ${noSpace ? "-mx-[1.1px] -my-[2px]" : "mx-2 my-2"
+                        }`
                     }
                     id={`card-${index}`}
                   >
@@ -1162,6 +1236,9 @@ export default function CardGenerator() {
                         id={entry.id}
                         image={entry.imagePreviewUrl}
                         name={entry.name}
+                        isp_name={entry.isp_name}
+                        isp_position={entry.isp_position}
+                        rolling_link={entry.rolling_link}
                       />
                     </div>
                   </motion.div>
@@ -1193,9 +1270,8 @@ export default function CardGenerator() {
                     className={
                       entry.cardType === "CAR CARD"
                         ? "w-full flex justify-center py-4 print:border-y print:border-dashed print:border-blue-600"
-                        : `w-auto ${
-                            noSpace ? "mx-[0.5px] my-[0.5px]" : "mx-2 my-2"
-                          }`
+                        : `w-auto ${noSpace ? "mx-[0.5px] my-[0.5px]" : "mx-2 my-2"
+                        }`
                     }
                     id={`card-${index}`}
                   >
@@ -1212,6 +1288,9 @@ export default function CardGenerator() {
                       id={entry.id}
                       image={entry.imagePreviewUrl}
                       name={entry.name}
+                      isp_name={entry.isp_name}
+                      isp_position={entry.isp_position}
+                      rolling_link={entry.rolling_link}
                     />
                   </motion.div>
                 ))

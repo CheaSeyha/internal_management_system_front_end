@@ -19,6 +19,9 @@ function VIP({
   onEdit,
   onHideCard,
   index,
+  isp_name,
+  isp_position,
+  rolling_link,
 }) {
   const normalizedCardType = cardType?.toLowerCase() || "";
 
@@ -247,9 +250,15 @@ function VIP({
               {id}
             </p>
             {/* ISP name  */}
-            <p className=" absolute top-[275px] left-[82px] name-staff font-bold text-[9pt] font-californian-font text-black">
-              {formattedBlock}
+            <p className=" absolute top-[274.50px] left-[82px] name-staff font-bold text-[9pt] font-californian-font text-black">
+              {isp_name}
             </p>
+            {/* ISP position  */}
+            {isp_position && (
+              <p className="absolute top-[274.50px] right-[18px] text-right name-staff font-bold text-[9pt] font-californian-font text-black">
+                {isp_position}
+              </p>
+            )}
             {/* name  */}
             <div className="absolute w-full top-[243px] text-center">
               <p className="name-staff font-bold text-[10pt] font-californian-font text-black">
@@ -274,9 +283,9 @@ function VIP({
             <p className=" absolute top-[291px] left-[40px] name-staff font-bold text-[9pt] font-californian-font text-white">
               {id}
             </p>
-            {/* ISP name  */}
+            {/* ISP name or Link  */}
             <p className=" absolute top-[275px] left-[56px] name-staff font-bold text-[9pt] font-californian-font text-white">
-              {formattedBlock}
+              {rolling_link}
             </p>
 
             {/* name  */}

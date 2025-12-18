@@ -1276,7 +1276,7 @@ export default function CardGenerator() {
                     className={
                       entry.cardType === "CAR CARD"
                         ? "w-full flex justify-center py-4 print:border-y print:border-dashed print:border-blue-600"
-                        : `w-auto ${noSpace ? "mx-[0.5px] my-[0.5px]" : "mx-2 my-2"
+                        : `w-auto ${noSpace ? "mx-[1px] my-[1px]" : "mx-[0.5px] my-[0.5px]"
                         }`
                     }
                     id={`card-${index}`}

@@ -46,6 +46,72 @@ function VIP({
 
   const formattedBlock = formatBlocks(block); // ✅ call the function
 
+  const [fontSizeName, setFontSizeName] = useState(18);
+  const nameRef = useRef();
+  const ispNameRef = useRef();
+  const ispPosRef = useRef();
+
+  const [ispScaleX, setIspScaleX] = useState(1);
+  const [lineHight, setLineHight] = useState(0);
+
+  // Name font scaling for TukTuk and Construction
+  useEffect(() => {
+    let currentFontSize = 18;
+    if (normalizedCardType === "construction") currentFontSize = 16;
+    if (normalizedCardType === "delivery" || normalizedCardType === "tuktuk")
+      currentFontSize = 17;
+
+    if (name.length >= 20) setLineHight(2);
+    else setLineHight(0);
+
+    if (nameRef.current) {
+      nameRef.current.style.fontSize = `${currentFontSize}px`;
+      const maxWidth = 134;
+      let width = nameRef.current.getBoundingClientRect().width;
+      while (width > maxWidth && currentFontSize > 1) {
+        currentFontSize -= 0.05;
+        nameRef.current.style.fontSize = `${currentFontSize}px`;
+        width = nameRef.current.getBoundingClientRect().width;
+      }
+      setFontSizeName(currentFontSize);
+    }
+  }, [name, normalizedCardType]);
+
+  // ISP Font Stretching Logic
+  useEffect(() => {
+    if (normalizedCardType === "isp" && ispNameRef.current && ispPosRef.current) {
+      // Reset scale to 1 to measure natural width
+      ispNameRef.current.style.transform = "scaleX(1)";
+      ispPosRef.current.style.transform = "scaleX(1)";
+
+      const gap = 8; // Safety gap between name and position
+      const maxWidth = 126; // Total available width (6cm card container logic)
+
+      const naturalWidthA = ispNameRef.current.getBoundingClientRect().width;
+      const naturalWidthB = ispPosRef.current.getBoundingClientRect().width;
+      const totalNaturalWidth = naturalWidthA + naturalWidthB + gap;
+
+      if (totalNaturalWidth > maxWidth) {
+        // Calculate how much we need to squash the name to fit
+        // Available width for name = maxWidth - (position width + gap)
+        const availableForName = maxWidth - naturalWidthB - gap;
+        const scale = availableForName / naturalWidthA;
+        setIspScaleX(Math.max(scale, 0.4)); // Don't squash more than 40%
+      } else {
+        setIspScaleX(1);
+      }
+    }
+  }, [isp_name, isp_position, normalizedCardType]);
+
+  const getDate = new Date();
+  const monthName = getDate.toLocaleString("default", { month: "long" });
+  const getDayMonthYear =
+    getDate.getDate() +
+    " " +
+    monthName.toUpperCase() +
+    " " +
+    getDate.getFullYear();
+
   return (
     <>
       <div className="container-card relative ">
@@ -179,12 +245,22 @@ function VIP({
               {id}
             </p>
             {/* ISP name  */}
-            <p className=" absolute top-[274.50px] left-[82px] name-staff font-bold text-[9pt] font-californian-font text-black">
+            <p
+              ref={ispNameRef}
+              className="absolute top-[274.50px] left-[82px] name-staff font-bold text-[9pt] font-californian-font text-black whitespace-nowrap inline-block"
+              style={{
+                transform: `scaleX(${ispScaleX})`,
+                transformOrigin: "left",
+              }}
+            >
               {isp_name}
             </p>
             {/* ISP position  */}
             {isp_position && (
-              <p className="absolute top-[274.50px] right-[18px] text-right name-staff font-bold text-[9pt] font-californian-font text-black">
+              <p
+                ref={ispPosRef}
+                className="absolute top-[274.50px] right-[18px] text-right name-staff font-bold text-[9pt] font-californian-font text-black"
+              >
                 {isp_position}
               </p>
             )}

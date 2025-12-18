@@ -1016,9 +1016,15 @@ export default function CardGenerator() {
                       name="isp_position"
                       value={currentEntry.isp_position || ""}
                       onChange={handleInputChange}
-                      placeholder="e.g. Bottom Right"
+                      placeholder="Position"
                       className="input input-bordered w-full"
+                      list="isp-positions"
                     />
+                    <datalist id="isp-positions">
+                      <option value="Sale" />
+                      <option value="Fiber Installation" />
+                      <option value="IT Support" />
+                    </datalist>
                   </div>
                 </>
               ) : currentEntry.cardType === "ROLLING" ? (

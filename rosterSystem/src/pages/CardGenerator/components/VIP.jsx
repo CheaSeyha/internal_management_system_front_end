@@ -46,77 +46,6 @@ function VIP({
 
   const formattedBlock = formatBlocks(block); // ✅ call the function
 
-  const [fontSizeName, setFontSizeName] = useState(18);
-  const nameRef = useRef();
-  const platRef = useRef();
-  const DEFAULT_FONT_SIZE_CM = 2.9;
-  const [platFontSize, setPlatFontSize] = useState(DEFAULT_FONT_SIZE_CM);
-
-  const [lineHight, setLineHight] = useState(0);
-
-  useEffect(() => {
-    if (platRef.current) {
-      // Reset to default font size before measuring
-      platRef.current.style.fontSize = `${DEFAULT_FONT_SIZE_CM}cm`;
-      setPlatFontSize(DEFAULT_FONT_SIZE_CM);
-
-      let width = platRef.current.getBoundingClientRect().width;
-
-      // Assume your plate container max width in px (1cm ≈ 37.8px)
-      const containerWidth = 18 * 37.8; // adjust to your card width
-
-      let fontSize = DEFAULT_FONT_SIZE_CM;
-
-      // Shrink font if text is too wide
-      while (width > containerWidth && fontSize > 0.5) {
-        fontSize -= 0.05; // small decrement for smoother scaling
-        platRef.current.style.fontSize = `${fontSize}cm`;
-        width = platRef.current.getBoundingClientRect().width;
-      }
-
-      setPlatFontSize(fontSize);
-    }
-  }, [name]);
-
-  // Suggested improvement for the name font scaling
-  useEffect(() => {
-    let currentFontSize = 18; // Start with default
-
-    if (normalizedCardType === "construction") currentFontSize = 16;
-    if (normalizedCardType === "delivery" || normalizedCardType === "tuktuk")
-      currentFontSize = 17;
-
-    if (name.length >= 20) setLineHight(2);
-    else setLineHight(0);
-
-    if (nameRef.current) {
-      // Ensure the element is set to the current calculated initial size for measurement
-      nameRef.current.style.fontSize = `${currentFontSize}px`;
-
-      const maxWidth = 134;
-      let width = nameRef.current.getBoundingClientRect().width;
-
-      // Loop to continuously shrink the font and re-measure until it fits
-      while (width > maxWidth && currentFontSize > 1) {
-        currentFontSize -= 0.05; // Decrease font size by 1px
-        nameRef.current.style.fontSize = `${currentFontSize}px`; // Update the DOM element directly
-        width = nameRef.current.getBoundingClientRect().width; // Re-measure the width
-      }
-
-      // Set the final calculated font size to state only once
-      setFontSizeName(currentFontSize);
-    }
-  }, [name, normalizedCardType]); // Remove fontSizeName from dependency array
-
-  const getDate = new Date();
-  const monthName = getDate.toLocaleString("default", { month: "long" });
-  const getDayMonthYear =
-    getDate.getDate() +
-    " " +
-    monthName.toUpperCase() +
-    " " +
-    getDate.getFullYear();
-
   return (
     <>
       <div className="container-card relative ">
@@ -339,7 +268,7 @@ function VIP({
 
         {/* VIP Card */}
         {normalizedCardType === "vip card" && (
-          <main className="vipcard relative w-[9cm] h-[6cm] text-black  bg-white rounded-br-[7px] rounded-tl-[7px]">
+          <main className="vipcard relative w-[9cm] h-[6cm] text-black  bg-white rounded-br-[20px] rounded-tl-[20px]">
             <p className="staffcard forBlock absolute text-[12pt] font-luxury-display top-[146px] left-[99px]">
               {name}
             </p>
@@ -361,7 +290,7 @@ function VIP({
           <main className="carcard relative font-cardFont1 w-[20cm] h-[13.34cm] text-black  bg-white rounded-4xl">
             <div className="w-full h-[4cm] absolute top-[6.2cm] flex items-center justify-center text-center">
               <p
-                ref={platRef}
+
                 className="plat-number text-[80pt] text-[#dcfd07]"
                 style={{
                   WebkitTextStroke: "2px #000000",

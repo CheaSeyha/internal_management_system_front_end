@@ -149,7 +149,7 @@ function VIP({
         </div>
         {/* Delivery Card */}
         {normalizedCardType === "delivery" && (
-          <main className="relative w-[6cm] h-[9cm]">
+          <main className="relative w-[6cm] h-[9cm] scale-[98%]">
             <div className="image-profile absolute top-[90px] left-[40px] w-[3.96cm] h-[3.96cm] border-1 border-[#d9fa00] rounded-full overflow-hidden">
               <img src={image} className="w-full h-full object-cover" alt="" />
             </div>
@@ -208,7 +208,7 @@ function VIP({
 
         {/* Staff Card */}
         {normalizedCardType === "staff" && (
-          <main className="relative w-[6cm] h-[9cm]">
+          <main className="relative w-[6cm] h-[9cm] scale-[98%]">
             <div className="image-profile absolute top-[90px] left-[40px] w-[3.96cm] h-[3.96cm] border-1 border-[#ff006f] rounded-full overflow-hidden">
               <img src={image} className="w-full h-full object-cover" alt="" />
             </div>
@@ -235,7 +235,7 @@ function VIP({
 
         {/* ISP Card */}
         {normalizedCardType === "isp" && (
-          <main className="relative w-[6cm] h-[9cm]">
+          <main className="relative w-[6cm] h-[9cm] scale-[98%]">
             <div className="image-profile absolute top-[90px] left-[40px] w-[3.96cm] h-[3.96cm] border-1 border-[#ff006f] rounded-full overflow-hidden">
               <img src={image} className="w-full h-full object-cover" alt="" />
             </div>
@@ -279,7 +279,7 @@ function VIP({
 
         {/* ISP rolling */}
         {normalizedCardType === "rolling" && (
-          <main className="relative w-[6cm] h-[9cm]">
+          <main className="relative w-[6cm] h-[9cm] scale-[98%]">
             <div className="image-profile absolute top-[90px] left-[40px] opca w-[3.96cm] h-[3.96cm] border-1 border-[#ff006f] rounded-full overflow-hidden">
               <img src={image} className="w-full h-full object-cover" alt="" />
             </div>
@@ -344,7 +344,7 @@ function VIP({
 
         {/* VIP Card */}
         {normalizedCardType === "vip card" && (
-          <main className="vipcard relative w-[9cm] h-[6cm] text-black  bg-white rounded-br-[20px] rounded-tl-[20px]">
+          <main className="vipcard relative scale-[98%] w-[9cm] h-[6cm] text-black  bg-white rounded-br-[20px] rounded-tl-[20px]">
             <p className="staffcard forBlock absolute text-[12pt] font-luxury-display top-[146px] left-[99px]">
               {name}
             </p>

@@ -451,6 +451,7 @@ export default function CardGenerator() {
         block: keepSameBlocks ? [...currentEntry.block] : [],
         id: "",
         cardType: currentEntry.cardType,
+        isp_name: currentEntry.isp_name,
         isp_position: "",
         rolling_link: "",
         imageFile: null,
@@ -1199,7 +1200,11 @@ export default function CardGenerator() {
 
         {/* Preview and print the card layout  */}
         <div
-          className="flex flex-wrap justify-center gap-0 p-5 w-full print:justify-start"
+          className={`flex flex-wrap justify-center gap-0 p-5 w-full ${entries.length > 1
+            ? "print:justify-start"
+            : "print:justify-center"
+            }`}
+
           ref={contentRef}
         >
           <AnimatePresence>
@@ -1274,9 +1279,15 @@ export default function CardGenerator() {
                     className={
                       entry.cardType === "CAR CARD"
                         ? "w-full flex justify-center py-4 print:border-y print:border-dashed print:border-blue-600"
-                        : `w-auto ${noSpace ? "mx-[1px] my-[1px]" : "mx-[0.5px] my-[0.5px]"
-                        }`
+                        : entry.cardType === "VIP CARD"
+                          ? noSpace
+                            ? "-mx-[2.5px] -my-[0.5px]"
+                            : "mx-[0.5px] my-[0.5px]"
+                          : noSpace
+                            ? "-mx-[0.5px] -my-[1.5px]"
+                            : "mx-[0.5px] my-[0.5px]"
                     }
+
                     id={`card-${index}`}
                   >
                     <VIP

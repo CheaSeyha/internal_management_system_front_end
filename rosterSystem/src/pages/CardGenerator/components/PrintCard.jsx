@@ -5,7 +5,10 @@ const PrintCard = forwardRef(({ entries = [] }, ref) => {
   if (!entries || entries.length === 0) return null; // ✅ Safety check
 
   return (
-    <div className="flex flex-wrap justify-start gap-0 p-5 w-full" ref={ref}>
+    <div className={`flex flex-wrap justify-start gap-0 p-5 w-full ${entries.length > 1
+      ? "print:justify-start"
+      : "print:justify-center"
+      }`} ref={ref}>
       {entries.map((entry, index) => (
         <div
           key={entry.id}

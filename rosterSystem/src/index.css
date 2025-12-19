@@ -48,7 +48,7 @@
   --font-KantumruyPro: KantumruyPro, 'KantumruyPro';
   --font-luxury-display: luxury-display, 'luxury-display';
   --font-luxury-regular: luxury-regular, 'luxury-regular';
-  --font-californian-font: californian-font, 'californian-font';                                     
+  --font-californian-font: californian-font, 'californian-font';
 
   --color-background: var(--color-background);
   --color-sidebar: var(--color-sidebar);
@@ -254,5 +254,27 @@
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.439 0 0);
   }
-  
+
+}
+
+/* Default print styles for all pages */
+@media print {
+  @page {
+    margin-top: 30px;
+    /* default margin for all pages */
+  }
+
+  /* Optional: style your content to fit margins */
+  body {
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* Special style for first page */
+@media print {
+  @page :first {
+    margin: 0;
+    /* no margin for first page */
+  }
 }

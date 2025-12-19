@@ -379,14 +379,13 @@ export default function CardGenerator() {
       formData.append("card_name", currentEntry.name);
       formData.append("block", JSON.stringify(currentEntry.block)); // ✅ merged string
       formData.append("card_type", currentEntry.cardType);
+      formData.append("isp_name", currentEntry.isp_name);
+      formData.append("isp_position", currentEntry.isp_position);
+      formData.append("link", currentEntry.rolling_link);
       if (currentEntry.imageFile)
         formData.append("profile_image", currentEntry.imageFile);
 
       // Add ISP or Rolling specific fields if present
-      if (currentEntry.isp_name) formData.append("isp_name", currentEntry.isp_name);
-      if (currentEntry.isp_position) formData.append("isp_position", currentEntry.isp_position);
-      if (currentEntry.rolling_link) formData.append("rolling_link", currentEntry.rolling_link);
-
       if (editingIndex !== null) {
         // Edit existing card
         const originalCard = entries[editingIndex];
@@ -452,7 +451,6 @@ export default function CardGenerator() {
         block: keepSameBlocks ? [...currentEntry.block] : [],
         id: "",
         cardType: currentEntry.cardType,
-        isp_name: "",
         isp_position: "",
         rolling_link: "",
         imageFile: null,

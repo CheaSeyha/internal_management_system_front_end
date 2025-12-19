@@ -19,6 +19,9 @@ function CardPreview2026({
   onEdit,
   onHideCard,
   index,
+  isp_name,
+  isp_position,
+  rolling_link,
 }) {
   const normalizedCardType = cardType?.toLowerCase() || "";
 
@@ -43,11 +46,77 @@ function CardPreview2026({
 
   const formattedBlock = formatBlocks(block); // ✅ call the function
 
+  const [fontSizeName, setFontSizeName] = useState(18);
+  const nameRef = useRef();
+  const ispNameRef = useRef();
+  const ispPosRef = useRef();
+
+  const [ispScaleX, setIspScaleX] = useState(1);
+  const [lineHight, setLineHight] = useState(0);
+
+  // Name font scaling for TukTuk and Construction
+  useEffect(() => {
+    let currentFontSize = 18;
+    if (normalizedCardType === "construction") currentFontSize = 16;
+    if (normalizedCardType === "delivery" || normalizedCardType === "tuktuk")
+      currentFontSize = 17;
+
+    if (name.length >= 20) setLineHight(2);
+    else setLineHight(0);
+
+    if (nameRef.current) {
+      nameRef.current.style.fontSize = `${currentFontSize}px`;
+      const maxWidth = 134;
+      let width = nameRef.current.getBoundingClientRect().width;
+      while (width > maxWidth && currentFontSize > 1) {
+        currentFontSize -= 0.05;
+        nameRef.current.style.fontSize = `${currentFontSize}px`;
+        width = nameRef.current.getBoundingClientRect().width;
+      }
+      setFontSizeName(currentFontSize);
+    }
+  }, [name, normalizedCardType]);
+
+  // ISP Font Stretching Logic
+  useEffect(() => {
+    if (normalizedCardType === "isp" && ispNameRef.current && ispPosRef.current) {
+      // Reset scale to 1 to measure natural width
+      ispNameRef.current.style.transform = "scaleX(1)";
+      ispPosRef.current.style.transform = "scaleX(1)";
+
+      const gap = 8; // Safety gap between name and position
+      const maxWidth = 126; // Total available width (6cm card container logic)
+
+      const naturalWidthA = ispNameRef.current.getBoundingClientRect().width;
+      const naturalWidthB = ispPosRef.current.getBoundingClientRect().width;
+      const totalNaturalWidth = naturalWidthA + naturalWidthB + gap;
+
+      if (totalNaturalWidth > maxWidth) {
+        // Calculate how much we need to squash the name to fit
+        // Available width for name = maxWidth - (position width + gap)
+        const availableForName = maxWidth - naturalWidthB - gap;
+        const scale = availableForName / naturalWidthA;
+        setIspScaleX(Math.max(scale, 0.4)); // Don't squash more than 40%
+      } else {
+        setIspScaleX(1);
+      }
+    }
+  }, [isp_name, isp_position, normalizedCardType]);
+
+  const getDate = new Date();
+  const monthName = getDate.toLocaleString("default", { month: "long" });
+  const getDayMonthYear =
+    getDate.getDate() +
+    " " +
+    monthName.toUpperCase() +
+    " " +
+    getDate.getFullYear();
+
   return (
     <>
       <div className="container-card relative ">
         <div className="absolute inset-0 z-2 flex items-center justify-center opacity-0 hover:opacity-100 transition-all delay-100 backdrop-blur-sm gap-2 rounded-2xl">
-          {/* <Button
+          <Button
             className="btn border-none group bg-gray-800 hover:bg-gray-600"
             onClick={() => onHideCard(id, cardType)}
             variant="secondary"
@@ -56,7 +125,7 @@ function CardPreview2026({
               color="white"
               className="group-hover:mb-2 delay-75 transition-all"
             />
-          </Button> */}
+          </Button>
 
           <Button
             className="btn border-none group"
@@ -68,7 +137,7 @@ function CardPreview2026({
               className="group-hover:mb-2 delay-75 transition-all"
             />
           </Button>
-          {/* <Button
+          <Button
             className="btn bg-blue-600 border-none group"
             onClick={() => onEdit(index)}
           >
@@ -76,7 +145,7 @@ function CardPreview2026({
               color="white"
               className="group-hover:mb-2 delay-75 transition-all"
             />
-          </Button> */}
+          </Button>
         </div>
         {/* Delivery Card */}
         {normalizedCardType === "delivery" && (
@@ -176,9 +245,25 @@ function CardPreview2026({
               {id}
             </p>
             {/* ISP name  */}
-            <p className=" absolute top-[275px] left-[82px] name-staff font-bold text-[9pt] font-californian-font text-black">
-              {formattedBlock}
+            <p
+              ref={ispNameRef}
+              className="absolute top-[274.50px] left-[82px] name-staff font-bold text-[9pt] font-californian-font text-black whitespace-nowrap inline-block"
+              style={{
+                transform: `scaleX(${ispScaleX})`,
+                transformOrigin: "left",
+              }}
+            >
+              {isp_name}
             </p>
+            {/* ISP position  */}
+            {isp_position && (
+              <p
+                ref={ispPosRef}
+                className="absolute top-[274.50px] right-[18px] text-right name-staff font-bold text-[9pt] font-californian-font text-black"
+              >
+                {isp_position}
+              </p>
+            )}
             {/* name  */}
             <div className="absolute w-full top-[243px] text-center">
               <p className="name-staff font-bold text-[10pt] font-californian-font text-black">
@@ -203,9 +288,9 @@ function CardPreview2026({
             <p className=" absolute top-[291px] left-[40px] name-staff font-bold text-[9pt] font-californian-font text-white">
               {id}
             </p>
-            {/* ISP name  */}
+            {/* ISP name or Link  */}
             <p className=" absolute top-[275px] left-[56px] name-staff font-bold text-[9pt] font-californian-font text-white">
-              {formattedBlock}
+              {rolling_link}
             </p>
 
             {/* name  */}
@@ -259,7 +344,7 @@ function CardPreview2026({
 
         {/* VIP Card */}
         {normalizedCardType === "vip card" && (
-          <main className="vipcard relative w-[9cm] h-[6cm] text-black  bg-white rounded-br-[15px] rounded-tl-[15px]">
+          <main className="vipcard relative w-[9cm] h-[6cm] text-black  bg-white rounded-br-[20px] rounded-tl-[20px]">
             <p className="staffcard forBlock absolute text-[12pt] font-luxury-display top-[146px] left-[99px]">
               {name}
             </p>
@@ -278,19 +363,20 @@ function CardPreview2026({
 
         {/* Car Card */}
         {normalizedCardType === "car card" && (
-          <main className="carcard relative font-cardFont1 w-[9cm] h-[6cm] text-black  bg-white rounded-2xl">
-            <div className="w-full h-[4cm] absolute top-[1.7cm] flex items-center justify-center text-center">
+          <main className="carcard relative font-cardFont1 w-[20cm] h-[13.34cm] text-black  bg-white rounded-4xl">
+            <div className="w-full h-[4cm] absolute top-[6.2cm] flex items-center justify-center text-center">
               <p
-                className="plat-number text-[35pt] text-[#dcfd07]"
+
+                className="plat-number text-[80pt] text-[#dcfd07]"
                 style={{
-                  WebkitTextStroke: "0.5px #000000",
+                  WebkitTextStroke: "2px #000000",
                 }}
               >
                 {name}
               </p>
             </div>
-            <div className="w-full absolute top-[5.2cm] flex items-center justify-center text-center">
-              <p className="plat-number text-[12pt] text-[#0030ff]">
+            <div className="w-full absolute top-[11.7cm] flex items-center justify-center text-center">
+              <p className="plat-number text-[20pt] text-[#0030ff]">
                 BLOCK : {formattedBlock}
               </p>
             </div>

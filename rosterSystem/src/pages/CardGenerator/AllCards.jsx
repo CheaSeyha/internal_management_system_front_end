@@ -580,11 +580,10 @@ function AllCards() {
                         </span>
 
                         <Badge
-                          className={`h-5 min-w-5 rounded-full ${
-                            count === 0
-                              ? "bg-gray-500"
-                              : "bg-blue-500 dark:bg-blue-600"
-                          } text-white font-mono tabular-nums`}
+                          className={`h-5 min-w-5 rounded-full ${count === 0
+                            ? "bg-gray-500"
+                            : "bg-blue-500 dark:bg-blue-600"
+                            } text-white font-mono tabular-nums`}
                           variant="secondary"
                         >
                           {count}
@@ -630,7 +629,7 @@ function AllCards() {
                 <TableHead>Card ID</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Card Type</TableHead>
-                <TableHead>Block</TableHead>
+                <TableHead>Block/ISP/ROLLING</TableHead>
                 <TableHead>Created Date</TableHead>
                 <TableHead>Create By</TableHead>
                 <TableHead className="w-[100px] text-center">
@@ -709,6 +708,8 @@ function AllCards() {
                 </TableRow>
               ) : (
                 getCards.map((card) => (
+
+
                   <TableRow key={card.id}>
                     <TableCell className="w-[80px]">
                       <Checkbox
@@ -722,7 +723,10 @@ function AllCards() {
                     </TableCell>
                     <TableCell>{card.card_name}</TableCell>
                     <TableCell>{card.card_type}</TableCell>
-                    <TableCell>{card.blocks_string}</TableCell>
+                    {/* Dynamic column */}
+                    <TableCell>
+                      {card.blocks_string || card.isp_name || card.rolling_link || "-"}
+                    </TableCell>
                     <TableCell>{card.created_at}</TableCell>
                     <TableCell>{card.create_by}</TableCell>
                     <TableCell className="w-[100px] text-center">
@@ -800,6 +804,9 @@ function AllCards() {
                   <CardPreview2026
                     onRemove={() => handleSingleDelete(getCards[index])}
                     key={entry.id}
+                    isp_name={entry.isp_name}
+                    isp_position={entry.isp_position}
+                    rolling_link={entry.rolling_link}
                     index={index}
                     created_at={entry.created_at}
                     block={entry.block}
@@ -812,6 +819,9 @@ function AllCards() {
                   <CardPreview2025
                     onRemove={() => handleSingleDelete(getCards[index])}
                     key={entry.id}
+                    isp_name={entry.isp_name}
+                    isp_position={entry.isp_position}
+                    rolling_link={entry.rolling_link}
                     index={index}
                     created_at={entry.created_at}
                     block={entry.block}
@@ -838,7 +848,7 @@ function AllCards() {
                   e.preventDefault();
                   fetchCards(
                     pagination.prev_page_url &&
-                      new URL(pagination.prev_page_url).searchParams.get("page")
+                    new URL(pagination.prev_page_url).searchParams.get("page")
                   );
                 }}
               />
@@ -853,7 +863,7 @@ function AllCards() {
                   e.preventDefault();
                   fetchCards(
                     pagination.next_page_url &&
-                      new URL(pagination.next_page_url).searchParams.get("page")
+                    new URL(pagination.next_page_url).searchParams.get("page")
                   );
                 }}
               />

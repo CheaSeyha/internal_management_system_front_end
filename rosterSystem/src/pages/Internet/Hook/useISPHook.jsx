@@ -86,6 +86,28 @@ export default function useISPHook() {
         }
     };
 
+    // --- Delete ISP ---
+    const deleteISP = async (isp_id) => {
+        if (!isp_id) return false;
+        setLoading(true);
+        try {
+            const response = await axios.delete(`/isp/delete_isp/${isp_id}`);
+            if (response.data?.success) {
+                toast.success(response.data.message || "ISP deleted successfully");
+                setIsps((prev) => prev.filter((isp) => isp.id !== isp_id));
+                return true;
+            } else {
+                toast.error(response.data?.message || "Failed to delete ISP");
+                return false;
+            }
+        } catch (error) {
+            toast.error(error.message || "Error deleting ISP");
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return {
         isps,
         loading,
@@ -93,5 +115,6 @@ export default function useISPHook() {
         fetchISPs,
         addISP,
         updateISP,
+        deleteISP,
     };
 }

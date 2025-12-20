@@ -7,6 +7,7 @@ import {
   Navigation,
   PackageOpen,
   SendToBack,
+  Router,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
@@ -43,14 +44,20 @@ const cardStyles = {
     bgColorClass: "bg-red-300",
     toColorClass: "to-red-300",
   },
-  TUKTUK: {
-    Icon: Navigation,
-    // FIX: Include 'bg-' and 'to-' prefix in the string
-    bgColorClass: "bg-red-500",
-    toColorClass: "to-red-500",
-  },
+  // TUKTUK: {
+  //   Icon: Navigation,
+  //   // FIX: Include 'bg-' and 'to-' prefix in the string
+  //   bgColorClass: "bg-red-500",
+  //   toColorClass: "to-red-500",
+  // },
   DELIVERY: {
     Icon: PackageOpen,
+    // FIX: Include 'bg-' and 'to-' prefix in the string
+    bgColorClass: "bg-red-400",
+    toColorClass: "to-red-400",
+  },
+  ISP: {
+    Icon: Router,
     // FIX: Include 'bg-' and 'to-' prefix in the string
     bgColorClass: "bg-red-400",
     toColorClass: "to-red-400",

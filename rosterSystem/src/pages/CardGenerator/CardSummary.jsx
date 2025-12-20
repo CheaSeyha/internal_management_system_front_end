@@ -171,13 +171,13 @@ function CardSummary() {
             <ChartAreaInteractive
               config={cardSummary.ChartAreaInteractive.config}
               data={cardSummary.ChartAreaInteractive.data}
-              description={"Cards created by type over time"}
-              title={"Card Summary Chart"}
+              description={"Cards Created by Type Over Time"}
+              title={"Daily Card Creation Summary"}
               totalIncome={totalCardIncome}
             />
             <ChartBarInteractive
               title="Card Creator Overview"
-              description="Count all cards by user created"
+              description="Shows the total number of cards created by each user per day"
               data={cardSummary.ChartBarInteractive.summaryData}
               chartConfig={cardSummary.ChartBarInteractive.config}
             />

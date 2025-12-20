@@ -155,14 +155,14 @@ function VIP({
             </div>
             {/* block  */}
 
-            <p className=" absolute top-[291px] left-[40px] name-staff font-bold text-[9pt] font-californian-font text-black">
+            <p className=" absolute top-[290.5px] left-[40px] name-staff font-bold text-[9pt] font-californian-font text-black">
               {id}
             </p>
-            <p className=" absolute top-[275px] left-[66px] name-staff font-bold text-[9pt] font-californian-font text-black">
+            <p className=" absolute top-[274.7px] left-[66px] name-staff font-bold text-[9pt] font-californian-font text-black">
               {formattedBlock}
             </p>
             {/* name  */}
-            <div className="absolute w-full top-[243px] text-center">
+            <div className="absolute w-full top-[245px] text-center">
               <p className="name-staff font-bold text-[10pt] font-californian-font text-black">
                 NAME : {name}
               </p>
@@ -214,14 +214,14 @@ function VIP({
             </div>
             {/* block  */}
 
-            <p className=" absolute top-[291px] left-[40px] name-staff font-bold text-[9pt] font-californian-font text-black">
+            <p className=" absolute top-[290.5px] left-[40px] name-staff font-bold text-[9pt] font-californian-font text-black">
               {id}
             </p>
-            <p className=" absolute top-[275px] left-[66px] name-staff font-bold text-[9pt] font-californian-font text-black">
+            <p className=" absolute top-[274.7px] left-[66px] name-staff font-bold text-[9pt] font-californian-font text-black">
               {formattedBlock}
             </p>
             {/* name  */}
-            <div className="absolute w-full top-[243px] text-center">
+            <div className="absolute w-full top-[245px] text-center">
               <p className="name-staff font-bold text-[10pt] font-californian-font text-black">
                 NAME : {name}
               </p>

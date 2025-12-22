@@ -6,24 +6,13 @@ import {
   Ellipsis,
   Trash,
   Printer,
-  School,
-  IdCard,
   LayoutGrid,
   RotateCcw,
   LayoutList,
-  School2,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import {
   Table,
   TableBody,
@@ -60,6 +49,7 @@ import CardPreview2025 from "./components/CardPreview2025";
 import CardPreview2026 from "./components/CardPreview2026";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { downloadCardImages } from "../../utils/donwloadCardImage";
+import { MultiSelect } from "../../components/ui/MultiSelect";
 
 function AllCards() {
   // State management
@@ -70,12 +60,9 @@ function AllCards() {
   const [loading, setLoading] = useState(false);
   const [selectedCards, setSelectedCards] = useState([]);
   const [searchValue, setSearchValue] = useState("");
-  const [filter, setFilter] = useState("no_filter");
-  const [filterOptions, setFilterOptions] = useState([]);
-  const [typeFilter, setTypeFilter] = useState([]); //Store data of filter block or card type
-  const [selectedFilterValue, setSelectedFilterValue] = useState("");
-  const [isLoadingFilterOptions, setIsLoadingFilterOptions] = useState(false);
-  // Fetch filter options when filter type changes
+  const [filterOptions, setFilterOptions] = useState({});
+  const [selectedBlocks, setSelectedBlocks] = useState([]);
+  const [selectedCardTypes, setSelectedCardTypes] = useState([]);
   //pritn logic state
   const contentRef = useRef(null);
   const reactToPrintFn = useReactToPrint({ contentRef });
@@ -90,6 +77,8 @@ function AllCards() {
     const saved = localStorage.getItem("tableView");
     return saved ? JSON.parse(saved) : false;
   });
+
+
 
   useEffect(() => {
     fetchCards(1);
@@ -120,54 +109,13 @@ function AllCards() {
 
   const handleSelectDate = (date) => {
     setDate(date);
+    setSelectedBlocks([]);
+    setSelectedCardTypes([]);
   };
 
   useEffect(() => {
-    console.log("Filter  ", filterOptions);
-    fetchCards();
-  }, [date]);
-
-  //Filter data
-  useEffect(() => {
-    const checkFilterTyep =
-      filter === "block" ? filterOptions.blocks : filterOptions.cardTypes;
-
-    setTypeFilter(checkFilterTyep || []);
-  }, [filter, filterOptions]);
-  // Fetch filter options when filter type changes
-
-  // useEffect(() => {
-  //   const fetchFilterOptions = async () => {
-  //     if (filter === "no_filter" && (date.getMonth() === new Date().getMonth() && date.getFullYear() === new Date().getFullYear())) {
-  //       // reset back to original cards
-  //       setGetCards(originalGetCards);
-  //       setFilterOptions([]);
-  //       setSelectedFilterValue("");
-  //       return;
-  //     }
-
-  //     setIsLoadingFilterOptions(true);
-  //     try {
-  //       const endpoint =
-  //         filter === "block"
-  //           ? "blocks/all_buildings"
-  //           : "/cards/get_all_card_type";
-
-  //       const res = await axios.get(endpoint);
-
-  //       const options = res.data.data || [];
-
-  //       setFilterOptions(options);
-  //     } catch (error) {
-  //       console.error("Failed to fetch filter options:", error);
-  //       setFilterOptions([]);
-  //     } finally {
-  //       setIsLoadingFilterOptions(false);
-  //     }
-  //   };
-
-  //   fetchFilterOptions();
-  // }, [filter, originalGetCards]); // 👈 add originalGetCards so it resets correctly
+    fetchCards(1);
+  }, [date, selectedBlocks, selectedCardTypes]);
 
   const renderPageNumbers = () => {
     if (!pagination) return null;
@@ -201,18 +149,19 @@ function AllCards() {
     );
   };
 
-  //Get Fetch Cards Fucntions
   // fetchCards
-  const fetchCards = async (page = 1, searchTerm = "", filterVal = "") => {
+  const fetchCards = async (page = 1, searchTerm = null) => {
     setLoading(true);
     try {
-      const response = await axios.post(`/card/cards_filter?page=${page}`, {
-        card_name: searchTerm,
-        filter,
-        filterValue: filterVal || selectedFilterValue,
+      const payload = {
+        card_name: searchTerm !== null ? searchTerm : searchValue,
         month: date.getMonth() + 1,
         year: date.getFullYear(),
-      });
+        filterBlocks: selectedBlocks,
+        filterCardTypes: selectedCardTypes,
+      };
+
+      const response = await axios.post(`/card/cards_filter?page=${page}`, payload);
 
       if (response.data?.success) {
         const cards = response.data.data.data || [];
@@ -226,11 +175,11 @@ function AllCards() {
         setGetCards(updatedCards);
 
         // store original cards only once (with images if downloaded)
-        if (!originalGetCards.length || filter === "no_filter") {
+        if (!originalGetCards.length) {
           setOriginalGetCards(updatedCards);
         }
 
-        setFilterOptions(response.data.data);
+        setFilterOptions(response.data.data || {});
         setPagination(response.data.data);
       }
     } catch (err) {
@@ -242,41 +191,17 @@ function AllCards() {
     }
   };
 
-  // useEffect to reset when no_filter
-  useEffect(() => {
-    if (filter === "no_filter") {
-      setGetCards(originalGetCards);
-    }
-  }, [filter, originalGetCards]);
-
-  useEffect(() => {
-    if (!filter || filter === "no_filter") {
-      setGetCards(originalGetCards);
-      console.log("Orignal Card ", originalGetCards);
-    }
-  }, [filter]);
-
-  // Handle filter changes
-  const handleFilterChange = (newFilter) => {
-    setFilter(newFilter);
-    setSelectedFilterValue("");
-    // 🔹 DO NOT reset cards here
-    // fetchCards will handle filtering when user selects a filter value
-  };
-
-  // Handle filter value selection
-  const handleFilterValueChange = (value) => {
-    setSelectedFilterValue(value);
-    fetchCards(1, searchValue, value); // ✅ call API with filter value
-  };
-
   // Handle search input changes
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setSearchValue(value);
 
     // Reset to original cards when input is empty
-    if (value.trim() === "" && filter === "no_filter") {
+    if (
+      value.trim() === "" &&
+      selectedBlocks.length === 0 &&
+      selectedCardTypes.length === 0
+    ) {
       setGetCards(originalGetCards);
       setPagination(originalPagination);
       return;
@@ -405,13 +330,12 @@ function AllCards() {
   };
 
   const restart = () => {
-    fetchCards(1);
-    setSelectedFilterValue("");
-    setFilter("no_filter");
-    setPagination(originalPagination);
+    setSelectedBlocks([]);
+    setSelectedCardTypes([]);
     setSearchValue("");
     setSelectedCards([]);
     setDate(new Date());
+    // Dependencies on useEffect will trigger fetchCards(1)
   };
 
   useEffect(() => {
@@ -505,7 +429,7 @@ function AllCards() {
       <section className="w-fit flex flex-wrap md:flex-row gap-2 ">
         <div className="relative w-full md:w-[240px]">
           <Button
-            onClick={() => fetchCards(1, searchValue, selectedFilterValue)} // ✅ use unified fetchCards
+            onClick={() => fetchCards(1)}
             variant="ghost"
             className="absolute left-0 top-0 h-full px-3"
           >
@@ -521,81 +445,31 @@ function AllCards() {
           />
         </div>
 
-        <Select onValueChange={handleFilterChange} value={filter}>
-          <SelectTrigger className="w-full md:w-fit">
-            <Funnel />
-            <SelectValue placeholder="Filter" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectItem value="no_filter">No filter</SelectItem>
-              <SelectItem value="card_type">Card Type</SelectItem>
-              <SelectItem value="block">Block</SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+        <MultiSelect
+          options={(filterOptions?.blocks || []).map((b) => ({
+            label: b.building,
+            value: b.building,
+            count: b.count,
+          }))}
+          value={selectedBlocks}
+          onChange={setSelectedBlocks}
+          placeholder="Filter Blocks"
+          showCount
+        />
 
-        {/* Filter value selector */}
-        {filter !== "no_filter" && (
-          <Select
-            onValueChange={handleFilterValueChange}
-            value={selectedFilterValue}
-            disabled={isLoadingFilterOptions || filterOptions.length === 0}
-          >
-            <SelectTrigger className="w-fit">
-              {isLoadingFilterOptions ? (
-                <span>Loading...</span>
-              ) : (
-                <>
-                  {filter === "block" ? <School2 /> : <IdCard />}
-                  <SelectValue
-                    placeholder={
-                      filter === "block" ? "Select Block" : "Select Cards Type"
-                    }
-                  />
-                </>
-              )}
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup className="h-[250px]">
-                <SelectLabel>
-                  {filter === "block" ? "Select Block" : "Select Cards Type"}
-                </SelectLabel>
-                {typeFilter.map((item, index) => {
-                  const key =
-                    filter === "block" ? item.building : item.card_type;
-                  const value = key;
-                  const count = item.count ?? item.count_card ?? 0; // adapt to your API
 
-                  return (
-                    <SelectItem
-                      key={`${key}-${index}`}
-                      value={value}
-                      disabled={count === 0}
-                      className="flex justify-between items-center"
-                    >
-                      <>
-                        <span>
-                          {filter === "block" ? item.building : item.card_type}
-                        </span>
+        <MultiSelect
+          options={(filterOptions?.cardTypes || []).map((ct) => ({
+            label: ct.card_type,
+            value: ct.card_type,
+            count: ct.count,
+          }))}
+          value={selectedCardTypes}
+          onChange={setSelectedCardTypes}
+          placeholder="Filter Card Types"
+          showCount
+        />
 
-                        <Badge
-                          className={`h-5 min-w-5 rounded-full ${count === 0
-                            ? "bg-gray-500"
-                            : "bg-blue-500 dark:bg-blue-600"
-                            } text-white font-mono tabular-nums`}
-                          variant="secondary"
-                        >
-                          {count}
-                        </Badge>
-                      </>
-                    </SelectItem>
-                  );
-                })}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        )}
 
         <MonthYearPicker value={date} onChange={handleSelectDate} />
 
@@ -708,8 +582,6 @@ function AllCards() {
                 </TableRow>
               ) : (
                 getCards.map((card) => (
-
-
                   <TableRow key={card.id}>
                     <TableCell className="w-[80px]">
                       <Checkbox
@@ -725,7 +597,10 @@ function AllCards() {
                     <TableCell>{card.card_type}</TableCell>
                     {/* Dynamic column */}
                     <TableCell>
-                      {card.blocks_string || card.isp_name || card.rolling_link || "-"}
+                      {card.blocks_string ||
+                        card.isp_name ||
+                        card.rolling_link ||
+                        "-"}
                     </TableCell>
                     <TableCell>{card.created_at}</TableCell>
                     <TableCell>{card.create_by}</TableCell>
@@ -781,7 +656,7 @@ function AllCards() {
         <LoadingSpinner />
       ) : (
         // Show Real Card As Preview
-        <div className="flex flex-wrap justify-evenly items-center w-full h-fit max-h-[696px] gap-y-5 overflow-auto rounded-s-2xl">
+        <div className="flex flex-wrap justify-between items-center w-full h-fit max-h-[696px] gap-y-5 overflow-auto rounded-s-2xl">
           {getCards.length <= 0 ? (
             <>
               <p>No cards found</p>

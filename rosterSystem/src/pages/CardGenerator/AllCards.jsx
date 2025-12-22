@@ -64,6 +64,8 @@ function AllCards() {
   const [filterOptions, setFilterOptions] = useState({});
   const [selectedBlocks, setSelectedBlocks] = useState([]);
   const [selectedCardTypes, setSelectedCardTypes] = useState([]);
+  const [tempFilteredCards, setTempFilteredCards] = useState([]);
+  const [tempFilteredPagination, setTempFilteredPagination] = useState(null);
   //pritn logic state
   const contentRef = useRef(null);
   const reactToPrintFn = useReactToPrint({ contentRef });
@@ -192,6 +194,17 @@ function AllCards() {
           setOriginalPagination(response.data.data);
         }
 
+        // Cache filtered result if we have filters but no search
+        // This allows restoring the filtered list instantly after clearing a search
+        const isFilteredBase =
+          (!effectiveSearchTerm || effectiveSearchTerm === "") &&
+          (selectedBlocks.length > 0 || selectedCardTypes.length > 0);
+
+        if (isFilteredBase) {
+          setTempFilteredCards(updatedCards);
+          setTempFilteredPagination(response.data.data);
+        }
+
         setFilterOptions(response.data.data || {});
         setPagination(response.data.data);
       }
@@ -219,8 +232,14 @@ function AllCards() {
       setPagination(originalPagination);
       return;
     } else if (value.trim() === "") {
-      // If search is cleared but we have filters, we must fetch filtered data
-      fetchCards(1, "");
+      // If search is cleared but we have filters, try to restore from temp cache
+      if (tempFilteredCards.length > 0) {
+        setGetCards(tempFilteredCards);
+        setPagination(tempFilteredPagination);
+      } else {
+        // Fallback if no cache
+        fetchCards(1, "");
+      }
       return;
     }
 

@@ -354,6 +354,12 @@ export default function CardGenerator() {
         return;
       }
     }
+
+    if (currentEntry.cardType.toLocaleLowerCase() === "isp" && (currentEntry.isp_name === "" || currentEntry.isp_position === "")) {
+      toast.error("Please Select ISP Name and Position...");
+      return;
+    }
+
     if (currentEntry.cardType.toLocaleLowerCase() === "rolling" || currentEntry.cardType.toLocaleLowerCase() === "isp") {
       // Allow skipping block
     } else if (

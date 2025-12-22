@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { IdCard, Building } from "lucide-react"
 import {
-  Funnel,
+  CheckCheck,
   Plus,
   Search,
   Ellipsis,
@@ -74,6 +74,10 @@ function AllCards() {
   const [readyToPrint, setReadyToPrint] = useState(false);
   const [loadingPrint, setLoadingPrint] = useState(false);
   const [date, setDate] = useState(new Date()); //get curretn date for date select component
+  const [getDuplicateCards, setGetDuplicateCards] = React.useState([]);
+  const [duplicatePagination, setDuplicatePagination] = React.useState(null);
+
+
   // Initialize from localStorage, fallback to false
   // Initialize tableView from localStorage (default false)
   const [tableView, setTableView] = useState(() => {
@@ -216,6 +220,72 @@ function AllCards() {
       setLoading(false);
     }
   };
+
+
+  const fetchDuplicateCards = async (page = 1, searchTerm = null) => {
+    setLoading(true);
+    try {
+      const effectiveSearchTerm = searchTerm !== null ? searchTerm : searchValue;
+
+      const response = await axios.get(`card/get_duplicate_cards?page=${page}`);
+
+      if (response.data?.success) {
+        const cards = response.data.data.data || [];
+
+        // download images only if tableView is false
+        let updatedCards = cards;
+        if (!tableView && cards.length > 0) {
+          updatedCards = await downloadCardImages(cards);
+        }
+
+        setGetCards(updatedCards);
+
+        // store original cards only once (with images if downloaded)
+        // Update originals if this is a "clean" fetch (page 1, no search, no filters)
+        // This ensures we have a valid cache to restore to.
+        const isCleanFetch =
+          (!effectiveSearchTerm || effectiveSearchTerm === "") &&
+          selectedBlocks.length === 0 &&
+          selectedCardTypes.length === 0;
+
+        if (!originalGetCards.length || isCleanFetch) {
+          setOriginalGetCards(updatedCards);
+          setOriginalPagination(response.data.data);
+          console.log("Check Douplicate", originalGetCards);
+        }
+
+        // Cache filtered result if we have filters but no search
+        // This allows restoring the filtered list instantly after clearing a search
+        const isFilteredBase =
+          (!effectiveSearchTerm || effectiveSearchTerm === "") &&
+          (selectedBlocks.length > 0 || selectedCardTypes.length > 0);
+
+        if (isFilteredBase) {
+          setTempFilteredCards(updatedCards);
+          setTempFilteredPagination(response.data.data);
+        }
+
+        setFilterOptions(response.data.data || {});
+        setPagination(response.data.data);
+      }
+    } catch (err) {
+      console.error("Fetch cards error:", err);
+      setGetCards([]);
+      setPagination(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCheckDuplicates = () => {
+    // Reset current cards if needed
+    setGetCards([]);
+    setPagination(null);
+
+    // Fetch duplicate cards, page 1
+    fetchDuplicateCards(1);
+  };
+
 
   // Handle search input changes
   const handleSearchChange = (e) => {
@@ -520,8 +590,13 @@ function AllCards() {
         <Button variant="outline" onClick={handelChangeViewlayoutTable}>
           {tableView ? <LayoutList /> : <LayoutGrid />}
         </Button>
+        <Button variant="button" onClick={handleCheckDuplicates} className="bg-gradient-to-tr hover:from-blue-500 hover:to-yellow-300 transition-all duration-300 ease-in-out cursor-pointer from-blue-500 to-yellow-600 text-foreground">
+          Check Duplicated
+          <CheckCheck />
+        </Button>
+
         <NavLink to={"/cards/card-generator"}>
-          <Button className="bg-blue-500 text-accent-foreground">
+          <Button className="bg-blue-500 text-accent-foreground cursor-pointer">
             <Plus />
             Add Card
           </Button>
@@ -617,7 +692,7 @@ function AllCards() {
                 ))
               ) : getCards.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center">
+                  <TableCell colSpan={9} className="text-center">
                     No cards found
                   </TableCell>
                 </TableRow>

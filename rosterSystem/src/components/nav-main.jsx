@@ -23,7 +23,7 @@ export function NavMain({ items }) {
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Demo</SidebarGroupLabel>
+      <SidebarGroupLabel>Menu</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => {
           const hasSubItems = item.items && item.items.length > 0;
@@ -75,7 +75,7 @@ export function NavMain({ items }) {
                               <span
                                 className={
                                   location.pathname ===
-                                  `/${item.url}/${subItem.url}`
+                                    `/${item.url}/${subItem.url}`
                                     ? "text-blue-500 font-medium"
                                     : ""
                                 }

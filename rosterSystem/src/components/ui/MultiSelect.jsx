@@ -1,6 +1,5 @@
 import * as React from "react"
-import { Check, ChevronsUpDown } from "lucide-react"
-
+import { Check, ChevronsUpDown, IdCard, Building } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -29,6 +28,7 @@ export function MultiSelect({
   onChange,
   placeholder = "Select options",
   showCount = false,
+  icon: Icon = IdCard
 }) {
   const toggle = (val) => {
     if (value.includes(val)) {
@@ -45,16 +45,20 @@ export function MultiSelect({
   return (
     <Popover>
       <PopoverTrigger asChild>
+
         <Button
           variant="outline"
           role="combobox"
           className="w-[200px] justify-between"
         >
-          <span className="truncate">
-            {selectedLabels.length
-              ? selectedLabels.join(", ")
-              : placeholder}
-          </span>
+          <div className="flex items-center truncate">
+            <Icon className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+            <span className="truncate">
+              {selectedLabels.length
+                ? selectedLabels.join(", ")
+                : placeholder}
+            </span>
+          </div>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -70,12 +74,22 @@ export function MultiSelect({
 
           <CommandEmpty>No results found.</CommandEmpty>
 
-          {/* 🔽 Scrollable list */}
-          <CommandGroup className="max-h-[240px] overflow-y-auto">
+          {/* 🔽 Scrollable list (hidden scrollbar) */}
+          <CommandGroup
+            className="max-h-[240px] overflow-y-auto"
+            style={{
+              scrollbarWidth: "none", // Firefox
+              msOverflowStyle: "none", // IE 10+
+            }}
+          >
             {options.map((item) => (
               <CommandItem
                 key={item.value}
-                onSelect={() => toggle(item.value)}
+                onSelect={() => {
+                  if (item.count !== 0) toggle(item.value);
+                }}
+                disabled={item.count === 0}
+                className={item.count === 0 ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
               >
                 <Check
                   className={cn(
@@ -90,9 +104,9 @@ export function MultiSelect({
                   {item.label}
                 </span>
 
-                {/* 🔢 Optional count */}
+                {/* 🔢 Optional count with blue circle */}
                 {showCount && typeof item.count === "number" && (
-                  <span className="ml-2 text-xs text-muted-foreground">
+                  <span className="ml-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-500 px-1 text-xs text-white">
                     {item.count}
                   </span>
                 )}

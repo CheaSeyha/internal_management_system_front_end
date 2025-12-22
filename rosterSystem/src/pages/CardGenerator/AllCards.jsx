@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { IdCard, Building } from "lucide-react"
 import {
   Funnel,
   Plus,
@@ -451,6 +452,7 @@ function AllCards() {
             value: b.building,
             count: b.count,
           }))}
+          icon={Building}
           value={selectedBlocks}
           onChange={setSelectedBlocks}
           placeholder="Filter Blocks"
@@ -464,6 +466,7 @@ function AllCards() {
             value: ct.card_type,
             count: ct.count,
           }))}
+          icon={IdCard}
           value={selectedCardTypes}
           onChange={setSelectedCardTypes}
           placeholder="Filter Card Types"

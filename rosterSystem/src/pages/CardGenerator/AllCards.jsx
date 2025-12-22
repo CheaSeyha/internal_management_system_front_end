@@ -482,6 +482,20 @@ function AllCards() {
           />
         </div>
 
+
+        <MultiSelect
+          options={(filterOptions?.cardTypes || []).map((ct) => ({
+            label: ct.card_type,
+            value: ct.card_type,
+            count: ct.count,
+          }))}
+          icon={IdCard}
+          value={selectedCardTypes}
+          onChange={setSelectedCardTypes}
+          placeholder="Filter Card Types"
+          showCount
+        />
+
         <MultiSelect
           options={(filterOptions?.blocks || []).map((b) => ({
             label: b.building,
@@ -496,18 +510,6 @@ function AllCards() {
         />
 
 
-        <MultiSelect
-          options={(filterOptions?.cardTypes || []).map((ct) => ({
-            label: ct.card_type,
-            value: ct.card_type,
-            count: ct.count,
-          }))}
-          icon={IdCard}
-          value={selectedCardTypes}
-          onChange={setSelectedCardTypes}
-          placeholder="Filter Card Types"
-          showCount
-        />
 
 
         <MonthYearPicker value={date} onChange={handleSelectDate} />

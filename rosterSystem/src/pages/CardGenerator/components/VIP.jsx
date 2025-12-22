@@ -217,7 +217,7 @@ function VIP({
             <p className=" absolute top-[290.5px] left-[40px] name-staff font-bold text-[9pt] font-californian-font text-black">
               {id}
             </p>
-            <p className=" absolute top-[274.7px] left-[66px] name-staff font-bold text-[9pt] font-californian-font text-black">
+            <p className=" absolute top-[273.50px] left-[66px] name-staff font-bold text-[9pt] font-californian-font text-black">
               {formattedBlock}
             </p>
             {/* name  */}
@@ -247,7 +247,7 @@ function VIP({
             {/* ISP name  */}
             <p
               ref={ispNameRef}
-              className="absolute top-[274.50px] left-[82px] name-staff font-bold text-[9pt] font-californian-font text-black whitespace-nowrap inline-block"
+              className="absolute top-[273.50px] left-[82px] name-staff font-bold text-[9pt] font-californian-font text-black whitespace-nowrap inline-block"
               style={{
                 transform: `scaleX(${ispScaleX})`,
                 transformOrigin: "left",
@@ -265,7 +265,7 @@ function VIP({
               </p>
             )}
             {/* name  */}
-            <div className="absolute w-full top-[243px] text-center">
+            <div className="absolute w-full top-[245px] text-center">
               <p className="name-staff font-bold text-[10pt] font-californian-font text-black">
                 NAME : {name}
               </p>
@@ -345,7 +345,7 @@ function VIP({
         {/* VIP Card */}
         {normalizedCardType === "vip card" && (
           <main className="vipcard relative scale-[98%] w-[9cm] h-[6cm] text-black  bg-white rounded-br-[20px] rounded-tl-[20px]">
-            <p className="staffcard forBlock absolute text-[12pt] font-luxury-display top-[146px] left-[99px]">
+            <p className="staffcard forBlock absolute text-[12pt] font-luxury-display top-[147px] left-[99px]">
               {name}
             </p>
 

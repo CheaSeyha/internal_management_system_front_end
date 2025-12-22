@@ -43,7 +43,7 @@ export function TeamSwitcher({ teams }) {
                 <span className="truncate text-xs">{activeTeam.plan}</span>
               </div>
               {/* <ChevronsUpDown className="ml-auto" /> */}
-              <p>v1.1.2</p>
+              <p>v1.1.3</p>
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -58,6 +58,9 @@ export function TeamSwitcher({ teams }) {
             <DropdownMenuSeparator />
             <DropdownMenuItem className="gap-2 p-2 grid">
               <div className="mockup-code w-full">
+                <pre data-prefix=">" className="text-success">
+                  <code>Add Filter Blocks And Card Types</code>
+                </pre>
                 <pre data-prefix=">" className="text-success">
                   <code>Update Card Layout tamplet</code>
                 </pre>

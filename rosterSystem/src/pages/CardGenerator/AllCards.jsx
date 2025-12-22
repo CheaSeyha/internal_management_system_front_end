@@ -112,6 +112,8 @@ function AllCards() {
     setDate(date);
     setSelectedBlocks([]);
     setSelectedCardTypes([]);
+    setOriginalGetCards([]); // Reset originals when date changes
+    setOriginalPagination(null);
   };
 
   useEffect(() => {
@@ -154,8 +156,10 @@ function AllCards() {
   const fetchCards = async (page = 1, searchTerm = null) => {
     setLoading(true);
     try {
+      const effectiveSearchTerm = searchTerm !== null ? searchTerm : searchValue;
+
       const payload = {
-        card_name: searchTerm !== null ? searchTerm : searchValue,
+        card_name: effectiveSearchTerm,
         month: date.getMonth() + 1,
         year: date.getFullYear(),
         filterBlocks: selectedBlocks,
@@ -176,8 +180,16 @@ function AllCards() {
         setGetCards(updatedCards);
 
         // store original cards only once (with images if downloaded)
-        if (!originalGetCards.length) {
+        // Update originals if this is a "clean" fetch (page 1, no search, no filters)
+        // This ensures we have a valid cache to restore to.
+        const isCleanFetch =
+          (!effectiveSearchTerm || effectiveSearchTerm === "") &&
+          selectedBlocks.length === 0 &&
+          selectedCardTypes.length === 0;
+
+        if (!originalGetCards.length || isCleanFetch) {
           setOriginalGetCards(updatedCards);
+          setOriginalPagination(response.data.data);
         }
 
         setFilterOptions(response.data.data || {});
@@ -205,6 +217,10 @@ function AllCards() {
     ) {
       setGetCards(originalGetCards);
       setPagination(originalPagination);
+      return;
+    } else if (value.trim() === "") {
+      // If search is cleared but we have filters, we must fetch filtered data
+      fetchCards(1, "");
       return;
     }
 
@@ -443,6 +459,7 @@ function AllCards() {
             className="pl-10"
             value={searchValue}
             onChange={handleSearchChange}
+            onKeyDown={(e) => e.key === "Enter" && fetchCards(1)}
           />
         </div>
 

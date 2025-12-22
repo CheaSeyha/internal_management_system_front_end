@@ -49,7 +49,7 @@ export function MultiSelect({
         <Button
           variant="outline"
           role="combobox"
-          className="w-[200px] justify-between"
+          className="w-[200px] justify-between cursor-pointer"
         >
           <div className="flex items-center truncate">
             <Icon className="mr-2 h-4 w-4 shrink-0 opacity-50" />

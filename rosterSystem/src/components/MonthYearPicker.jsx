@@ -43,18 +43,18 @@ export default function MonthYearPicker({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" className="w-full lg:w-fit justify-between font-normal">
+        <Button variant="outline" className="w-full lg:w-fit justify-between font-normal cursor-pointer">
           <CalendarDays />
 
           {value
             ? value.toLocaleDateString("default", {
-                month: "long",
-                year: "numeric",
-              })
+              month: "long",
+              year: "numeric",
+            })
             : new Date().toLocaleDateString("default", {
-                month: "long",
-                year: "numeric",
-              })}
+              month: "long",
+              year: "numeric",
+            })}
           <ChevronDownIcon className="ml-2 h-4 w-4 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -70,7 +70,7 @@ export default function MonthYearPicker({
               setOpen(false); // 👈 close Popover
             }}
           >
-            <SelectTrigger className="w-32">
+            <SelectTrigger className="w-32 cursor-pointer">
               <SelectValue placeholder="Month" />
             </SelectTrigger>
             <SelectContent>
@@ -93,7 +93,7 @@ export default function MonthYearPicker({
               setOpen(false); // 👈 close Popover
             }}
           >
-            <SelectTrigger className="w-24">
+            <SelectTrigger className="w-24 cursor-pointer">
               <SelectValue placeholder="Year" />
             </SelectTrigger>
             <SelectContent>

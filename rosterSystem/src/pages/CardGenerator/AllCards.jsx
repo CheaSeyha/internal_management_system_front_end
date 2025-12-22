@@ -537,7 +537,7 @@ function AllCards() {
           <Button
             onClick={() => fetchCards(1)}
             variant="ghost"
-            className="absolute left-0 top-0 h-full px-3"
+            className="absolute left-0 top-0 h-full px-3 cursor-pointer"
           >
             <Search className="h-4 w-4 text-gray-500" />
           </Button>
@@ -579,15 +579,12 @@ function AllCards() {
           showCount
         />
 
-
-
-
         <MonthYearPicker value={date} onChange={handleSelectDate} />
 
-        <Button variant="outline" onClick={restart}>
+        <Button variant="outline" onClick={restart} className="cursor-pointer">
           <RotateCcw />
         </Button>
-        <Button variant="outline" onClick={handelChangeViewlayoutTable}>
+        <Button variant="outline" onClick={handelChangeViewlayoutTable} className="cursor-pointer">
           {tableView ? <LayoutList /> : <LayoutGrid />}
         </Button>
         <Button variant="button" onClick={handleCheckDuplicates} className="bg-gradient-to-tr hover:from-blue-500 hover:to-yellow-300 transition-all duration-300 ease-in-out cursor-pointer from-blue-500 to-yellow-600 text-foreground">

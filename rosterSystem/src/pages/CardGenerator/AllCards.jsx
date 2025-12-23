@@ -227,10 +227,22 @@ function AllCards() {
     try {
       const effectiveSearchTerm = searchTerm !== null ? searchTerm : searchValue;
 
-      const response = await axios.get(`card/get_duplicate_cards?page=${page}`);
+      const payload = {
+        card_name: effectiveSearchTerm,
+        month: date.getMonth() + 1,
+        year: date.getFullYear(),
+      };
+
+      console.log("Fetching duplicates with payload:", payload);
+      const response = await axios.post(`card/get_duplicate_cards?page=${page}`, payload);
+      console.log("Duplicate Cards Response:", response.data);
 
       if (response.data?.success) {
-        const cards = response.data.data.data || [];
+        const responseData = response.data.data;
+        // Support both paginated { data: [] } and flat array []
+        const cards = responseData?.data || (Array.isArray(responseData) ? responseData : []);
+
+        console.log("Extracted cards:", cards);
 
         // download images only if tableView is false
         let updatedCards = cards;
@@ -240,9 +252,7 @@ function AllCards() {
 
         setGetCards(updatedCards);
 
-        // store original cards only once (with images if downloaded)
-        // Update originals if this is a "clean" fetch (page 1, no search, no filters)
-        // This ensures we have a valid cache to restore to.
+        // store original cards only once
         const isCleanFetch =
           (!effectiveSearchTerm || effectiveSearchTerm === "") &&
           selectedBlocks.length === 0 &&
@@ -250,26 +260,34 @@ function AllCards() {
 
         if (!originalGetCards.length || isCleanFetch) {
           setOriginalGetCards(updatedCards);
-          setOriginalPagination(response.data.data);
-          console.log("Check Douplicate", originalGetCards);
+          setOriginalPagination(responseData);
         }
 
-        // Cache filtered result if we have filters but no search
-        // This allows restoring the filtered list instantly after clearing a search
+        // Cache filtered result
         const isFilteredBase =
           (!effectiveSearchTerm || effectiveSearchTerm === "") &&
           (selectedBlocks.length > 0 || selectedCardTypes.length > 0);
 
         if (isFilteredBase) {
           setTempFilteredCards(updatedCards);
-          setTempFilteredPagination(response.data.data);
+          setTempFilteredPagination(responseData);
         }
 
-        setFilterOptions(response.data.data || {});
-        setPagination(response.data.data);
+        setFilterOptions(responseData || {});
+
+        // Update pagination state correctly
+        if (responseData && responseData.current_page) {
+          setPagination(responseData);
+        } else {
+          setPagination({
+            current_page: 1,
+            last_page: 1,
+            total: cards.length,
+          });
+        }
       }
     } catch (err) {
-      console.error("Fetch cards error:", err);
+      console.error("Fetch duplicate cards error:", err);
       setGetCards([]);
       setPagination(null);
     } finally {

@@ -42,6 +42,7 @@ import {
   EyeOff,
   RotateCcw,
   LucideTrash2,
+  ArrowUpDown,
 } from "lucide-react";
 import {
   Tooltip,
@@ -79,6 +80,7 @@ export default function CardGenerator() {
   const [editingIndex, setEditingIndex] = useState(null);
   const [noSpace, setNoSpace] = useState(true);
   const [loading, setloading] = useState(false);
+  const [isAutoAlignEnabled, setIsAutoAlignEnabled] = useState(true);
   // Crop State---------------------
   //Hide Card State-----------------------------------------
   const [hideCard, setHideCard] = useState([]);
@@ -1147,6 +1149,35 @@ export default function CardGenerator() {
                 <p>Change Layout</p>
               </TooltipContent>
             </Tooltip>
+
+            {/* Toggle Auto Align */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <label
+                  htmlFor="toggle-auto-align"
+                  className="swap bg-[#ff9900] hover:bg-[#cc7a00] w-[40px] h-[40px] rounded-full active:scale-105 transition-all duration-200"
+                >
+                  <input
+                    id="toggle-auto-align"
+                    type="checkbox"
+                    checked={isAutoAlignEnabled}
+                    onChange={() => setIsAutoAlignEnabled((prev) => !prev)}
+                    className="hidden"
+                  />
+                  {/* swap-on: Visible when checked (Auto Align ON) */}
+                  <div className="swap-on text-white flex items-center justify-center">
+                    <ArrowUpDown size={18} />
+                  </div>
+                  {/* swap-off: Visible when unchecked (Auto Align OFF) */}
+                  <div className="swap-off text-white flex items-center justify-center">
+                    <ArrowUpDown size={18} className="opacity-50" />
+                  </div>
+                </label>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Auto Align All Card Types</p>
+              </TooltipContent>
+            </Tooltip>
             {/*Toggle Hide/Show Card  */}
 
             {/* Show Button When Card Hidden  */}
@@ -1270,52 +1301,59 @@ export default function CardGenerator() {
                         hidden.cardType === entry.cardType
                     )
                 )
-                .map((entry, index) => (
-                  <motion.div
-                    key={entry.id}
-                    layout
-                    initial={{ opacity: 0, y: 40, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -40, scale: 0.95 }}
-                    transition={{
-                      type: "spring",
-                      stiffness: 400,
-                      damping: 30,
-                    }}
-                    className={
-                      entry.cardType === "CAR CARD"
-                        ? "w-full flex justify-center py-4 print:border-y print:border-dashed print:border-blue-600"
-                        : entry.cardType === "VIP CARD"
-                          ? noSpace
-                            ? "-mx-[2.5px] -my-[0.5px]"
-                            : "mx-[0.5px] my-[0.5px]"
-                          : noSpace
-                            ? "-mx-[0.5px] -my-[1.5px]"
-                            : "mx-[0.5px] my-[0.5px]"
-                    }
-
-                    id={`card-${index}`}
-                  >
-                    <VIP
+                .sort((a, b) =>
+                  isAutoAlignEnabled
+                    ? (a.cardType || "").toLowerCase().localeCompare((b.cardType || "").toLowerCase())
+                    : 0
+                )
+                .map((entry, index) => {
+                  const originalIndex = entries.indexOf(entry);
+                  return (
+                    <motion.div
                       key={entry.id}
-                      onRemove={removeEntryByName}
-                      onEdit={handleEdit}
-                      onHideCard={() =>
-                        handelHideCard(entry.id, entry.cardType)
+                      layout
+                      initial={{ opacity: 0, y: 40, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -40, scale: 0.95 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 400,
+                        damping: 30,
+                      }}
+                      className={
+                        entry.cardType === "CAR CARD"
+                          ? "w-full flex justify-center py-4 print:border-y print:border-dashed print:border-blue-600"
+                          : entry.cardType === "VIP CARD"
+                            ? noSpace
+                              ? "-mx-[2.5px] -my-[0.5px]"
+                              : "mx-[0.5px] my-[0.5px]"
+                            : noSpace
+                              ? "-mx-[0.5px] -my-[1.5px]"
+                              : "mx-[0.5px] my-[0.5px]"
                       }
-                      index={index}
-                      block={entry.block}
-                      cardType={entry.cardType}
-                      id={entry.id}
-                      image={entry.imagePreviewUrl}
-                      name={entry.name}
-                      isp_name={entry.isp_name}
-                      isp_position={entry.isp_position}
-                      rolling_link={entry.rolling_link}
-                    />
-                  </motion.div>
-                ))
-            )}
+                      id={`card-${originalIndex}`}
+                    >
+                      <VIP
+                        key={entry.id}
+                        onRemove={removeEntryByName}
+                        onEdit={handleEdit}
+                        onHideCard={() =>
+                          handelHideCard(entry.id, entry.cardType)
+                        }
+                        index={originalIndex}
+                        block={entry.block}
+                        cardType={entry.cardType}
+                        id={entry.id}
+                        image={entry.imagePreviewUrl}
+                        name={entry.name}
+                        isp_name={entry.isp_name}
+                        isp_position={entry.isp_position}
+                        rolling_link={entry.rolling_link}
+                      />
+                    </motion.div>
+                  );
+                }))
+            }
           </AnimatePresence>
         </div>
       </motion.div>

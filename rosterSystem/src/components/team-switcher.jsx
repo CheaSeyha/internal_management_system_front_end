@@ -43,7 +43,7 @@ export function TeamSwitcher({ teams }) {
                 <span className="truncate text-xs">{activeTeam.plan}</span>
               </div>
               {/* <ChevronsUpDown className="ml-auto" /> */}
-              <p>v1.1.3</p>
+              <p>v1.1.4</p>
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -69,6 +69,12 @@ export function TeamSwitcher({ teams }) {
                 </pre>
                 <pre data-prefix=">" className="text-success">
                   <code>Add Roster Form</code>
+                </pre>
+                <pre data-prefix=">" className="text-success">
+                  <code>Imporve Block Select</code>
+                </pre>
+                <pre data-prefix=">" className="text-success">
+                  <code>Cusotm Block Save</code>
                 </pre>
               </div>
             </DropdownMenuItem>

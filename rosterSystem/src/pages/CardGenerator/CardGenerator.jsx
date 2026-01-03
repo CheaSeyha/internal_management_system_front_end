@@ -53,6 +53,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import axios from "../../api/axios";
 import { useCardHook } from "./components/Hook/useCardHook";
 import useISPHook from "../Internet/Hook/useISPHook";
+import BlockSelect from "./components/BlockSelect";
 export default function CardGenerator() {
   const contentRef = useRef(null);
   const reactToPrintFn = useReactToPrint({ contentRef });
@@ -161,7 +162,9 @@ export default function CardGenerator() {
     const room = roomParts.join("-"); // room can contain dashes now
 
     setCurrentEntry((prev) => {
+      // Create a shallow copy of the blocks array
       const updatedBlocks = [...(prev.block || [])];
+
       const buildingIndex = updatedBlocks.findIndex(
         (b) => b.building === building
       );
@@ -171,17 +174,22 @@ export default function CardGenerator() {
         if (buildingIndex === -1) {
           updatedBlocks.push({ building, rooms: [] });
         } else {
-          updatedBlocks[buildingIndex].rooms = [];
+          // Update existing building to verify 'all rooms' selection
+          // Create a new object for this building
+          updatedBlocks[buildingIndex] = { ...updatedBlocks[buildingIndex], rooms: [] };
         }
       } else {
         // Select a specific room
         if (buildingIndex === -1) {
           updatedBlocks.push({ building, rooms: [room] });
         } else {
-          const rooms = updatedBlocks[buildingIndex].rooms;
+          const existingBuilding = updatedBlocks[buildingIndex];
+          const rooms = [...existingBuilding.rooms]; // Copy rooms array
+
           if (!rooms.includes(room)) {
             rooms.push(room);
-            updatedBlocks[buildingIndex].rooms = rooms;
+            // Update the building with the new rooms array
+            updatedBlocks[buildingIndex] = { ...existingBuilding, rooms: rooms };
           }
         }
       }
@@ -199,7 +207,12 @@ export default function CardGenerator() {
         .map((b) => {
           if (b.building !== building) return b;
           if (!room) return null; // remove entire building
-          return { ...b, rooms: b.rooms.filter((r) => r !== room) };
+
+          const newRooms = b.rooms.filter((r) => r !== room);
+          // If no rooms left, remove the building entry entirely to avoid switching to "Select Whole Building" mode
+          if (newRooms.length === 0) return null;
+
+          return { ...b, rooms: newRooms };
         })
         .filter(Boolean);
       return { ...prev, block: updatedBlocks };
@@ -819,7 +832,7 @@ export default function CardGenerator() {
               {/* Card Naem  */}
               <div className="form-control">
                 <label htmlFor="name" className="label">
-                  <span className="label-text">
+                  <span className="label-text mb-2">
                     {currentEntry.cardType === "CAR CARD"
                       ? "Plate Number"
                       : "Name"}
@@ -840,218 +853,79 @@ export default function CardGenerator() {
               {/* check if rolling user can skip select block  */}
               {(currentEntry.cardType !== "ISP" && currentEntry.cardType !== "ROLLING") ? (
                 <>
-                  <div className="form-control">
-                    <label className="label flex flex-col items-start">
-                      <span className="label-text mb-1">Select Blocks</span>
+                  <BlockSelect
+                    blocks={blocks}
+                    onSelect={handleAddBlock}
+                    onRemove={handleRemoveBlock}
+                    selectedBlocks={currentEntry.block}
+                  />
+                </>
+              ) :
+                currentEntry.cardType === "ISP" ? (
+                  <>
+                    <div className="form-control">
+                      <label className="label">
+                        <span className="label-text">Select ISP</span>
+                      </label>
                       <Select
-                        name="blockselection"
-                        value={undefined} // multi-select placeholder
-                        onValueChange={handleAddBlock}
+                        name="isp_name"
+                        value={currentEntry.isp_name || ""}
+                        onValueChange={(value) =>
+                          setCurrentEntry((prev) => ({ ...prev, isp_name: value }))
+                        }
                       >
-                        <SelectTrigger className="w-full cursor-pointer">
-                          <SelectValue placeholder="Select a block or room" />
+                        <SelectTrigger className="w-full bg-white text-black dark:text-white border border-gray-300 dark:border-gray-700">
+                          <SelectValue placeholder="Select ISP" />
                         </SelectTrigger>
-
                         <SelectContent>
-                          <Command className="flex flex-col">
-                            <div className="relative">
-                              <CommandInput
-                                value={searchText}
-                                onValueChange={(val) => setSearchText(val)}
-                                placeholder="Search blocks..."
-                                className="w-10/12 pr-12 sticky top-0 z-10"
-                              />
-
-                              <button
-                                onClick={() => {
-                                  setSearchText(""); // clear search
-                                  fetchBlocks(); // refresh logic
-                                }}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 flex items-center justify-center 
-               transition-transform duration-150 ease-in-out
-               active:scale-90" // 🔥 scales button on click
-                              >
-                                <RotateCcw className="w-4 h-4" />
-                              </button>
-                            </div>
-
-                            <CommandEmpty>No block found.</CommandEmpty>
-
-                            <ScrollArea className="h-60 w-full">
-                              <div className="p-1">
-                                {blocks.map((block) => {
-                                  // Check if building fully selected
-                                  const buildingEntry = (
-                                    Array.isArray(currentEntry.block)
-                                      ? currentEntry.block
-                                      : []
-                                  ).find((b) => b.building === block.building);
-
-                                  const buildingFullySelected =
-                                    buildingEntry &&
-                                    buildingEntry.rooms.length === 0;
-
-                                  // Filter rooms that are not selected yet
-                                  const remainingRooms =
-                                    buildingEntry?.rooms?.length > 0
-                                      ? block.room.filter(
-                                        (r) => !buildingEntry.rooms.includes(r)
-                                      )
-                                      : buildingEntry
-                                        ? []
-                                        : block.room;
-
-                                  // Hide building if fully selected or all rooms are selected
-                                  const hideBuilding =
-                                    buildingFullySelected ||
-                                    (block.room.length > 0 &&
-                                      remainingRooms.length === 0);
-
-                                  return (
-                                    <CommandGroup key={block.building}>
-                                      {/* Building */}
-                                      {!hideBuilding && (
-                                        <CommandItem
-                                          value={block.building}
-                                          onSelect={handleAddBlock}
-                                          className="font-semibold cursor-pointer"
-                                        >
-                                          {block.building}
-                                        </CommandItem>
-                                      )}
-
-                                      {/* Rooms */}
-                                      {remainingRooms.map((roomName) => (
-                                        <CommandItem
-                                          key={`${block.building}-${roomName}`}
-                                          value={`${block.building}-${roomName}`}
-                                          onSelect={handleAddBlock}
-                                          className="pl-4 cursor-pointer"
-                                        >
-                                          {roomName}
-                                        </CommandItem>
-                                      ))}
-                                    </CommandGroup>
-                                  );
-                                })}
-                              </div>
-                            </ScrollArea>
-                          </Command>
+                          <SelectGroup>
+                            {isps.map((isp) => (
+                              <SelectItem key={isp.id} value={isp.isp_name} className="cursor-pointer">
+                                {isp.isp_name}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
                         </SelectContent>
                       </Select>
-                    </label>
-
-                    {/* Preview selected blocks */}
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {Array.isArray(currentEntry.block) &&
-                        currentEntry.block.map((b) => (
-                          <React.Fragment key={b.building}>
-                            {b.rooms.length === 0 ? (
-                              <Button
-                                onClick={() => handleRemoveBlock(b.building)}
-                                variant="outline"
-                                className="btn px-3 py-1 rounded flex items-center gap-2 hover:bg-red-600"
-                              >
-                                <span>{b.building}</span>
-                              </Button>
-                            ) : (
-                              b.rooms.map((room) => (
-                                <Button
-                                  key={`${b.building}-${room}`}
-                                  onClick={() =>
-                                    handleRemoveBlock(b.building, room)
-                                  }
-                                  variant="outline"
-                                  className="btn px-3 py-1 rounded flex items-center gap-2 hover:bg-red-600"
-                                >
-                                  <span>{`${b.building}-${room}`}</span>
-                                </Button>
-                              ))
-                            )}
-                          </React.Fragment>
-                        ))}
                     </div>
-                  </div>
 
-                  {/* Check keep block the same */}
-                  <div className="flex justify-end w-full gap-3">
-                    <Label htmlFor="terms" className="text-gray-400">
-                      Keep Same Blocks
-                    </Label>
-                    <Checkbox
-                      id="terms"
-                      checked={keepSameBlocks}
-                      onCheckedChange={(value) => {
-                        setKeepSameBlocks(value === true); // store boolean
-                      }}
-                    />
-                  </div>
-                </>
-              ) : currentEntry.cardType === "ISP" ? (
-                <>
+                    <div className="form-control">
+                      <label className="label">
+                        <span className="label-text">ISP Position</span>
+                      </label>
+                      <Input
+                        name="isp_position"
+                        value={currentEntry.isp_position || ""}
+                        onChange={handleInputChange}
+                        placeholder="Position"
+                        className="input input-bordered w-full"
+                        list="isp-positions"
+                      />
+                      <datalist id="isp-positions">
+                        <option value="Sale" />
+                        <option value="Fiber" />
+                        <option value="IT Support" />
+                      </datalist>
+                    </div>
+                  </>
+                ) : currentEntry.cardType === "ROLLING" ? (
                   <div className="form-control">
                     <label className="label">
-                      <span className="label-text">Select ISP</span>
-                    </label>
-                    <Select
-                      name="isp_name"
-                      value={currentEntry.isp_name || ""}
-                      onValueChange={(value) =>
-                        setCurrentEntry((prev) => ({ ...prev, isp_name: value }))
-                      }
-                    >
-                      <SelectTrigger className="w-full bg-white text-black dark:text-white border border-gray-300 dark:border-gray-700">
-                        <SelectValue placeholder="Select ISP" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          {isps.map((isp) => (
-                            <SelectItem key={isp.id} value={isp.isp_name} className="cursor-pointer">
-                              {isp.isp_name}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">ISP Position</span>
+                      <span className="label-text">Link</span>
                     </label>
                     <Input
-                      name="isp_position"
-                      value={currentEntry.isp_position || ""}
+                      name="rolling_link"
+                      value={currentEntry.rolling_link || ""}
                       onChange={handleInputChange}
-                      placeholder="Position"
+                      placeholder="Enter link for rolling"
                       className="input input-bordered w-full"
-                      list="isp-positions"
                     />
-                    <datalist id="isp-positions">
-                      <option value="Sale" />
-                      <option value="Fiber" />
-                      <option value="IT Support" />
-                    </datalist>
                   </div>
-                </>
-              ) : currentEntry.cardType === "ROLLING" ? (
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text">Link</span>
-                  </label>
-                  <Input
-                    name="rolling_link"
-                    value={currentEntry.rolling_link || ""}
-                    onChange={handleInputChange}
-                    placeholder="Enter link for rolling"
-                    className="input input-bordered w-full"
-                  />
-                </div>
-              ) : (
-                <>
-                  <p>Generic Card - No additional fields</p>
-                </>
-              )}
+                ) : (
+                  <>
+                    <p>Generic Card - No additional fields</p>
+                  </>
+                )}
               {/* button for save card or update card  */}
               <Button
                 type="submit"

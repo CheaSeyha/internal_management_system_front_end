@@ -859,6 +859,19 @@ export default function CardGenerator() {
                     onRemove={handleRemoveBlock}
                     selectedBlocks={currentEntry.block}
                   />
+                  {/* Check keep block the same */}
+                  <div className="flex justify-end w-full gap-3">
+                    <Label htmlFor="terms" className="text-gray-400">
+                      Keep Same Blocks
+                    </Label>
+                    <Checkbox
+                      id="terms"
+                      checked={keepSameBlocks}
+                      onCheckedChange={(value) => {
+                        setKeepSameBlocks(value === true); // store boolean
+                      }}
+                    />
+                  </div>
                 </>
               ) :
                 currentEntry.cardType === "ISP" ? (

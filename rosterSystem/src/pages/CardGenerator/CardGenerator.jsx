@@ -7,21 +7,9 @@ import { Button } from "@/components/ui/button";
 import { useReactToPrint } from "react-to-print";
 import { toPng, toJpeg } from "html-to-image";
 import { toast } from "sonner";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import {
-  Command,
-  CommandDialog,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-  CommandShortcut,
-} from "@/components/ui/command";
 import {
   Select,
   SelectTrigger,
@@ -94,7 +82,6 @@ export default function CardGenerator() {
   const [hideCard, setHideCard] = useState([]);
   const [showCardHidden, setShowCardHidden] = useState(false);
   const [ready, setReady] = useState(false); //for select card type logic ro render when fetch data done
-  const [searchText, setSearchText] = useState(""); // for search box in select blocks
 
   //Hide Card State-----------------------------------------
   const [keepSameBlocks, setKeepSameBlocks] = useState(false); //for store block the same when add new card
@@ -162,8 +149,6 @@ export default function CardGenerator() {
     fetchISPs();
   }, []);
 
-  const [selectedBlocks, setSelectedBlocks] = useState([]);
-
   const handleAddBlock = (value) => {
     const [building, ...roomParts] = value.split("-");
     const room = roomParts.join("-"); // room can contain dashes now
@@ -204,7 +189,6 @@ export default function CardGenerator() {
       return { ...prev, block: updatedBlocks };
     });
 
-    setSearchText("");
     setTimeout(() => searchInputRef.current?.focus(), 0);
   };
 
@@ -225,10 +209,6 @@ export default function CardGenerator() {
       return { ...prev, block: updatedBlocks };
     });
   };
-
-  const availableBlocks = blocks
-    .map((b) => b.building)
-    .filter((name) => !selectedBlocks.includes(name));
 
   const [changeLayout, setLayout] = useState(() => {
     const saved = localStorage.getItem("cardgen-layout");
@@ -253,7 +233,7 @@ export default function CardGenerator() {
       const height = element.offsetHeight;
 
       // Scale up for better quality (2x or 3x)
-      const scale = 2;
+      const scale = 1;
 
       const dataUrl = await toPng(element, {
         width: width * scale,
@@ -440,7 +420,7 @@ export default function CardGenerator() {
               headers: { "Content-Type": "multipart/form-data" },
             });
 
-            const getCardID = res.data.data.card_type_id;
+            const getCardID = res.data.data.id || res.data.data.card_id || res.data.data.card_type_id;
             const entryWithID = { ...entryToAdd, id: getCardID };
 
             setEntries((prev) => [...prev, entryWithID]);
@@ -467,7 +447,7 @@ export default function CardGenerator() {
           headers: { "Content-Type": "multipart/form-data" },
         });
 
-        const getCardID = res.data.data.card_type_id;
+        const getCardID = res.data.data.id || res.data.data.card_id || res.data.data.card_type_id;
         const entryWithID = { ...entryToAdd, id: getCardID };
 
         setEntries((prev) => [...prev, entryWithID]);
@@ -492,10 +472,6 @@ export default function CardGenerator() {
         imagePreviewUrl: null,
       });
 
-      // also clear the selected blocks state if not keeping them
-      if (!keepSameBlocks) {
-        setSelectedBlocks([]);
-      }
     }
   };
 
@@ -936,6 +912,7 @@ export default function CardGenerator() {
                       </label>
                       <Input
                         name="isp_position"
+                        id="isp_position"
                         value={currentEntry.isp_position || ""}
                         onChange={handleInputChange}
                         placeholder="Position"
@@ -956,6 +933,7 @@ export default function CardGenerator() {
                     </label>
                     <Input
                       name="rolling_link"
+                      id="rolling_link"
                       value={currentEntry.rolling_link || ""}
                       onChange={handleInputChange}
                       placeholder="Enter link for rolling"
@@ -1169,7 +1147,7 @@ export default function CardGenerator() {
               ) : (
                 hideCard.map((entry, index) => (
                   <motion.div
-                    key={entry.id}
+                    key={`${entry.id}-${index}`}
                     layout
                     initial={{ opacity: 0, y: 40, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -1225,7 +1203,7 @@ export default function CardGenerator() {
                   const originalIndex = entries.indexOf(entry);
                   return (
                     <motion.div
-                      key={entry.id}
+                      key={`${entry.id}-${index}`}
                       layout
                       initial={{ opacity: 0, y: 40, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}

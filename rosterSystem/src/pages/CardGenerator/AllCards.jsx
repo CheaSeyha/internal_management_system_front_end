@@ -78,6 +78,8 @@ function AllCards() {
   const [duplicatePagination, setDuplicatePagination] = React.useState(null);
 
 
+  const [isDuplicateMode, setIsDuplicateMode] = useState(false);
+
   // Initialize from localStorage, fallback to false
   // Initialize tableView from localStorage (default false)
   const [tableView, setTableView] = useState(() => {
@@ -148,7 +150,11 @@ function AllCards() {
             isActive={p === current_page}
             onClick={(e) => {
               e.preventDefault();
-              fetchCards(p);
+              if (isDuplicateMode) {
+                fetchDuplicateCards(p);
+              } else {
+                fetchCards(p);
+              }
             }}
           >
             {p}
@@ -160,6 +166,7 @@ function AllCards() {
 
   // fetchCards
   const fetchCards = async (page = 1, searchTerm = null) => {
+    setIsDuplicateMode(false);
     setLoading(true);
     try {
       const effectiveSearchTerm = searchTerm !== null ? searchTerm : searchValue;
@@ -296,10 +303,9 @@ function AllCards() {
   };
 
   const handleCheckDuplicates = () => {
+    setIsDuplicateMode(true);
     // Reset current cards if needed
     setGetCards([]);
-    setPagination(null);
-
     // Fetch duplicate cards, page 1
     fetchDuplicateCards(1);
   };

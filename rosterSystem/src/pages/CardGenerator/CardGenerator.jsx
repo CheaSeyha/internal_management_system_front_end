@@ -867,6 +867,7 @@ export default function CardGenerator() {
                     onSelect={handleAddBlock}
                     onRemove={handleRemoveBlock}
                     selectedBlocks={currentEntry.block}
+                    onRefresh={fetchBlocks}
                   />
                   {/* Check keep block the same */}
                   <div className="flex justify-end w-full gap-3">

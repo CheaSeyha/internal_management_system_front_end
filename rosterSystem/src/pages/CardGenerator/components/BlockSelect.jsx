@@ -10,8 +10,9 @@ import {
 import { useState, useMemo, useEffect } from "react"
 import { X, Plus, Trash2 } from "lucide-react"
 import { toast } from "sonner"
+import AddBlock from "./AddBlock"
 
-export default function BlockSelect({ blocks = [], onSelect, onRemove, selectedBlocks = [] }) {
+export default function BlockSelect({ blocks = [], onSelect, onRemove, selectedBlocks = [], onRefresh }) {
     const [search, setSearch] = useState("");
     const [view, setView] = useState("all"); // 'all' or 'custom'
     const [customGroups, setCustomGroups] = useState(() => {
@@ -188,13 +189,16 @@ export default function BlockSelect({ blocks = [], onSelect, onRemove, selectedB
                     </div>
 
                     {view === 'all' && (
-                        <Input
-                            autoFocus
-                            placeholder="Search blocks..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="h-8"
-                        />
+                        <div className="flex items-center">
+                            <Input
+                                autoFocus
+                                placeholder="Search blocks..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="h-8"
+                            />
+                            <AddBlock onRefresh={onRefresh} buildings={blocks} />
+                        </div>
                     )}
                 </div>
 

@@ -189,6 +189,7 @@ export default function BlockSelect({ blocks = [], onSelect, onRemove, selectedB
 
                     {view === 'all' && (
                         <Input
+                            autoFocus
                             placeholder="Search blocks..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}

@@ -43,6 +43,13 @@ import {
   RotateCcw,
   LucideTrash2,
   ArrowUpDown,
+  UserRound,
+  Car,
+  Crown,
+  HardHat,
+  PackageOpen,
+  Repeat,
+  Wifi,
 } from "lucide-react";
 import {
   Tooltip,
@@ -370,9 +377,15 @@ export default function CardGenerator() {
       }
     }
 
-    if (currentEntry.cardType.toLocaleLowerCase() === "isp" && (currentEntry.isp_name === "" || currentEntry.isp_position === "")) {
-      toast.error("Please Select ISP Name and Position...");
-      return;
+    if (currentEntry.cardType.toLowerCase() === "isp") {
+      if (!currentEntry.isp_name || currentEntry.isp_name.trim() === "") {
+        toast.error("Please Select ISP Name");
+        return;
+      }
+      if (!currentEntry.isp_position || currentEntry.isp_position.trim() === "") {
+        toast.error("Please Enter ISP Position");
+        return;
+      }
     }
 
     if (currentEntry.cardType.toLocaleLowerCase() === "rolling" || currentEntry.cardType.toLocaleLowerCase() === "isp") {
@@ -814,22 +827,37 @@ export default function CardGenerator() {
 
                     <SelectContent className="text-black dark:text-white">
                       <SelectGroup>
-                        {cardTypes.map((card) => (
-                          <SelectItem
-                            key={card.card_type}
-                            value={card.card_type}
-                            className="cursor-pointer hover:bg-gray-100 focus:bg-gray-200 dark:hover:bg-gray-700 dark:focus:bg-gray-600"
-                          >
-                            {card.card_type}
-                          </SelectItem>
-                        ))}
+                        {cardTypes.map((card) => {
+                          const IconComponent = {
+                            "STAFF": UserRound,
+                            "CAR CARD": Car,
+                            "VIP CARD": Crown,
+                            "CONSTRUCTION": HardHat,
+                            "DELIVERY": PackageOpen,
+                            "ROLLING": Repeat,
+                            "ISP": Wifi
+                          }[card.card_type] || UserRound;
+
+                          return (
+                            <SelectItem
+                              key={card.card_type}
+                              value={card.card_type}
+                              className="cursor-pointer hover:bg-gray-100 focus:bg-gray-200 dark:hover:bg-gray-700 dark:focus:bg-gray-600"
+                            >
+                              <div className="flex items-center gap-2">
+                                <IconComponent className="w-4 h-4" />
+                                {card.card_type}
+                              </div>
+                            </SelectItem>
+                          );
+                        })}
                       </SelectGroup>
                     </SelectContent>
                   </Select>
                 </label>
               </div>
 
-              {/* Card Naem  */}
+              {/* Card Name  */}
               <div className="form-control">
                 <label htmlFor="name" className="label">
                   <span className="label-text mb-2">

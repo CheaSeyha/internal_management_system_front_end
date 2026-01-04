@@ -851,6 +851,11 @@ export default function CardGenerator() {
                   className="input input-bordered w-full"
                   required
                   ref={nameInputRef}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleSubmit(e);
+                    }
+                  }}
                 />
               </div>
               {/* Block select  */}
@@ -1215,13 +1220,13 @@ export default function CardGenerator() {
                       }}
                       className={
                         entry.cardType === "CAR CARD"
-                          ? "w-full flex justify-center py-4 print:border-y print:border-dashed print:border-blue-600"
+                          ? "w-full flex justify-center py-5 print:border-y print:border-dashed print:border-blue-600"
                           : entry.cardType === "VIP CARD"
                             ? noSpace
-                              ? "-mx-[2.5px] -my-[0.5px]"
+                              ? "-mx-[2.7px] -my-[1px]"
                               : "mx-[0.5px] my-[0.5px]"
                             : noSpace
-                              ? "-mx-[0.5px] -my-[1.5px]"
+                              ? "-mx-[1.3px] -my-[2.5px]"
                               : "mx-[0.5px] my-[0.5px]"
                       }
                       id={`card-${originalIndex}`}

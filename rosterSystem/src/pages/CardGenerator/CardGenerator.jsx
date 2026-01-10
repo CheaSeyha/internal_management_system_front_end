@@ -403,7 +403,6 @@ export default function CardGenerator() {
       if (editingIndex !== null) {
         // Edit existing card
         const originalCard = entries[editingIndex];
-        setSelectedBlocks(originalCard.block || []);
 
         const isTypeChanged = currentEntry.cardType !== originalCard.cardType;
 
@@ -428,6 +427,7 @@ export default function CardGenerator() {
           }
         } else {
           // Same type: update card
+          console.log(originalCard);
           await axios.post(
             `/card/edit/${originalCard.id}/${currentEntry.cardType}`,
             formData,
@@ -447,16 +447,15 @@ export default function CardGenerator() {
           headers: { "Content-Type": "multipart/form-data" },
         });
 
-        const getCardID = res.data.data.id || res.data.data.card_id || res.data.data.card_type_id;
+        const getCardID = res.data.data.card_type_id;
         const entryWithID = { ...entryToAdd, id: getCardID };
-
+        console.log(res);
         setEntries((prev) => [...prev, entryWithID]);
         toast.success("Card added successfully!");
       }
     } catch (error) {
-      toast.error("Failed to save card!", {
-        description: error.response.data.errors.card_type,
-      });
+      toast.error("Failed to save card!");
+      console.log(error);
     } finally {
       setloading(false);
 
@@ -491,8 +490,6 @@ export default function CardGenerator() {
       imageFile: null,
       imagePreviewUrl: null,
     });
-
-    setSelectedBlocks([]);
   };
 
   const handleEdit = (index) => {
@@ -509,8 +506,6 @@ export default function CardGenerator() {
       : card.block
         ? JSON.parse(card.block)
         : [];
-
-    setSelectedBlocks(blocks);
 
     setCurrentEntry({
       ...card,

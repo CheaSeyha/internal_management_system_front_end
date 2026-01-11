@@ -419,7 +419,7 @@ export default function CardGenerator() {
               headers: { "Content-Type": "multipart/form-data" },
             });
 
-            const getCardID = res.data.data.id || res.data.data.card_id || res.data.data.card_type_id;
+            const getCardID = res.data.data.card_type_id;
             const entryWithID = { ...entryToAdd, id: getCardID };
 
             setEntries((prev) => [...prev, entryWithID]);

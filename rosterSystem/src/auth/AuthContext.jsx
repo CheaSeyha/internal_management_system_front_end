@@ -1,4 +1,6 @@
+import axios from "../api/axios";
 import { createContext, useContext, useState, useEffect } from "react";
+import { toast } from "sonner";
 
 const AuthContext = createContext();
 
@@ -8,36 +10,36 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true); // Add loading state
 
+
+  const fetchUser = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get("/user");
+      if (res.status === 200) {
+        setUser(res.data.data);
+        console.log(res.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      toast.error("Failed to fetch user", {
+        description: error.response?.data?.message || error.message,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   // Load user from storage on initial render
   useEffect(() => {
-    const loadUser = () => {
-      const savedUser =
-        localStorage.getItem("user") || sessionStorage.getItem("user");
-      const savedToken =
-        localStorage.getItem("access_token") ||
-        sessionStorage.getItem("access_token");
-
-      if (savedUser && savedToken) {
-        try {
-          setUser(JSON.parse(savedUser));
-        } catch (error) {
-          console.error("Failed to parse user:", error);
-          // Clear invalid data
-          localStorage.removeItem("user");
-          sessionStorage.removeItem("user");
-        }
-      }
-      setLoading(false); // Mark loading as complete
-    };
-
-    loadUser();
+    fetchUser();
   }, []);
 
   const login = (user, access_token, rememberMe = false) => {
     const storage = rememberMe ? localStorage : sessionStorage;
 
     // Always stringify before storing
-    storage.setItem("user", JSON.stringify(user));
+    // storage.setItem("user", JSON.stringify(user));
     storage.setItem("access_token", access_token);
     setUser(user);
   };

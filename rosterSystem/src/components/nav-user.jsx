@@ -32,33 +32,21 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { set } from "zod";
 
-export function NavUser({ user }) {
+export function NavUser({ user: userProp }) {
   const { isMobile } = useSidebar();
-  const { logout } = useAuth();
-  const [userInfo, setUserInfo] = useState(() => {
-    // Try localStorage first
-    const savedUserLocal = localStorage.getItem("user");
-    if (savedUserLocal) {
-      const userData = JSON.parse(savedUserLocal);
-      // Ensure full URL for avatar
-      userData.avatar = userData.profile_image
-        ? `http://10.10.200.54:8080${userData.profile_image}`
-        : null;
-      return userData;
-    }
+  const { logout, user } = useAuth();
+  const [userInfo, setUserInfo] = useState(user);
 
-    // Fallback to sessionStorage
-    const savedUserSession = sessionStorage.getItem("user");
-    if (savedUserSession) {
-      const userData = JSON.parse(savedUserSession);
-      userData.avatar = userData.profile_image
-        ? `http://10.10.200.54:8080${userData.profile_image}`
-        : null;
-      return userData;
+  useEffect(() => {
+    if (user) {
+      setUserInfo({
+        ...user,
+        avatar: user.profile_image
+          ? import.meta.env.VITE_API_IMAGE_URL + user.profile_image
+          : null,
+      });
     }
-
-    return null;
-  });
+  }, [user]);
 
   const [loading, setLoading] = useState(false); // loading state
   const navigate = useNavigate();
@@ -137,9 +125,8 @@ export function NavUser({ user }) {
               className="cursor-pointer flex items-center gap-2"
             >
               <LogOut
-                className={`transition-opacity ${
-                  loading ? "opacity-50" : "opacity-100"
-                }`}
+                className={`transition-opacity ${loading ? "opacity-50" : "opacity-100"
+                  }`}
               />
               {loading ? (
                 <>

@@ -4,9 +4,9 @@ import {
   IdCard,
   HouseWifi,
   University,
+  Users
 } from "lucide-react";
-
-export const data = {
+export const getSidebarData = (user) => ({
   user: {
     name: "RONAL PLAOK",
     email: "plaokNalDo235@plaok.com",
@@ -43,6 +43,16 @@ export const data = {
       ],
     },
     {
+      title: "User Manage",
+      url: "user-manage",
+      icon: Users,
+      isActive: false,
+      roles: [1, 2], // 👈 Super Admin & Admin only
+      items: [
+        { title: "All Users", url: "all-users" },
+      ],
+    },
+    {
       title: "Internet",
       url: "internet",
       icon: HouseWifi,
@@ -53,4 +63,4 @@ export const data = {
       ],
     },
   ],
-};
+});

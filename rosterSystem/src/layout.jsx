@@ -4,7 +4,9 @@ import { AppSidebar } from "./components/app-sidebar";
 import { Outlet, useLocation } from "react-router-dom";
 import { DarkModeToggle } from "./components/DarkModeToggle";
 import { WalletCards } from "lucide-react"; // keep as fallback
-import { data } from "./data/sidebar_data";
+import { getSidebarData } from "./data/sidebar_data";
+
+const data = getSidebarData();
 
 export default function Layout() {
   const location = useLocation();

@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation, Outlet } from "react-router-dom";
 import Layout from "./layout";
 import { ThemeProvider } from "./components/theme-provider";
 import { AnimatePresence } from "framer-motion";
@@ -14,6 +14,7 @@ import ProtectedRoute from "./auth/ProtectedRoute";
 import NotFoundPage from "./pages/NotFoundPage";
 import BuildingRoom from "./pages/Blocks/BuildingRoom";
 import CardSummary from "./pages/CardGenerator/CardSummary";
+import UserPage from "./pages/UserManage/UserPage";
 function App() {
   const location = useLocation(); // Get the current location
 
@@ -76,6 +77,49 @@ function App() {
                 element={
                   <AnimatedPage>
                     <AllCustomer />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="all-isp"
+                element={
+                  <AnimatedPage>
+                    <AllISP />
+                  </AnimatedPage>
+                }
+              />
+            </Route>
+            <Route path="internet">
+              <Route
+                path="all-customers"
+                element={
+                  <AnimatedPage>
+                    <AllCustomer />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="all-isp"
+                element={
+                  <AnimatedPage>
+                    <AllISP />
+                  </AnimatedPage>
+                }
+              />
+            </Route>
+            <Route
+              path="user-manage"
+              element={
+                <ProtectedRoute allowedRoles={[1, 2]}>
+                  <Outlet />
+                </ProtectedRoute>
+              }
+            >
+              <Route
+                path="all-users"
+                element={
+                  <AnimatedPage>
+                    <UserPage />
                   </AnimatedPage>
                 }
               />

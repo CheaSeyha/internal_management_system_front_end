@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import Cropper from "react-easy-crop";
 import { getCroppedImg } from "../../utils/cropImage";
+import { downloadCardImages } from "../../utils/donwloadCardImage";
 import VIP from "./components/VIP";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { toast } from "sonner";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import CardPreview2026 from "./components/CardPreview2026";
 import {
   Select,
   SelectTrigger,
@@ -44,6 +46,17 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "../../api/axios";
 import { useCardHook } from "./components/Hook/useCardHook";
@@ -129,6 +142,45 @@ export default function CardGenerator() {
     setHideCard([]);
   };
   const [blocks, setBlocks] = useState([]);
+
+  // Duplicate Dialog State
+  const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
+  const [duplicateCardInfo, setDuplicateCardInfo] = useState(null);
+  const [pendingCreateData, setPendingCreateData] = useState(null);
+
+  const executeCreateCard = async (formData, entryToAdd) => {
+    try {
+      setloading(true);
+      const res = await axios.post("/create_card", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      const getCardID = res.data.data.card_type_id;
+      const entryWithID = { ...entryToAdd, id: getCardID };
+
+      setEntries((prev) => [...prev, entryWithID]);
+      toast.success("Card added successfully!");
+    } catch (error) {
+      toast.error("Failed to save card!");
+      console.log(error);
+    } finally {
+      setloading(false);
+      setDuplicateDialogOpen(false);
+      setPendingCreateData(null);
+
+      setCurrentEntry((prev) => ({
+        name: "",
+        block: keepSameBlocks ? [...prev.block] : [],
+        id: "",
+        cardType: prev.cardType,
+        isp_name: prev.isp_name,
+        isp_position: "",
+        rolling_link: "",
+        imageFile: null,
+        imagePreviewUrl: null,
+      }));
+    }
+  };
 
   const fetchBlocks = async () => {
     try {
@@ -442,35 +494,65 @@ export default function CardGenerator() {
 
         setEditingIndex(null);
       } else {
-        // Create new card
-        const res = await axios.post("/create_card", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
 
-        const getCardID = res.data.data.card_type_id;
-        const entryWithID = { ...entryToAdd, id: getCardID };
-        console.log(res);
-        setEntries((prev) => [...prev, entryWithID]);
-        toast.success("Card added successfully!");
+        // Create new card
+        let isDuplicate = false;
+        try {
+          const res = await axios.get("/check_card_exist", {
+            params: {
+              card_name: currentEntry.name,
+              card_type: currentEntry.cardType,
+              block: JSON.stringify(currentEntry.block), // if backend expects json
+              isp_name: currentEntry.isp_name,
+              isp_position: currentEntry.isp_position,
+              link: currentEntry.rolling_link,
+            },
+          });
+
+          if (res.data.data) {
+            try {
+              let duplicateData = { ...res.data.data };
+              // Map profile_image to profile_image_url for the utility to work
+              if (duplicateData.profile_image && !duplicateData.profile_image_url) {
+                duplicateData.profile_image_url = duplicateData.profile_image;
+              }
+
+              const processedCards = await downloadCardImages([duplicateData]);
+              setDuplicateCardInfo(processedCards[0]);
+            } catch (downloadErr) {
+              console.error("Error downloading duplicate card image", downloadErr);
+              setDuplicateCardInfo(res.data.data); // Fallback to original
+            }
+
+            setPendingCreateData({ formData, entryToAdd });
+            setDuplicateDialogOpen(true);
+            setloading(false);
+            isDuplicate = true;
+          }
+        } catch (checkError) {
+          // If 404 or "Card not found", it's not a duplicate, continue to create
+          if (checkError.response && checkError.response.status === 404) {
+            // Not duplicate, proceed
+          } else if (checkError.response && checkError.response.data && checkError.response.data.success === false) {
+            // Not duplicate, proceed
+          } else {
+            console.error("Duplicate check error", checkError);
+            // Optional: decide if we should block creation or warn. 
+            // For now, let's assume if check fails we might still want to try creating or just log it.
+            // But to be safe, if it's a real error (500), we probably shouldn't proceed blindly? 
+            // User request implies "if not found then can let user create".
+            // So default path is proceed unless confirmed duplicate.
+          }
+        }
+
+        if (!isDuplicate) {
+          await executeCreateCard(formData, entryToAdd);
+        }
       }
     } catch (error) {
       toast.error("Failed to save card!");
       console.log(error);
-    } finally {
       setloading(false);
-
-      setCurrentEntry({
-        name: "",
-        block: keepSameBlocks ? [...currentEntry.block] : [],
-        id: "",
-        cardType: currentEntry.cardType,
-        isp_name: currentEntry.isp_name,
-        isp_position: "",
-        rolling_link: "",
-        imageFile: null,
-        imagePreviewUrl: null,
-      });
-
     }
   };
 
@@ -1251,6 +1333,54 @@ export default function CardGenerator() {
           </AnimatePresence>
         </div>
       </motion.div>
+      <AlertDialog open={duplicateDialogOpen} onOpenChange={setDuplicateDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Duplicate Card Found</AlertDialogTitle>
+
+            {duplicateCardInfo && (
+              <>
+                <AlertDialogDescription asChild>
+                  <div className="text-muted-foreground text-sm">
+                    <p>This card already exists. Do you want to add it anyway?</p>
+                    <p>Created by <b>{duplicateCardInfo.create_by}</b></p>
+                    <p>Created Date <b>{duplicateCardInfo.created_at}</b></p>
+                  </div>
+                </AlertDialogDescription>
+
+                <div className="flex justify-center origin-top py-2">
+                  <CardPreview2026
+                    hover={false}
+                    block={
+                      typeof duplicateCardInfo.block === 'string'
+                        ? JSON.parse(duplicateCardInfo.block)
+                        : duplicateCardInfo.block || []
+                    }
+                    cardType={duplicateCardInfo.cardType || duplicateCardInfo.card_type}
+                    id={duplicateCardInfo.card_type_id}
+                    image={duplicateCardInfo.local_image_url || duplicateCardInfo.imagePreviewUrl || duplicateCardInfo.profile_image}
+                    name={duplicateCardInfo.name || duplicateCardInfo.card_name}
+                    isp_name={duplicateCardInfo.isp_name}
+                    isp_position={duplicateCardInfo.isp_position}
+                    rolling_link={duplicateCardInfo.rolling_link || duplicateCardInfo.link}
+                  />
+                </div>
+              </>
+            )}
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setDuplicateDialogOpen(false);
+              setPendingCreateData(null);
+            }}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              if (pendingCreateData) {
+                executeCreateCard(pendingCreateData.formData, pendingCreateData.entryToAdd);
+              }
+            }}>Add Anyway</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

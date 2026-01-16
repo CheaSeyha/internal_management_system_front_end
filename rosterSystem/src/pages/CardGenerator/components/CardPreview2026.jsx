@@ -10,7 +10,8 @@ import construction from "../../../assets/CardTamplete/CONSTRUCTION.png";
 import { Trash, Edit, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 function CardPreview2026({
-  name,
+  hover = true,
+  name = "",
   block,
   id,
   image,
@@ -23,7 +24,7 @@ function CardPreview2026({
   isp_position,
   rolling_link,
 }) {
-  const normalizedCardType = cardType?.toLowerCase() || "";
+  const normalizedCardType = (cardType || "").toLowerCase();
 
   function formatBlocks(blocks) {
     if (!Array.isArray(blocks) || blocks.length === 0) return "";
@@ -61,7 +62,7 @@ function CardPreview2026({
     if (normalizedCardType === "delivery" || normalizedCardType === "tuktuk")
       currentFontSize = 17;
 
-    if (name.length >= 20) setLineHight(2);
+    if ((name || "").length >= 20) setLineHight(2);
     else setLineHight(0);
 
     if (nameRef.current) {
@@ -115,7 +116,7 @@ function CardPreview2026({
   return (
     <>
       <div className="container-card relative ">
-        <div className="absolute inset-0 z-2 flex items-center justify-center opacity-0 hover:opacity-100 transition-all delay-100 backdrop-blur-sm gap-2 rounded-2xl">
+        <div className={`absolute inset-0 z-2 ${hover ? "flex" : "hidden"} items-center justify-center opacity-0 hover:opacity-100 transition-all delay-100 backdrop-blur-sm gap-2 rounded-2xl`}>
           {/* <Button
             className="btn border-none group bg-gray-800 hover:bg-gray-600"
             onClick={() => onHideCard(id, cardType)}
@@ -149,7 +150,7 @@ function CardPreview2026({
         </div>
         {/* Delivery Card */}
         {normalizedCardType === "delivery" && (
-          <main className="relative w-[6cm] h-[9cm]">
+          <div className="relative w-[6cm] h-[9cm]">
             <div className="image-profile absolute top-[90px] left-[40px] w-[3.96cm] h-[3.96cm] border-1 border-[#d9fa00] rounded-full overflow-hidden">
               <img src={image} className="w-full h-full object-cover" alt="" />
             </div>
@@ -171,11 +172,11 @@ function CardPreview2026({
             <div className="image-tamplete w-full h-full">
               <img src={deliverycard} alt="" />
             </div>
-          </main>
+          </div>
         )}
         {/* TukTuk Card */}
         {normalizedCardType === "tuktuk" && (
-          <main className="TukTukcard relative font-cardFont2 w-[9cm] h-[6cm] text-black bg-white rounded-2xl">
+          <div className="TukTukcard relative font-cardFont2 w-[9cm] h-[6cm] text-black bg-white rounded-2xl">
             <div className="image-profile w-[2.5cm] border-[1.5px] border-blue-500 h-[3cm] absolute top-[2cm] left-[0.5cm]">
               <img src={image} className="w-full h-full object-cover" alt="" />
             </div>
@@ -203,12 +204,12 @@ function CardPreview2026({
             <div className="image-tamplete w-full h-full">
               <img src={tuktuk} alt="" />
             </div>
-          </main>
+          </div>
         )}
 
         {/* Staff Card */}
         {normalizedCardType === "staff" && (
-          <main className="relative w-[6cm] h-[9cm]">
+          <div className="relative w-[6cm] h-[9cm]">
             <div className="image-profile absolute top-[90px] left-[40px] w-[3.96cm] h-[3.96cm] border-1 border-[#ff006f] rounded-full overflow-hidden">
               <img src={image} className="w-full h-full object-cover" alt="" />
             </div>
@@ -230,12 +231,12 @@ function CardPreview2026({
             <div className="image-tamplete w-full h-full">
               <img src={staffcard} alt="" />
             </div>
-          </main>
+          </div>
         )}
 
         {/* ISP Card */}
         {normalizedCardType === "isp" && (
-          <main className="relative w-[6cm] h-[9cm]">
+          <div className="relative w-[6cm] h-[9cm]">
             <div className="image-profile absolute top-[90px] left-[40px] w-[3.96cm] h-[3.96cm] border-1 border-[#ff006f] rounded-full overflow-hidden">
               <img src={image} className="w-full h-full object-cover" alt="" />
             </div>
@@ -274,12 +275,12 @@ function CardPreview2026({
             <div className="image-tamplete w-full h-full">
               <img src={ispCard} alt="" />
             </div>
-          </main>
+          </div>
         )}
 
         {/* ISP rolling */}
         {normalizedCardType === "rolling" && (
-          <main className="relative w-[6cm] h-[9cm]">
+          <div className="relative w-[6cm] h-[9cm]">
             <div className="image-profile absolute top-[90px] left-[40px] opca w-[3.96cm] h-[3.96cm] border-1 border-[#ff006f] rounded-full overflow-hidden">
               <img src={image} className="w-full h-full object-cover" alt="" />
             </div>
@@ -303,12 +304,12 @@ function CardPreview2026({
             <div className="image-tamplete w-full h-full">
               <img src={rolling} alt="" />
             </div>
-          </main>
+          </div>
         )}
 
         {/* Construction Card */}
         {normalizedCardType === "construction" && (
-          <main className="relative font-cardFont2 w-[9cm] h-[6cm] text-black  bg-white rounded-2xl">
+          <div className="relative font-cardFont2 w-[9cm] h-[6cm] text-black  bg-white rounded-2xl">
             <div className="image-profile w-[2.5cm] border-[1.5px] border-yellow-300 h-[3cm] absolute top-[2cm] left-[0.3cm]">
               <img src={image} className="w-full h-full object-cover" alt="" />
             </div>
@@ -339,12 +340,12 @@ function CardPreview2026({
             <div className="image-tamplete w-full h-full">
               <img src={construction} alt="" />
             </div>
-          </main>
+          </div>
         )}
 
         {/* VIP Card */}
         {normalizedCardType === "vip card" && (
-          <main className="vipcard relative w-[9cm] h-[6cm] text-black  bg-white rounded-br-[20px] rounded-tl-[20px]">
+          <div className="vipcard relative w-[9cm] h-[6cm] text-black  bg-white rounded-br-[20px] rounded-tl-[20px]">
             <p className="staffcard forBlock absolute text-[12pt] font-luxury-display top-[146px] left-[99px]">
               {name}
             </p>
@@ -358,12 +359,12 @@ function CardPreview2026({
             <div className="image-tamplete w-full h-full">
               <img src={vipcard} alt="" />
             </div>
-          </main>
+          </div>
         )}
 
         {/* Car Card */}
         {normalizedCardType === "car card" && (
-          <main className="carcard relative font-cardFont1 w-[20cm] h-[13.34cm] text-black  bg-white rounded-4xl">
+          <div className="carcard relative font-cardFont1 w-[20cm] h-[13.34cm] text-black  bg-white rounded-4xl">
             <div className="w-full h-[4cm] absolute top-[6.2cm] flex items-center justify-center text-center">
               <p
 
@@ -383,7 +384,7 @@ function CardPreview2026({
             <div className="image-tamplete w-full h-full">
               <img src={carcard1} alt="" />
             </div>
-          </main>
+          </div>
         )}
       </div>
     </>

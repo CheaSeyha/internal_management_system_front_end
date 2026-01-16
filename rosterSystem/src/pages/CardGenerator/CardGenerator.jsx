@@ -90,6 +90,7 @@ export default function CardGenerator() {
   const [noSpace, setNoSpace] = useState(true);
   const [loading, setloading] = useState(false);
   const [isAutoAlignEnabled, setIsAutoAlignEnabled] = useState(true);
+  const [addWhiteSpace, setAddWhiteSpace] = useState(false);
   // Crop State---------------------
   //Hide Card State-----------------------------------------
   const [hideCard, setHideCard] = useState([]);
@@ -369,6 +370,7 @@ export default function CardGenerator() {
       brightness,
       contrast,
       saturation,
+      addWhiteSpace,
     });
 
     setCurrentEntry((prev) => ({
@@ -639,10 +641,18 @@ export default function CardGenerator() {
                   image={rawImage.url}
                   crop={crop}
                   zoom={zoom}
+                  minZoom={addWhiteSpace ? 0.1 : 1}
+                  zoomSpeed={0.1}
+                  restrictPosition={!addWhiteSpace}
                   aspect={1 / 1}
                   onCropChange={setCrop}
                   onZoomChange={setZoom}
                   onCropComplete={onCropComplete}
+                  style={{
+                    containerStyle: {
+                      background: addWhiteSpace ? "#f0f0f0" : "black",
+                    },
+                  }}
                 />
               </div>
             </div>
@@ -652,14 +662,14 @@ export default function CardGenerator() {
                 <div className="flex justify-between items-center">
                   <label className="label-text font-medium text-sm">Zoom</label>
                   <span className="text-sm font-mono bg-base-200 px-2 py-1 rounded">
-                    {zoom.toFixed(1)}x
+                    {zoom.toFixed(2)}x
                   </span>
                 </div>
                 <input
                   type="range"
-                  min={1}
+                  min={addWhiteSpace ? 0.1 : 1}
                   max={3}
-                  step={0.1}
+                  step={0.01}
                   value={zoom}
                   onChange={(e) => setZoom(parseFloat(e.target.value))}
                   className="range range-primary range-sm"
@@ -726,6 +736,21 @@ export default function CardGenerator() {
                 />
               </div>
             </div>
+
+            <div className="flex items-center space-x-2 mt-4">
+              <Checkbox
+                id="add-whitespace"
+                checked={addWhiteSpace}
+                onCheckedChange={(checked) => setAddWhiteSpace(checked === true)}
+              />
+              <Label
+                htmlFor="add-whitespace"
+                className="label-text font-medium text-sm cursor-pointer"
+              >
+                Add White Space (Fit Height)
+              </Label>
+            </div>
+
 
             <div className="flex justify-between gap-2 mt-4">
               <button

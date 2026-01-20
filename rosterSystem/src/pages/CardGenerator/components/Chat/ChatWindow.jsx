@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import useWebSocket from "../Hook/useWebSocket"; // change path if needed
-
+import { X, Expand, Maximize2 } from 'lucide-react';
 import useDraggableWindow from "./useDraggableWindow";
 import ChatMessage from "./ChatMessage";
 import ImageViewerWindow from "./ImageViewer";
@@ -53,8 +53,7 @@ export default function ChatWindow() {
                     onMouseDown={onHeaderMouseDown}
                 >
                     <div>
-                        <p className="font-semibold text-base">VIP Chat</p>
-                        <p className="text-xs text-muted-foreground">{connectionStatus}</p>
+                        <p className="font-semibold text-base">VIP Card Chat</p>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -62,16 +61,11 @@ export default function ChatWindow() {
                             {isConnected ? "Connected" : "Disconnected"}
                         </span>
 
-                        <Button variant="outline" size="sm" onMouseDown={(e) => e.stopPropagation()} onClick={toggleMinimize}>
-                            {isMinimized ? "Restore" : "Minimize"}
-                        </Button>
-
                         <Button variant="outline" size="sm" onMouseDown={(e) => e.stopPropagation()} onClick={toggleFullscreen}>
-                            {isFullscreen ? "Exit Full" : "Full"}
+                            {isFullscreen ? <Maximize2 /> : <Expand />}
                         </Button>
-
-                        <Button variant="outline" size="sm" onMouseDown={(e) => e.stopPropagation()} onClick={clearMessages}>
-                            Clear
+                        <Button variant="outline" size="sm" onMouseDown={(e) => e.stopPropagation()} onClick={toggleMinimize}>
+                            <X />
                         </Button>
                     </div>
                 </div>

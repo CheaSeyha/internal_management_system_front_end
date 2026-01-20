@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import useDraggableWindow from "./useDraggableWindow";
+import { X, Expand, Maximize2, RotateCwSquare } from "lucide-react";
 
 function clamp(n, min, max) {
     return Math.max(min, Math.min(max, n));
@@ -14,7 +15,6 @@ export default function ImageViewerWindow({ open, src, onClose }) {
         onHeaderMouseDown,
         onResizeMouseDown,
         toggleFullscreen,
-        toggleMinimize,
         setIsFullscreen,
         setIsMinimized,
     } = useDraggableWindow({
@@ -28,23 +28,29 @@ export default function ImageViewerWindow({ open, src, onClose }) {
         maxH: 900,
     });
 
-    // ✅ when open: default small window (not fullscreen, not minimized)
+    // zoom/pan
+    const [scale, setScale] = useState(1);
+    const [offset, setOffset] = useState({ x: 0, y: 0 });
+    const [draggingImg, setDraggingImg] = useState(false);
+
+    // rotate
+    const [rotation, setRotation] = useState(0); // 0,90,180,270
+
+    const imgStartRef = useRef({ x: 0, y: 0 });
+    const offsetStartRef = useRef({ x: 0, y: 0 });
+
+    // ✅ when open: default small window (not fullscreen, not minimized) + reset view
     useEffect(() => {
         if (!open) return;
         setIsFullscreen(false);
         setIsMinimized(false);
         setScale(1);
         setOffset({ x: 0, y: 0 });
+        setRotation(0);
+        setDraggingImg(false);
     }, [open, setIsFullscreen, setIsMinimized]);
 
-    // zoom/pan
-    const [scale, setScale] = useState(1);
-    const [offset, setOffset] = useState({ x: 0, y: 0 });
-    const [draggingImg, setDraggingImg] = useState(false);
-
-    const imgStartRef = useRef({ x: 0, y: 0 });
-    const offsetStartRef = useRef({ x: 0, y: 0 });
-
+    // drag image (only when zoomed)
     useEffect(() => {
         if (!open) return;
 
@@ -52,7 +58,10 @@ export default function ImageViewerWindow({ open, src, onClose }) {
             if (!draggingImg) return;
             const dx = e.clientX - imgStartRef.current.x;
             const dy = e.clientY - imgStartRef.current.y;
-            setOffset({ x: offsetStartRef.current.x + dx, y: offsetStartRef.current.y + dy });
+            setOffset({
+                x: offsetStartRef.current.x + dx,
+                y: offsetStartRef.current.y + dy,
+            });
         };
 
         const onUp = () => setDraggingImg(false);
@@ -65,6 +74,7 @@ export default function ImageViewerWindow({ open, src, onClose }) {
         };
     }, [open, draggingImg]);
 
+    // wheel zoom (no buttons, just wheel)
     const onWheelZoom = (e) => {
         e.preventDefault();
         const delta = e.deltaY > 0 ? -0.15 : 0.15;
@@ -78,6 +88,7 @@ export default function ImageViewerWindow({ open, src, onClose }) {
         offsetStartRef.current = { ...offset };
     };
 
+    // when scale goes back to 1, reset pan
     useEffect(() => {
         if (scale === 1) setOffset({ x: 0, y: 0 });
     }, [scale]);
@@ -97,53 +108,68 @@ export default function ImageViewerWindow({ open, src, onClose }) {
                 <p className="font-semibold text-sm">Image Viewer</p>
 
                 <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" onMouseDown={(e) => e.stopPropagation()} onClick={toggleMinimize}>
-                        {isMinimized ? "Restore" : "Minimize"}
+                    {/* Rotate */}
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={() => setRotation((r) => (r + 90) % 360)}
+                        title="Rotate"
+                    >
+                        <RotateCwSquare className="w-4 h-4" />
                     </Button>
 
-                    <Button variant="outline" size="sm" onMouseDown={(e) => e.stopPropagation()} onClick={toggleFullscreen}>
-                        {isFullscreen ? "Exit Full" : "Full"}
+                    {/* Fullscreen */}
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={toggleFullscreen}
+                        title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+                    >
+                        {isFullscreen ? (
+                            <Maximize2 className="w-4 h-4" />
+                        ) : (
+                            <Expand className="w-4 h-4" />
+                        )}
                     </Button>
 
-                    <Button variant="outline" size="sm" onMouseDown={(e) => e.stopPropagation()} onClick={onClose}>
-                        Close
+                    {/* Close */}
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={onClose}
+                        title="Close"
+                    >
+                        <X className="w-4 h-4" />
                     </Button>
                 </div>
             </div>
 
             {!isMinimized && (
                 <>
-                    {/* Toolbar */}
-                    <div className="p-2 border-b border-border flex items-center gap-2">
-                        <Button variant="secondary" size="sm" onClick={() => setScale((s) => clamp(s + 0.25, 1, 6))}>
-                            +
-                        </Button>
-                        <Button variant="secondary" size="sm" onClick={() => setScale((s) => clamp(s - 0.25, 1, 6))}>
-                            -
-                        </Button>
-                        <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => {
-                                setScale(1);
-                                setOffset({ x: 0, y: 0 });
-                            }}
-                        >
-                            Reset
-                        </Button>
-                        <span className="text-xs text-muted-foreground ml-2">Scroll to zoom • Drag image when zoomed</span>
+                    {/* Hint bar (no buttons) */}
+                    <div className="p-2 border-b border-border">
+                        <span className="text-xs text-muted-foreground">
+                            Scroll to zoom • Drag image when zoomed • Rotate button on top
+                        </span>
                     </div>
 
                     {/* Image */}
-                    <div className="flex-1 bg-black/80 flex items-center justify-center overflow-hidden" onWheel={onWheelZoom}>
+                    <div
+                        className="flex-1 bg-black/80 flex items-center justify-center overflow-hidden"
+                        onWheel={onWheelZoom}
+                    >
                         <img
                             src={src}
                             alt="photo"
                             draggable={false}
                             onMouseDown={onMouseDownImage}
-                            className={`max-w-[95%] max-h-[95%] rounded-lg ${scale > 1 ? "cursor-grab active:cursor-grabbing" : ""}`}
+                            className={`max-w-[95%] max-h-[95%] rounded-lg ${scale > 1 ? "cursor-grab active:cursor-grabbing" : ""
+                                }`}
                             style={{
-                                transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
+                                transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale}) rotate(${rotation}deg)`,
                                 transformOrigin: "center center",
                                 transition: draggingImg ? "none" : "transform 120ms ease-out",
                             }}

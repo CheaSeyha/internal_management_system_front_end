@@ -62,6 +62,7 @@ import axios from "../../api/axios";
 import { useCardHook } from "./components/Hook/useCardHook";
 import useISPHook from "../Internet/Hook/useISPHook";
 import BlockSelect from "./components/BlockSelect";
+import Chat from "./components/Chat";
 export default function CardGenerator() {
   const contentRef = useRef(null);
   const reactToPrintFn = useReactToPrint({ contentRef });
@@ -175,6 +176,68 @@ export default function CardGenerator() {
         id: "",
         cardType: prev.cardType,
         isp_name: prev.isp_name,
+        isp_position: "",
+        rolling_link: "",
+        imageFile: null,
+        imagePreviewUrl: null,
+      }));
+    }
+  };
+
+  const executeUpdateCard = async (formData, entryToAdd, index) => {
+    try {
+      setloading(true);
+      const originalCard = entries[index];
+      const isTypeChanged = entryToAdd.cardType !== originalCard.cardType;
+
+      if (isTypeChanged) {
+        // Delete original and create new card
+        const deleteOriginalCard = await axios.delete(
+          `card/delete/${originalCard.id}/${originalCard.cardType}`
+        );
+
+        if (deleteOriginalCard.status === 200) {
+          setEntries((prev) => prev.filter((_, i) => i !== index));
+
+          const res = await axios.post("/create_card", formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+          });
+
+          const getCardID = res.data.data.card_type_id;
+          const entryWithID = { ...entryToAdd, id: getCardID };
+
+          setEntries((prev) => [...prev, entryWithID]);
+          toast.success("New card created due to type change!");
+        }
+      } else {
+        // Same type: update card
+        await axios.post(
+          `/card/edit/${originalCard.id}/${entryToAdd.cardType}`,
+          formData,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
+
+        setEntries((prev) =>
+          prev.map((entry, i) => (i === index ? entryToAdd : entry))
+        );
+        toast.success("Card updated successfully!");
+      }
+
+      setEditingIndex(null);
+    } catch (error) {
+      toast.error("Failed to update card!");
+      console.error(error);
+    } finally {
+      setloading(false);
+      setDuplicateDialogOpen(false);
+      setPendingCreateData(null);
+      // Reset form
+      setCurrentEntry((prev) => ({
+        name: "",
+        block: keepSameBlocks ? [...prev.block] : [],
+        id: "",
+        cardType: prev.cardType,
+        isp_name: "",
         isp_position: "",
         rolling_link: "",
         imageFile: null,
@@ -453,103 +516,80 @@ export default function CardGenerator() {
       if (currentEntry.imageFile)
         formData.append("profile_image", currentEntry.imageFile);
 
-      // Add ISP or Rolling specific fields if present
-      if (editingIndex !== null) {
-        // Edit existing card
-        const originalCard = entries[editingIndex];
+      // Check for duplicates
+      let isDuplicate = false;
+      try {
+        const res = await axios.get("/check_card_exist", {
+          params: {
+            card_name: currentEntry.name,
+            card_type: currentEntry.cardType,
+            block: JSON.stringify(currentEntry.block),
+            isp_name: currentEntry.isp_name,
+            isp_position: currentEntry.isp_position,
+            link: currentEntry.rolling_link,
+          },
+        });
 
-        const isTypeChanged = currentEntry.cardType !== originalCard.cardType;
+        if (res.data.data) {
+          let duplicateData = { ...res.data.data };
 
-        if (isTypeChanged) {
-          // Delete original and create new card
-          const deleteOriginalCard = await axios.delete(
-            `card/delete/${originalCard.id}/${originalCard.cardType}`
-          );
+          // Determine if it's a real duplicate collision
+          if (editingIndex !== null) {
+            const originalCard = entries[editingIndex];
+            const isTypeChanged = currentEntry.cardType !== originalCard.cardType;
 
-          if (deleteOriginalCard.status === 200) {
-            setEntries((prev) => prev.filter((_, i) => i !== editingIndex));
-
-            const res = await axios.post("/create_card", formData, {
-              headers: { "Content-Type": "multipart/form-data" },
-            });
-
-            const getCardID = res.data.data.card_type_id;
-            const entryWithID = { ...entryToAdd, id: getCardID };
-
-            setEntries((prev) => [...prev, entryWithID]);
-            toast.success("New card created due to type change!");
+            if (!isTypeChanged && duplicateData.card_type_id == originalCard.id) {
+              // It's the same card (self), so not a duplicate collision
+              isDuplicate = false;
+            } else {
+              // Either type changed (new creation context) or diff ID -> Duplicate
+              isDuplicate = true;
+            }
+          } else {
+            // Creating new card -> any match is duplicate
+            isDuplicate = true;
           }
-        } else {
-          // Same type: update card
-          console.log(originalCard);
-          await axios.post(
-            `/card/edit/${originalCard.id}/${currentEntry.cardType}`,
-            formData,
-            { headers: { "Content-Type": "multipart/form-data" } }
-          );
 
-          setEntries((prev) =>
-            prev.map((entry, i) => (i === editingIndex ? entryToAdd : entry))
-          );
-          toast.success("Card updated successfully!");
-        }
+          if (isDuplicate) {
+            // Map profile_image to profile_image_url
+            if (duplicateData.profile_image && !duplicateData.profile_image_url) {
+              duplicateData.profile_image_url = duplicateData.profile_image;
+            }
 
-        setEditingIndex(null);
-      } else {
-
-        // Create new card
-        let isDuplicate = false;
-        try {
-          const res = await axios.get("/check_card_exist", {
-            params: {
-              card_name: currentEntry.name,
-              card_type: currentEntry.cardType,
-              block: JSON.stringify(currentEntry.block), // if backend expects json
-              isp_name: currentEntry.isp_name,
-              isp_position: currentEntry.isp_position,
-              link: currentEntry.rolling_link,
-            },
-          });
-
-          if (res.data.data) {
             try {
-              let duplicateData = { ...res.data.data };
-              // Map profile_image to profile_image_url for the utility to work
-              if (duplicateData.profile_image && !duplicateData.profile_image_url) {
-                duplicateData.profile_image_url = duplicateData.profile_image;
-              }
-
               const processedCards = await downloadCardImages([duplicateData]);
               setDuplicateCardInfo(processedCards[0]);
             } catch (downloadErr) {
               console.error("Error downloading duplicate card image", downloadErr);
-              setDuplicateCardInfo(res.data.data); // Fallback to original
+              setDuplicateCardInfo(duplicateData);
             }
 
-            setPendingCreateData({ formData, entryToAdd });
+            setPendingCreateData({
+              type: editingIndex !== null ? 'update' : 'create',
+              formData,
+              entryToAdd,
+              index: editingIndex
+            });
             setDuplicateDialogOpen(true);
             setloading(false);
-            isDuplicate = true;
-          }
-        } catch (checkError) {
-          // If 404 or "Card not found", it's not a duplicate, continue to create
-          if (checkError.response && checkError.response.status === 404) {
-            // Not duplicate, proceed
-          } else if (checkError.response && checkError.response.data && checkError.response.data.success === false) {
-            // Not duplicate, proceed
-          } else {
-            console.error("Duplicate check error", checkError);
-            // Optional: decide if we should block creation or warn. 
-            // For now, let's assume if check fails we might still want to try creating or just log it.
-            // But to be safe, if it's a real error (500), we probably shouldn't proceed blindly? 
-            // User request implies "if not found then can let user create".
-            // So default path is proceed unless confirmed duplicate.
+            return;
           }
         }
+      } catch (checkError) {
+        // Ignore 404/not success, proceed
+        if (checkError.response && (checkError.response.status === 404 || checkError.response.data?.success === false)) {
+          // Not duplicate
+        } else {
+          console.error("Duplicate check error", checkError);
+        }
+      }
 
-        if (!isDuplicate) {
-          await executeCreateCard(formData, entryToAdd);
-        }
+      // Execute Action if no duplicate found
+      // Execute Action if no duplicate found
+      if (editingIndex !== null) {
+        await executeUpdateCard(formData, entryToAdd, editingIndex);
+      } else {
+        await executeCreateCard(formData, entryToAdd);
       }
     } catch (error) {
       toast.error("Failed to save card!");
@@ -619,7 +659,7 @@ export default function CardGenerator() {
     <div
       className={
         changeLayout
-          ? "max-w-4xl mx-auto p-4 space-y-6"
+          ? "w-fit mx-auto p-4 space-y-6"
           : "grid grid-cols-1 lg:grid-cols-2 gap-5 p-5"
       }
     >
@@ -778,11 +818,11 @@ export default function CardGenerator() {
           </div>
         </div>
       )}
-      <div className="h-full w-full">
+      <div className="h-full w-full flex gap-5">
         <motion.form
           layout
           onSubmit={handleSubmit}
-          className="rounded-xl p-6 m-auto shadow-lg h-fit w-[700px] mb-5 bg-sidebar"
+          className="rounded-xl p-6 m-auto shadow-lg h-fit w-[700px] bg-sidebar"
           transition={{ type: "spring", stiffness: 500, damping: 40 }}
         >
           <div className="relative w-fit m-auto mb-4">
@@ -1082,6 +1122,8 @@ export default function CardGenerator() {
             </div>
           </div>
         </motion.form>
+
+        <Chat />
       </div>
 
       {/* Preview card layout  */}
@@ -1400,7 +1442,11 @@ export default function CardGenerator() {
             }}>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={() => {
               if (pendingCreateData) {
-                executeCreateCard(pendingCreateData.formData, pendingCreateData.entryToAdd);
+                if (pendingCreateData.type === 'update') {
+                  executeUpdateCard(pendingCreateData.formData, pendingCreateData.entryToAdd, pendingCreateData.index);
+                } else {
+                  executeCreateCard(pendingCreateData.formData, pendingCreateData.entryToAdd);
+                }
               }
             }}>Add Anyway</AlertDialogAction>
           </AlertDialogFooter>

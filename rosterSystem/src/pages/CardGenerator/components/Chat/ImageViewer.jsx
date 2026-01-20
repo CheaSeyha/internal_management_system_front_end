@@ -1,13 +1,13 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import useDraggableWindow from "./useDraggableWindow";
-import { X, Expand, Maximize2, RotateCwSquare } from "lucide-react";
+import { X, Expand, Maximize2, RotateCw, ChevronLeft, ChevronRight } from "lucide-react";
 
 function clamp(n, min, max) {
     return Math.max(min, Math.min(max, n));
 }
 
-export default function ImageViewerWindow({ open, src, onClose }) {
+export default function ImageViewerWindow({ open, images = [], startIndex = 0, onClose }) {
     const {
         isFullscreen,
         isMinimized,
@@ -28,27 +28,67 @@ export default function ImageViewerWindow({ open, src, onClose }) {
         maxH: 900,
     });
 
-    // zoom/pan
+    // view state
     const [scale, setScale] = useState(1);
     const [offset, setOffset] = useState({ x: 0, y: 0 });
     const [draggingImg, setDraggingImg] = useState(false);
+    const [rotation, setRotation] = useState(0);
 
-    // rotate
-    const [rotation, setRotation] = useState(0); // 0,90,180,270
+    // album navigation
+    const [currentIndex, setCurrentIndex] = useState(startIndex);
 
     const imgStartRef = useRef({ x: 0, y: 0 });
     const offsetStartRef = useRef({ x: 0, y: 0 });
 
-    // ✅ when open: default small window (not fullscreen, not minimized) + reset view
+    const currentSrc = images?.[currentIndex] || "";
+
+    const hasPrev = currentIndex > 0;
+    const hasNext = currentIndex < (images?.length || 0) - 1;
+
+    const prevImage = useCallback(() => {
+        if (!hasPrev) return;
+        setCurrentIndex((i) => i - 1);
+    }, [hasPrev]);
+
+    const nextImage = useCallback(() => {
+        if (!hasNext) return;
+        setCurrentIndex((i) => i + 1);
+    }, [hasNext]);
+
+    // ✅ when open: default small window + reset view
     useEffect(() => {
         if (!open) return;
         setIsFullscreen(false);
         setIsMinimized(false);
+        setCurrentIndex(startIndex);
         setScale(1);
         setOffset({ x: 0, y: 0 });
         setRotation(0);
         setDraggingImg(false);
-    }, [open, setIsFullscreen, setIsMinimized]);
+    }, [open, startIndex, setIsFullscreen, setIsMinimized]);
+
+    // reset zoom/pan/rotation when changing image
+    useEffect(() => {
+        if (!open) return;
+        setScale(1);
+        setOffset({ x: 0, y: 0 });
+        setRotation(0);
+        setDraggingImg(false);
+    }, [currentIndex, open]);
+
+    // keyboard navigation
+    useEffect(() => {
+        if (!open) return;
+
+        const onKeyDown = (e) => {
+            if (e.key === "Escape") onClose();
+            if (e.key === "ArrowLeft") prevImage();
+            if (e.key === "ArrowRight") nextImage();
+        };
+
+        window.addEventListener("keydown", onKeyDown);
+        return () => window.removeEventListener("keydown", onKeyDown);
+    }, [open, onClose, prevImage, nextImage]);
 
     // drag image (only when zoomed)
     useEffect(() => {
@@ -74,7 +114,7 @@ export default function ImageViewerWindow({ open, src, onClose }) {
         };
     }, [open, draggingImg]);
 
-    // wheel zoom (no buttons, just wheel)
+    // wheel zoom
     const onWheelZoom = (e) => {
         e.preventDefault();
         const delta = e.deltaY > 0 ? -0.15 : 0.15;
@@ -88,7 +128,6 @@ export default function ImageViewerWindow({ open, src, onClose }) {
         offsetStartRef.current = { ...offset };
     };
 
-    // when scale goes back to 1, reset pan
     useEffect(() => {
         if (scale === 1) setOffset({ x: 0, y: 0 });
     }, [scale]);
@@ -105,7 +144,9 @@ export default function ImageViewerWindow({ open, src, onClose }) {
                 className="p-3 border-b border-border flex justify-between items-center select-none cursor-move"
                 onMouseDown={onHeaderMouseDown}
             >
-                <p className="font-semibold text-sm">Image Viewer</p>
+                <p className="font-semibold text-sm">
+                    Image {images?.length > 1 ? `(${currentIndex + 1}/${images.length})` : ""}
+                </p>
 
                 <div className="flex items-center gap-2">
                     {/* Rotate */}
@@ -116,7 +157,7 @@ export default function ImageViewerWindow({ open, src, onClose }) {
                         onClick={() => setRotation((r) => (r + 90) % 360)}
                         title="Rotate"
                     >
-                        <RotateCwSquare className="w-4 h-4" />
+                        <RotateCw className="w-4 h-4" />
                     </Button>
 
                     {/* Fullscreen */}
@@ -127,11 +168,7 @@ export default function ImageViewerWindow({ open, src, onClose }) {
                         onClick={toggleFullscreen}
                         title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
                     >
-                        {isFullscreen ? (
-                            <Maximize2 className="w-4 h-4" />
-                        ) : (
-                            <Expand className="w-4 h-4" />
-                        )}
+                        {isFullscreen ? <Maximize2 className="w-4 h-4" /> : <Expand className="w-4 h-4" />}
                     </Button>
 
                     {/* Close */}
@@ -149,20 +186,45 @@ export default function ImageViewerWindow({ open, src, onClose }) {
 
             {!isMinimized && (
                 <>
-                    {/* Hint bar (no buttons) */}
+                    {/* Hint */}
                     <div className="p-2 border-b border-border">
                         <span className="text-xs text-muted-foreground">
-                            Scroll to zoom • Drag image when zoomed • Rotate button on top
+                            Scroll to zoom • Drag image when zoomed • ← / → to navigate
                         </span>
                     </div>
 
-                    {/* Image */}
+                    {/* Image Area */}
                     <div
-                        className="flex-1 bg-black/80 flex items-center justify-center overflow-hidden"
+                        className="relative flex-1 bg-black/80 flex items-center justify-center overflow-hidden"
                         onWheel={onWheelZoom}
                     >
+                        {/* Prev */}
+                        {hasPrev && (
+                            <button
+                                type="button"
+                                onClick={prevImage}
+                                className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2"
+                                title="Previous"
+                            >
+                                <ChevronLeft />
+                            </button>
+                        )}
+
+                        {/* Next */}
+                        {hasNext && (
+                            <button
+                                type="button"
+                                onClick={nextImage}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2"
+                                title="Next"
+                            >
+                                <ChevronRight />
+                            </button>
+                        )}
+
+                        {/* Image */}
                         <img
-                            src={src}
+                            src={currentSrc}
                             alt="photo"
                             draggable={false}
                             onMouseDown={onMouseDownImage}

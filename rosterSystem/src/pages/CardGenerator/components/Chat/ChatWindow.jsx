@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import useWebSocket from "../Hook/useWebSocket"; // change path if needed
-import { X, Expand, Maximize2 } from 'lucide-react';
+import useWebSocket from "@/Hook/useWebSocket"; // adjust if needed
+
 import useDraggableWindow from "./useDraggableWindow";
 import ChatMessage from "./ChatMessage";
-import ImageViewerWindow from "./ImageViewer";
+import ImageViewerWindow from "./ImageViewerWindow";
 
 export default function ChatWindow() {
     const { isConnected, messages, connectionStatus, clearMessages } = useWebSocket();
@@ -26,18 +26,21 @@ export default function ChatWindow() {
         initialH: 600,
     });
 
-    // ✅ image viewer state
+    // ✅ Image viewer now supports album (array) + start index
     const [viewerOpen, setViewerOpen] = useState(false);
-    const [viewerSrc, setViewerSrc] = useState("");
+    const [viewerImages, setViewerImages] = useState([]);
+    const [viewerIndex, setViewerIndex] = useState(0);
 
-    const openImage = (src) => {
-        setViewerSrc(src);
+    const openImageViewer = (images, startIndex = 0) => {
+        setViewerImages(images);
+        setViewerIndex(startIndex);
         setViewerOpen(true);
     };
 
-    const closeImage = () => {
+    const closeImageViewer = () => {
         setViewerOpen(false);
-        setViewerSrc("");
+        setViewerImages([]);
+        setViewerIndex(0);
     };
 
     return (
@@ -53,7 +56,8 @@ export default function ChatWindow() {
                     onMouseDown={onHeaderMouseDown}
                 >
                     <div>
-                        <p className="font-semibold text-base">VIP Card Chat</p>
+                        <p className="font-semibold text-base">VIP Chat</p>
+                        <p className="text-xs text-muted-foreground">{connectionStatus}</p>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -61,11 +65,16 @@ export default function ChatWindow() {
                             {isConnected ? "Connected" : "Disconnected"}
                         </span>
 
-                        <Button variant="outline" size="sm" onMouseDown={(e) => e.stopPropagation()} onClick={toggleFullscreen}>
-                            {isFullscreen ? <Maximize2 /> : <Expand />}
-                        </Button>
                         <Button variant="outline" size="sm" onMouseDown={(e) => e.stopPropagation()} onClick={toggleMinimize}>
-                            <X />
+                            {isMinimized ? "Restore" : "Minimize"}
+                        </Button>
+
+                        <Button variant="outline" size="sm" onMouseDown={(e) => e.stopPropagation()} onClick={toggleFullscreen}>
+                            {isFullscreen ? "Exit Full" : "Full"}
+                        </Button>
+
+                        <Button variant="outline" size="sm" onMouseDown={(e) => e.stopPropagation()} onClick={clearMessages}>
+                            Clear
                         </Button>
                     </div>
                 </div>
@@ -81,11 +90,18 @@ export default function ChatWindow() {
                                             ? `${message.chatId}-${message.messageId}`
                                             : message?.timestamp ?? message?.date ?? index;
 
-                                    return <ChatMessage key={key} message={message} onOpenImage={openImage} />;
+                                    return (
+                                        <ChatMessage
+                                            key={key}
+                                            message={message}
+                                            onOpenImage={(images, startIndex) => openImageViewer(images, startIndex)}
+                                        />
+                                    );
                                 })}
                             </div>
                         </ScrollArea>
 
+                        {/* Input (UI only) */}
                         <div className="p-4 border-t border-border flex gap-2">
                             <Input placeholder="Type a message..." />
                             <Button disabled={!isConnected}>Send</Button>
@@ -108,8 +124,13 @@ export default function ChatWindow() {
                 )}
             </div>
 
-            {/* ✅ Image Viewer Window (minimize + fullscreen + window mode) */}
-            <ImageViewerWindow open={viewerOpen} src={viewerSrc} onClose={closeImage} />
+            {/* ✅ Image Viewer supports Prev/Next */}
+            <ImageViewerWindow
+                open={viewerOpen}
+                images={viewerImages}
+                startIndex={viewerIndex}
+                onClose={closeImageViewer}
+            />
         </>
     );
 }

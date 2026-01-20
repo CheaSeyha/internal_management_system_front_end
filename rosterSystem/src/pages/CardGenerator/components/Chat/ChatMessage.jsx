@@ -38,7 +38,9 @@ export default function ChatMessage({ message, onOpenImage }) {
                 )}
 
                 {message?.timestamp && (
-                    <p className="mt-1 text-[11px] text-neutral-400">{new Date(message.timestamp).toLocaleString()}</p>
+                    <p className="mt-1 text-[11px] text-neutral-400">
+                        {new Date(message.timestamp).toLocaleString()}
+                    </p>
                 )}
             </div>
         </div>

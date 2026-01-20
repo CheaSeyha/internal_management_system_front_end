@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import useWebSocket from "../Hook/useWebSocket"; // adjust path if needed
+import useWebSocket from "../Hook/useWebSocket"; // change path if needed
 
 import useDraggableWindow from "./useDraggableWindow";
-import ImageViewer from "./ImageViewer";
 import ChatMessage from "./ChatMessage";
+import ImageViewerWindow from "./ImageViewer";
 
 export default function ChatWindow() {
     const { isConnected, messages, connectionStatus, clearMessages } = useWebSocket();
@@ -19,8 +19,14 @@ export default function ChatWindow() {
         onResizeMouseDown,
         toggleFullscreen,
         toggleMinimize,
-    } = useDraggableWindow({ initialW: 500, initialH: 600 });
+    } = useDraggableWindow({
+        initialX: 60,
+        initialY: 60,
+        initialW: 500,
+        initialH: 600,
+    });
 
+    // ✅ image viewer state
     const [viewerOpen, setViewerOpen] = useState(false);
     const [viewerSrc, setViewerSrc] = useState("");
 
@@ -36,6 +42,7 @@ export default function ChatWindow() {
 
     return (
         <>
+            {/* Chat Window */}
             <div
                 style={containerStyle}
                 className="bg-sidebar rounded-xl flex flex-col shadow-lg border border-border overflow-hidden"
@@ -55,30 +62,15 @@ export default function ChatWindow() {
                             {isConnected ? "Connected" : "Disconnected"}
                         </span>
 
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={toggleMinimize}
-                            onMouseDown={(e) => e.stopPropagation()}
-                        >
+                        <Button variant="outline" size="sm" onMouseDown={(e) => e.stopPropagation()} onClick={toggleMinimize}>
                             {isMinimized ? "Restore" : "Minimize"}
                         </Button>
 
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={toggleFullscreen}
-                            onMouseDown={(e) => e.stopPropagation()}
-                        >
+                        <Button variant="outline" size="sm" onMouseDown={(e) => e.stopPropagation()} onClick={toggleFullscreen}>
                             {isFullscreen ? "Exit Full" : "Full"}
                         </Button>
 
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={clearMessages}
-                            onMouseDown={(e) => e.stopPropagation()}
-                        >
+                        <Button variant="outline" size="sm" onMouseDown={(e) => e.stopPropagation()} onClick={clearMessages}>
                             Clear
                         </Button>
                     </div>
@@ -122,7 +114,8 @@ export default function ChatWindow() {
                 )}
             </div>
 
-            <ImageViewer open={viewerOpen} src={viewerSrc} onClose={closeImage} />
+            {/* ✅ Image Viewer Window (minimize + fullscreen + window mode) */}
+            <ImageViewerWindow open={viewerOpen} src={viewerSrc} onClose={closeImage} />
         </>
     );
 }

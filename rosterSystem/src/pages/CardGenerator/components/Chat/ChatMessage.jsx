@@ -48,7 +48,7 @@ export default function ChatMessage({ message, onOpenImage }) {
     // ✅ Layout classes
     const rowClass = isMySide ? "justify-end" : "justify-start";
     const bubbleClass = isMySide
-        ? "bg-primary text-primary-foreground rounded-2xl rounded-tr-none"
+        ? "bg-blue-500 text-white rounded-2xl rounded-tr-none"
         : "bg-muted rounded-2xl rounded-tl-none";
 
     return (
@@ -71,7 +71,7 @@ export default function ChatMessage({ message, onOpenImage }) {
 
                 {/* TEXT */}
                 {message?.type === "text" && message?.text && (
-                    <p className="text-sm break-words">{message.text}</p>
+                    <p className="break-words">{message.text}</p>
                 )}
 
                 {/* PHOTOS */}

@@ -8,11 +8,38 @@ import useDraggableWindow from "./useDraggableWindow";
 import ChatMessage from "./ChatMessage";
 import ImageViewerWindow from "./ImageViewer";
 import axios from "axios";
+import messageSound from "../../../../assets/notificationSound/notification-sound.mp3";
+import useNotificationSound from "../../../../hooks/useNotificationSound";
 
 export default function ChatWindow() {
     const [message, setMessage] = useState("");
+    const playMessageSound = useNotificationSound(messageSound);
 
     const { isConnected, messages, connectionStatus, clearMessages } = useWebSocket();
+    // For Notification chat play sound
+    const prevCountRef = useRef(0);
+
+    useEffect(() => {
+        if (!Array.isArray(messages)) return;
+
+        // first load → no sound
+        if (prevCountRef.current === 0) {
+            prevCountRef.current = messages.length;
+            return;
+        }
+
+        if (messages.length > prevCountRef.current) {
+            const lastMessage = messages[messages.length - 1];
+
+            // ✅ play sound only for incoming messages
+            if (!lastMessage?.from?.isBot && !lastMessage?.isOutgoing) {
+                playMessageSound();
+            }
+        }
+
+        prevCountRef.current = messages.length;
+    }, [messages, playMessageSound]);
+
 
     const {
         isFullscreen,
@@ -150,12 +177,12 @@ export default function ChatWindow() {
                 >
                     <div>
                         <p className="font-semibold text-base">VIP Card Chat</p>
-                        <p className="text-xs text-muted-foreground">{connectionStatus}</p>
                     </div>
 
                     <div className="flex items-center gap-2">
                         <span className={`text-xs ${isConnected ? "text-green-500" : "text-red-500"}`}>
                             {isConnected ? "Connected" : "Disconnected"}
+                            <span className={`w-2 h-2 ml-2 rounded-full inline-block ${isConnected ? "bg-green-500" : "bg-red-500"}`}></span>
                         </span>
 
                         <Button

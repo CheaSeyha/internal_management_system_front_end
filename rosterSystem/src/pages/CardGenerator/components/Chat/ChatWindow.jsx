@@ -7,10 +7,13 @@ import { X, Expand, Maximize2, RotateCw, ChevronLeft, ChevronRight, RotateCwSqua
 import useDraggableWindow from "./useDraggableWindow";
 import ChatMessage from "./ChatMessage";
 import ImageViewerWindow from "./ImageViewer";
+import axios from "axios";
 
 export default function ChatWindow() {
-    const { isConnected, messages, connectionStatus, clearMessages } = useWebSocket();
 
+    const [message, setMessage] = useState("");
+
+    const { isConnected, messages, connectionStatus, clearMessages } = useWebSocket();
     const {
         isFullscreen,
         isMinimized,
@@ -41,6 +44,31 @@ export default function ChatWindow() {
         setViewerOpen(false);
         setViewerImages([]);
         setViewerIndex(0);
+    };
+
+    const handleSendMessage = async () => {
+        if (!message.trim()) return;
+        // TODO: send message via WebSocket
+        const chatID = import.meta.env.VITE_CHAT_ID;
+        const token = import.meta.env.VITE_API_AUTH_TOKEN;
+
+        try {
+            const send = await axios.post(decodeURIComponent(import.meta.env.VITE_RESTAPI_URL) + "/api/bot/send", {
+                chatId: chatID,
+                text: message,
+            }, {
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`,
+                },
+            })
+            console.log(send.data);
+        } catch (error) {
+            console.log(error);
+        } finally {
+            setMessage("");
+        }
+
     };
 
     return (
@@ -100,9 +128,26 @@ export default function ChatWindow() {
 
                         {/* Input (UI only) */}
                         <div className="p-4 border-t border-border flex gap-2">
-                            <Input placeholder="Type a message..." />
-                            <Button disabled={!isConnected}>Send</Button>
+                            <Input
+                                value={message}
+                                onChange={(e) => setMessage(e.target.value)}
+                                placeholder="Type a message..."
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter" && !e.shiftKey) {
+                                        e.preventDefault(); // prevent form submit / newline
+                                        handleSendMessage();
+                                    }
+                                }}
+                            />
+
+                            <Button
+                                onClick={handleSendMessage}
+                                disabled={!isConnected}
+                            >
+                                Send
+                            </Button>
                         </div>
+
 
                         {/* Resize handle */}
                         {!isFullscreen && (

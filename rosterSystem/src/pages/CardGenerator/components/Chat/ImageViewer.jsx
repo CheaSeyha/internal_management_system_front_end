@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import useDraggableWindow from "./useDraggableWindow";
-import { X, Expand, Maximize2, RotateCw, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, Expand, Maximize2, RotateCw, ChevronLeft, ChevronRight, RotateCwSquare } from "lucide-react";
 
 function clamp(n, min, max) {
     return Math.max(min, Math.min(max, n));
@@ -141,13 +141,9 @@ export default function ImageViewerWindow({ open, images = [], startIndex = 0, o
         >
             {/* Header */}
             <div
-                className="p-3 border-b border-border flex justify-between items-center select-none cursor-move"
+                className="p-3 z-9999 w-full bg-none  border-b border-border flex justify-end items-center select-none cursor-move"
                 onMouseDown={onHeaderMouseDown}
             >
-                <p className="font-semibold text-sm">
-                    Image {images?.length > 1 ? `(${currentIndex + 1}/${images.length})` : ""}
-                </p>
-
                 <div className="flex items-center gap-2">
                     {/* Rotate */}
                     <Button
@@ -157,7 +153,7 @@ export default function ImageViewerWindow({ open, images = [], startIndex = 0, o
                         onClick={() => setRotation((r) => (r + 90) % 360)}
                         title="Rotate"
                     >
-                        <RotateCw className="w-4 h-4" />
+                        <RotateCwSquare className="w-4 h-4" />
                     </Button>
 
                     {/* Fullscreen */}
@@ -186,13 +182,6 @@ export default function ImageViewerWindow({ open, images = [], startIndex = 0, o
 
             {!isMinimized && (
                 <>
-                    {/* Hint */}
-                    <div className="p-2 border-b border-border">
-                        <span className="text-xs text-muted-foreground">
-                            Scroll to zoom • Drag image when zoomed • ← / → to navigate
-                        </span>
-                    </div>
-
                     {/* Image Area */}
                     <div
                         className="relative flex-1 bg-black/80 flex items-center justify-center overflow-hidden"
@@ -203,7 +192,7 @@ export default function ImageViewerWindow({ open, images = [], startIndex = 0, o
                             <button
                                 type="button"
                                 onClick={prevImage}
-                                className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2"
+                                className="absolute z-9999 left-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2"
                                 title="Previous"
                             >
                                 <ChevronLeft />
@@ -215,7 +204,7 @@ export default function ImageViewerWindow({ open, images = [], startIndex = 0, o
                             <button
                                 type="button"
                                 onClick={nextImage}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2"
+                                className="absolute z-9999 right-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2"
                                 title="Next"
                             >
                                 <ChevronRight />

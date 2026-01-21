@@ -219,6 +219,7 @@ export default function ChatWindow() {
                         {/* Input */}
                         <div className="p-4 border-t border-border flex gap-2">
                             <Input
+                                id="message"
                                 value={message}
                                 onChange={(e) => setMessage(e.target.value)}
                                 placeholder="Type a message..."

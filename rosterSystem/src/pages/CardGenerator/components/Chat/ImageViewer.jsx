@@ -116,7 +116,6 @@ export default function ImageViewerWindow({ open, images = [], startIndex = 0, o
 
     // wheel zoom
     const onWheelZoom = (e) => {
-        e.preventDefault();
         const delta = e.deltaY > 0 ? -0.15 : 0.15;
         setScale((s) => clamp(Number((s + delta).toFixed(2)), 1, 6));
     };

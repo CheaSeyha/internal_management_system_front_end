@@ -3,8 +3,9 @@ import { useState, useEffect, useRef, useCallback } from "react";
 const makeKey = (msg) => {
     // best for telegram
     if (msg?.chatId != null && msg?.messageId != null) return `${msg.chatId}-${msg.messageId}`;
-    // fallback
-    return msg?.id ?? msg?.timestamp ?? msg?.date ?? JSON.stringify(msg);
+
+    // fallback (try to keep stable)
+    return msg?.id ?? msg?.timestamp ?? msg?.date ?? `${msg?.type || "msg"}-${Math.random()}`;
 };
 
 const useWebSocket = () => {
@@ -28,76 +29,106 @@ const useWebSocket = () => {
             return;
         }
 
-        const wsUrl = `${import.meta.env.VITE_WEBSOCKET_URL}?token=${encodeURIComponent(
-            import.meta.env.VITE_TOKEN_KEY
-        )}`;
+        try {
+            const wsUrl = `${import.meta.env.VITE_WEBSOCKET_URL}?token=${encodeURIComponent(
+                import.meta.env.VITE_TOKEN_KEY
+            )}`;
 
-        const ws = new WebSocket(wsUrl);
-        wsRef.current = ws;
+            const ws = new WebSocket(wsUrl);
+            wsRef.current = ws;
 
-        ws.onopen = () => {
-            setIsConnected(true);
-            setConnectionStatus("Connected");
-        };
+            ws.onopen = () => {
+                setIsConnected(true);
+                setConnectionStatus("Connected");
+            };
 
-        ws.onmessage = (event) => {
-            let data;
-            try {
-                data = JSON.parse(event.data);
-            } catch (e) {
-                return;
-            }
-
-            // ignore system
-            if (data?.type === "system") return;
-
-            // ✅ HISTORY: replace (not append)
-            if (data?.type === "history" && Array.isArray(data.messages)) {
-                const map = new Map();
-                for (const m of data.messages) map.set(makeKey(m), m);
-                setMessages(Array.from(map.values()));
-                return;
-            }
-
-            // ✅ SINGLE MESSAGE: append but dedupe / update
-            setMessages((prev) => {
-                const key = makeKey(data);
-                const idx = prev.findIndex((m) => makeKey(m) === key);
-
-                // update existing (edited message)
-                if (idx !== -1) {
-                    const copy = [...prev];
-                    copy[idx] = { ...copy[idx], ...data };
-                    return copy;
+            ws.onmessage = (event) => {
+                let data;
+                try {
+                    data = JSON.parse(event.data);
+                } catch (e) {
+                    // ignore non-json
+                    return;
                 }
 
-                // append new
-                return [...prev, data];
-            });
-        };
+                // ignore system
+                if (data?.type === "system") return;
 
-        ws.onerror = () => {
+                // ✅ HISTORY: replace list (dedupe)
+                if (data?.type === "history" && Array.isArray(data.messages)) {
+                    const map = new Map();
+                    for (const m of data.messages) {
+                        map.set(makeKey(m), m);
+                    }
+                    setMessages(Array.from(map.values()));
+                    return;
+                }
+
+                // ✅ MESSAGE UPDATE: replace existing message by key using newData
+                if (data?.type === "message_update" && data?.newData) {
+                    const updated = data.newData;
+
+                    setMessages((prev) => {
+                        const key = makeKey(updated);
+                        const idx = prev.findIndex((m) => makeKey(m) === key);
+
+                        if (idx !== -1) {
+                            const copy = [...prev];
+                            copy[idx] = { ...copy[idx], ...updated }; // merge
+                            return copy;
+                        }
+
+                        // if user joined late and message not in list yet
+                        return [...prev, updated];
+                    });
+
+                    return;
+                }
+
+                // ✅ NORMAL MESSAGE: append but dedupe / update by key
+                setMessages((prev) => {
+                    const key = makeKey(data);
+                    const idx = prev.findIndex((m) => makeKey(m) === key);
+
+                    // update existing (duplicate / resend / etc.)
+                    if (idx !== -1) {
+                        const copy = [...prev];
+                        copy[idx] = { ...copy[idx], ...data };
+                        return copy;
+                    }
+
+                    // append new
+                    return [...prev, data];
+                });
+            };
+
+            ws.onerror = () => {
+                setConnectionStatus("Error");
+            };
+
+            ws.onclose = (event) => {
+                setIsConnected(false);
+
+                // auth close
+                if (event.code === 1008) {
+                    setConnectionStatus("Authentication Failed");
+                    return;
+                }
+
+                setConnectionStatus("Disconnected");
+
+                // reconnect once timer (avoid stacking timers)
+                if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
+
+                reconnectTimeoutRef.current = setTimeout(() => {
+                    setConnectionStatus("Reconnecting...");
+                    connect();
+                }, 3000);
+            };
+        } catch (err) {
+            console.error("WebSocket connect error:", err);
             setConnectionStatus("Error");
-        };
-
-        ws.onclose = (event) => {
-            setIsConnected(false);
-
-            if (event.code === 1008) {
-                setConnectionStatus("Authentication Failed");
-                return;
-            }
-
-            setConnectionStatus("Disconnected");
-
-            // reconnect once timer (avoid stacking timers)
-            if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
-
-            reconnectTimeoutRef.current = setTimeout(() => {
-                setConnectionStatus("Reconnecting...");
-                connect();
-            }, 3000);
-        };
+        }
     }, []);
 
     useEffect(() => {

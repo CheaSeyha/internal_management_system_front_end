@@ -1378,7 +1378,7 @@ export default function CardGenerator() {
                       }}
                       className={
                         entry.cardType === "CAR CARD"
-                          ? "w-full flex justify-center py-5 print:border-y print:border-dashed print:border-blue-600"
+                          ? "w-full flex justify-center gap-1 py-[17px] print:border-y print:border-dashed print:border-blue-600"
                           : entry.cardType === "VIP CARD"
                             ? noSpace
                               ? "-mx-[2.7px] -my-[1px]"

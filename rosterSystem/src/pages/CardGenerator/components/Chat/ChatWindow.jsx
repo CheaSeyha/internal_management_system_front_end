@@ -1,19 +1,19 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import useWebSocket from "../Hook/useWebSocket"; // adjust if needed
-import { X, Expand, Maximize2, RotateCw, ChevronLeft, ChevronRight, RotateCwSquare } from "lucide-react";
+import useWebSocket from "../Hook/useWebSocket";
+import { X, Expand, Maximize2 } from "lucide-react";
 import useDraggableWindow from "./useDraggableWindow";
 import ChatMessage from "./ChatMessage";
 import ImageViewerWindow from "./ImageViewer";
 import axios from "axios";
 
 export default function ChatWindow() {
-
     const [message, setMessage] = useState("");
 
     const { isConnected, messages, connectionStatus, clearMessages } = useWebSocket();
+
     const {
         isFullscreen,
         isMinimized,
@@ -29,7 +29,7 @@ export default function ChatWindow() {
         initialH: 600,
     });
 
-    // ✅ Image viewer now supports album (array) + start index
+    // ✅ Image viewer supports album
     const [viewerOpen, setViewerOpen] = useState(false);
     const [viewerImages, setViewerImages] = useState([]);
     const [viewerIndex, setViewerIndex] = useState(0);
@@ -48,35 +48,100 @@ export default function ChatWindow() {
 
     const handleSendMessage = async () => {
         if (!message.trim()) return;
-        // TODO: send message via WebSocket
+
         const chatID = import.meta.env.VITE_CHAT_ID;
         const token = import.meta.env.VITE_API_AUTH_TOKEN;
 
         try {
-            const send = await axios.post(decodeURIComponent(import.meta.env.VITE_RESTAPI_URL) + "/api/bot/send", {
-                chatId: chatID,
-                text: message,
-            }, {
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                },
-            })
+            const send = await axios.post(
+                decodeURIComponent(import.meta.env.VITE_RESTAPI_URL) + "/api/bot/send",
+                { chatId: chatID, text: message },
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
             console.log(send.data);
         } catch (error) {
             console.log(error);
         } finally {
             setMessage("");
         }
-
     };
+
+    // =========================================
+    // ✅ Auto scroll to bottom + jump button
+    // =========================================
+    const scrollAreaRef = useRef(null);
+    const shouldAutoScrollRef = useRef(true);
+    const [isAtBottom, setIsAtBottom] = useState(true);
+
+    const getViewport = () => {
+        const root = scrollAreaRef.current;
+        if (!root) return null;
+
+        // Radix viewport inside shadcn ScrollArea
+        return root.querySelector?.('[data-radix-scroll-area-viewport]') || null;
+    };
+
+    const scrollToBottom = (smooth = true) => {
+        const viewport = getViewport();
+        if (!viewport) return;
+
+        viewport.scrollTo({
+            top: viewport.scrollHeight,
+            behavior: smooth ? "smooth" : "auto",
+        });
+    };
+
+    // attach scroll listener
+    useEffect(() => {
+        if (isMinimized) return;
+
+        const viewport = getViewport();
+        if (!viewport) return;
+
+        const threshold = 80; // px: "near bottom"
+
+        const onScroll = () => {
+            const distanceFromBottom =
+                viewport.scrollHeight - (viewport.scrollTop + viewport.clientHeight);
+
+            const atBottomNow = distanceFromBottom <= threshold;
+
+            setIsAtBottom(atBottomNow);
+            shouldAutoScrollRef.current = atBottomNow; // only auto scroll if user near bottom
+        };
+
+        viewport.addEventListener("scroll", onScroll, { passive: true });
+        onScroll(); // init
+
+        return () => viewport.removeEventListener("scroll", onScroll);
+    }, [isMinimized, isFullscreen]);
+
+    // Auto scroll on first load + new messages (only if user didn't scroll up)
+    const messageCount = useMemo(() => (Array.isArray(messages) ? messages.length : 0), [messages]);
+
+    useEffect(() => {
+        if (isMinimized) return;
+
+        if (shouldAutoScrollRef.current) {
+            // instant for stability (images may change height)
+            scrollToBottom(false);
+            setTimeout(() => scrollToBottom(false), 50);
+            setTimeout(() => scrollToBottom(false), 150);
+        }
+    }, [messageCount, isMinimized]);
+    // =========================================
 
     return (
         <>
             {/* Chat Window */}
             <div
                 style={containerStyle}
-                className="bg-sidebar rounded-xl flex flex-col shadow-lg border border-border overflow-hidden"
+                className="bg-sidebar rounded-xl flex flex-col shadow-lg border border-border overflow-hidden relative"
             >
                 {/* Header */}
                 <div
@@ -85,6 +150,7 @@ export default function ChatWindow() {
                 >
                     <div>
                         <p className="font-semibold text-base">VIP Card Chat</p>
+                        <p className="text-xs text-muted-foreground">{connectionStatus}</p>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -92,13 +158,21 @@ export default function ChatWindow() {
                             {isConnected ? "Connected" : "Disconnected"}
                         </span>
 
-
-
-                        <Button variant="outline" size="sm" onMouseDown={(e) => e.stopPropagation()} onClick={toggleFullscreen}>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onClick={toggleFullscreen}
+                        >
                             {isFullscreen ? <Maximize2 /> : <Expand />}
                         </Button>
 
-                        <Button variant="outline" size="sm" onMouseDown={(e) => e.stopPropagation()} onClick={toggleMinimize}>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onClick={toggleMinimize}
+                        >
                             <X />
                         </Button>
                     </div>
@@ -107,18 +181,18 @@ export default function ChatWindow() {
                 {/* Body */}
                 {!isMinimized && (
                     <>
-                        <ScrollArea className="flex-1 p-4">
+                        <ScrollArea ref={scrollAreaRef} className="flex-1 p-4">
                             <div className="space-y-3">
-                                {messages.map((message, index) => {
+                                {messages.map((m, index) => {
                                     const key =
-                                        message?.chatId != null && message?.messageId != null
-                                            ? `${message.chatId}-${message.messageId}`
-                                            : message?.timestamp ?? message?.date ?? index;
+                                        m?.chatId != null && m?.messageId != null
+                                            ? `${m.chatId}-${m.messageId}`
+                                            : m?.timestamp ?? m?.date ?? index;
 
                                     return (
                                         <ChatMessage
                                             key={key}
-                                            message={message}
+                                            message={m}
                                             onOpenImage={(images, startIndex) => openImageViewer(images, startIndex)}
                                         />
                                     );
@@ -126,7 +200,23 @@ export default function ChatWindow() {
                             </div>
                         </ScrollArea>
 
-                        {/* Input (UI only) */}
+                        {/* ✅ Jump to bottom button */}
+                        {!isAtBottom && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    scrollToBottom(true);
+                                    shouldAutoScrollRef.current = true;
+                                    setIsAtBottom(true);
+                                }}
+                                className="absolute right-4 bottom-[84px] bg-primary text-primary-foreground rounded-full w-10 h-10 shadow-md hover:opacity-90 flex items-center justify-center"
+                                title="Scroll to bottom"
+                            >
+                                ↓
+                            </button>
+                        )}
+
+                        {/* Input */}
                         <div className="p-4 border-t border-border flex gap-2">
                             <Input
                                 value={message}
@@ -134,20 +224,16 @@ export default function ChatWindow() {
                                 placeholder="Type a message..."
                                 onKeyDown={(e) => {
                                     if (e.key === "Enter" && !e.shiftKey) {
-                                        e.preventDefault(); // prevent form submit / newline
+                                        e.preventDefault();
                                         handleSendMessage();
                                     }
                                 }}
                             />
 
-                            <Button
-                                onClick={handleSendMessage}
-                                disabled={!isConnected}
-                            >
+                            <Button onClick={handleSendMessage} disabled={!isConnected || !message.trim()}>
                                 Send
                             </Button>
                         </div>
-
 
                         {/* Resize handle */}
                         {!isFullscreen && (
@@ -166,7 +252,7 @@ export default function ChatWindow() {
                 )}
             </div>
 
-            {/* ✅ Image Viewer supports Prev/Next */}
+            {/* Image Viewer */}
             <ImageViewerWindow
                 open={viewerOpen}
                 images={viewerImages}

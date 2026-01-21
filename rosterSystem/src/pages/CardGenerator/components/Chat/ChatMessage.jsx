@@ -1,4 +1,5 @@
 import React from "react";
+import jsIcon from "../../../../assets/webIcon/JS_ICON.png";
 
 function getUsername(from) {
     return (
@@ -8,37 +9,64 @@ function getUsername(from) {
     );
 }
 
+function getPhotoUrl(obj) {
+    if (!obj) return null;
+    if (typeof obj === "string") return obj;
+    return obj.fileUrl || obj.file_url || obj.url || obj.href || obj.link || null;
+}
+
 export default function ChatMessage({ message, onOpenImage }) {
     const username = getUsername(message?.from);
-    const avatar = message?.from?.profilePhotoUrl || "https://via.placeholder.com/32";
+    const avatar = message?.from?.profilePhotoUrl || jsIcon;
 
-    // ✅ Normalize photos into one array (single + album)
+    // ✅ treat outgoing bot messages as "user side"
+    const isMySide = Boolean(message?.from?.isBot && message?.isOutgoing);
+
+    // ✅ Normalize photos into one array (single + album) with robust url support
     const photos = (() => {
-        if (message?.type === "photo" && message?.photo?.fileUrl) {
-            return [{ fileUrl: message.photo.fileUrl, caption: message.caption || "" }];
+        if (message?.type === "photo") {
+            const url = getPhotoUrl(message?.photo) || getPhotoUrl(message?.photos?.[0]);
+            return url ? [{ fileUrl: url, caption: message.caption || "" }] : [];
         }
+
         if (message?.type === "photo_album" && Array.isArray(message?.photos)) {
-            return message.photos.filter((p) => p?.fileUrl);
+            return message.photos
+                .map((p) => ({ fileUrl: getPhotoUrl(p), caption: p?.caption || "" }))
+                .filter((p) => Boolean(p.fileUrl));
         }
+
         return [];
     })();
 
     const hasPhotos = photos.length > 0;
 
-    // Caption: prefer message.caption, else first photo.caption
     const caption =
         message?.caption ||
         (message?.type === "photo_album" ? photos?.[0]?.caption : "") ||
         "";
 
-    return (
-        <div className="flex items-start gap-2">
-            <img className="w-8 h-8 rounded-full object-cover" src={avatar} alt="" />
+    // ✅ Layout classes
+    const rowClass = isMySide ? "justify-end" : "justify-start";
+    const bubbleClass = isMySide
+        ? "bg-primary text-primary-foreground rounded-2xl rounded-tr-none"
+        : "bg-muted rounded-2xl rounded-tl-none";
 
-            <div className="max-w-[75%] bg-muted px-4 py-2 rounded-2xl rounded-tl-none">
-                <div className="flex items-center gap-2 mb-1">
-                    <span className="text-sm text-neutral-500">{username}</span>
-                    {message?.isEdited && <span className="text-xs text-neutral-400">(edited)</span>}
+    return (
+        <div className={`flex items-start gap-2 ${rowClass}`}>
+            {/* Avatar left (other side) */}
+            {!isMySide && (
+                <img
+                    className="w-8 h-8 rounded-full object-cover border border-muted bg-black"
+                    src={avatar}
+                    alt=""
+                />
+            )}
+
+            <div className={`max-w-[75%] px-4 py-2 ${bubbleClass}`}>
+                {/* Username (optional for my side) */}
+                <div className={`flex items-center gap-2 mb-1 ${isMySide ? "justify-end" : "justify-start"}`}>
+                    {!isMySide && <span className="text-sm text-neutral-500">{username}</span>}
+                    {message?.isEdited && <span className="text-xs opacity-70">(edited)</span>}
                 </div>
 
                 {/* TEXT */}
@@ -46,7 +74,7 @@ export default function ChatMessage({ message, onOpenImage }) {
                     <p className="text-sm break-words">{message.text}</p>
                 )}
 
-                {/* PHOTOS (single or album) */}
+                {/* PHOTOS */}
                 {hasPhotos && (
                     <PhotoGrid
                         photos={photos}
@@ -56,6 +84,7 @@ export default function ChatMessage({ message, onOpenImage }) {
                                 startIndex
                             )
                         }
+                        isMySide={isMySide}
                     />
                 )}
 
@@ -66,22 +95,32 @@ export default function ChatMessage({ message, onOpenImage }) {
 
                 {/* Timestamp */}
                 {message?.timestamp && (
-                    <p className="mt-1 text-[11px] text-neutral-400">
+                    <p className={`mt-1 text-[11px] opacity-70 ${isMySide ? "text-right" : ""}`}>
                         {new Date(message.timestamp).toLocaleString()}
                     </p>
                 )}
             </div>
+
+            {/* Avatar right (my side) */}
+            {isMySide && (
+                <img
+                    className="w-8 h-8 rounded-full object-cover border border-muted bg-black"
+                    src={avatar}
+                    alt=""
+                />
+            )}
         </div>
     );
 }
 
-function PhotoGrid({ photos, onOpen }) {
-    // show at most 4 thumbs; overlay for remaining
+function PhotoGrid({ photos, onOpen, isMySide }) {
     const maxThumbs = 4;
     const thumbs = photos.slice(0, maxThumbs);
     const remaining = photos.length - maxThumbs;
 
-    // 1 image
+    // Optional: slightly different sizing for my side
+    const singleClass = isMySide ? "max-w-[200px]" : "max-w-[220px]";
+
     if (photos.length === 1) {
         const url = photos[0].fileUrl;
         return (
@@ -89,14 +128,13 @@ function PhotoGrid({ photos, onOpen }) {
                 <img
                     src={url}
                     alt="telegram-photo"
-                    className="max-w-[220px] rounded-lg cursor-zoom-in hover:opacity-90 transition"
+                    className={`${singleClass} rounded-lg cursor-zoom-in hover:opacity-90 transition`}
                     loading="lazy"
                 />
             </button>
         );
     }
 
-    // 2+ images grid
     return (
         <div className="grid grid-cols-2 gap-2">
             {thumbs.map((p, idx) => {

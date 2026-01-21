@@ -11,7 +11,7 @@ import axios from "axios";
 import messageSound from "../../../../assets/notificationSound/notification-sound.mp3";
 import useNotificationSound from "../../../../hooks/useNotificationSound";
 
-export default function ChatWindow() {
+export default function ChatWindow({ onPickText }) {
     const [message, setMessage] = useState("");
     const playMessageSound = useNotificationSound(messageSound);
 
@@ -218,6 +218,7 @@ export default function ChatWindow() {
 
                                     return (
                                         <ChatMessage
+                                            onPickText={onPickText}
                                             key={key}
                                             message={m}
                                             onOpenImage={(images, startIndex) => openImageViewer(images, startIndex)}

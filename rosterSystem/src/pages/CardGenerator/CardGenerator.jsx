@@ -654,6 +654,19 @@ export default function CardGenerator() {
     }));
   };
 
+  // CardGenerator.jsx
+  const setNameFromChat = (textFromChat) => {
+    setCurrentEntry((prev) => ({
+      ...prev,
+      name: textFromChat, // 👈 just fills input UI
+    }));
+
+    nameInputRef.current?.focus();
+  };
+
+
+
+
   if (!ready) return <LoadingSpinner />; // show loading until ready
   return (
     <div
@@ -1123,7 +1136,7 @@ export default function CardGenerator() {
           </div>
         </motion.form>
 
-        <Chat />
+        <Chat onPickText={setNameFromChat} />
       </div>
 
       {/* Preview card layout  */}

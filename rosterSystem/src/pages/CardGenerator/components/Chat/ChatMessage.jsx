@@ -1,6 +1,7 @@
 import React from "react";
 import jsIcon from "../../../../assets/webIcon/JS_ICON.png";
-
+import { Plus } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 function getUsername(from) {
     return (
         from?.username ||
@@ -15,7 +16,7 @@ function getPhotoUrl(obj) {
     return obj.fileUrl || obj.file_url || obj.url || obj.href || obj.link || null;
 }
 
-export default function ChatMessage({ message, onOpenImage }) {
+export default function ChatMessage({ message, onOpenImage, onPickText }) {
     const username = getUsername(message?.from);
     const avatar = message?.from?.profilePhotoUrl || jsIcon;
 
@@ -61,7 +62,7 @@ export default function ChatMessage({ message, onOpenImage }) {
                     alt=""
                 />
             )}
-
+            {/* Chat response  */}
             <div className={`max-w-[75%] px-4 py-2 ${bubbleClass}`}>
                 {/* Username (optional for my side) */}
                 <div className={`flex items-center gap-2 mb-1 ${isMySide ? "justify-end" : "justify-start"}`}>
@@ -71,8 +72,23 @@ export default function ChatMessage({ message, onOpenImage }) {
 
                 {/* TEXT */}
                 {message?.type === "text" && message?.text && (
-                    <p className="break-words">{message.text}</p>
+                    <div className="flex items-start gap-2">
+                        <p className="break-words flex-1">{message.text}</p>
+
+                        {!isMySide && (
+                            <button
+                                type="button"
+                                onMouseDown={(e) => e.stopPropagation()} // important for draggable window
+                                onClick={() => onPickText(message.text)} // ✅ send text upward
+                                className="ml-2 rounded-full border p-1 hover:opacity-60 cursor-pointer active:scale-95 hover:bg-muted"
+                                title="Insert into Name"
+                            >
+                                <Plus className="w-4 h-4" />
+                            </button>
+                        )}
+                    </div>
                 )}
+
 
                 {/* PHOTOS */}
                 {hasPhotos && (
@@ -99,6 +115,8 @@ export default function ChatMessage({ message, onOpenImage }) {
                         {new Date(message.timestamp).toLocaleString()}
                     </p>
                 )}
+
+
             </div>
 
             {/* Avatar right (my side) */}

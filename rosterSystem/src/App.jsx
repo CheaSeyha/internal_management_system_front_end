@@ -108,7 +108,7 @@ function App() {
               />
             </Route>
             <Route
-              path="user-manage"
+              path="users"
               element={
                 <ProtectedRoute allowedRoles={[1, 2]}>
                   <Outlet />
@@ -116,7 +116,7 @@ function App() {
               }
             >
               <Route
-                path="all-users"
+                path="manage"
                 element={
                   <AnimatedPage>
                     <UserManage />

@@ -244,7 +244,7 @@ export function TableUser() {
     }
 
     if (loading) {
-        const skeletonRows = Array.from({ length: 8 });
+        const skeletonRows = Array.from({ length: 20 });
         return (
             <div className="w-full">
                 <div className="flex items-center py-4 gap-2">

@@ -43,13 +43,13 @@ export const getSidebarData = (user) => ({
       ],
     },
     {
-      title: "User Manage",
-      url: "user-manage",
+      title: "User",
+      url: "users",
       icon: Users,
       isActive: false,
       roles: [1, 2], // 👈 Super Admin & Admin only
       items: [
-        { title: "All Users", url: "all-users" },
+        { title: "Manage", url: "manage" },
       ],
     },
     {

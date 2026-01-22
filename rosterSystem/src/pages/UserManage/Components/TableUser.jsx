@@ -1,12 +1,10 @@
-// ===============================
-// /TableUser.jsx  (FULL CODE)
-// ===============================
 "use client";
 
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
@@ -15,7 +13,6 @@ import {
     DropdownMenuLabel,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import {
     Table,
     TableBody,
@@ -28,14 +25,12 @@ import {
     flexRender,
     getCoreRowModel,
     getFilteredRowModel,
-    getPaginationRowModel,
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react";
+import { ArrowUpDown, ChevronDown, MoreHorizontal, User } from "lucide-react";
 import useStaffHook from "../Hooks/useStaffHook";
 
-// ✅ Columns must match API fields
 export const columns = [
     {
         id: "select",
@@ -60,36 +55,72 @@ export const columns = [
         enableHiding: false,
     },
 
-    { accessorKey: "id", header: "ID" },
-    { accessorKey: "first_name", header: "First Name" },
-    { accessorKey: "last_name", header: "Last Name" },
-
-    // ✅ nested department
+    // ✅ Photo with fallback icon
     {
-        id: "department",
+        id: "photo",
+        header: "Photo",
+        cell: ({ row }) => {
+            const src = row.original.photoSrc;
+            return src ? (
+                <img
+                    src={src}
+                    alt="profile"
+                    className="w-9 h-9 rounded-full object-cover"
+                />
+            ) : (
+                <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center">
+                    <User className="w-5 h-5 text-muted-foreground" />
+                </div>
+            );
+        },
+    },
+
+    { accessorKey: "user_id", header: "User ID" },
+    { accessorKey: "name", header: "Name" },
+
+    {
+        accessorKey: "email",
+        header: ({ column }) => (
+            <Button
+                variant="ghost"
+                onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            >
+                Email <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+        ),
+        cell: ({ row }) => <div className="lowercase">{row.getValue("email")}</div>,
+    },
+
+    { accessorKey: "role_name", header: "Role" },
+    {
+        accessorKey: "department_name",
         header: "Department",
-        accessorFn: (row) => row?.department?.department_name ?? "",
-        cell: ({ getValue }) => <div className="capitalize">{getValue()}</div>,
-    },
-
-    // ✅ nested position
-    {
-        id: "position",
-        header: "Position",
-        accessorFn: (row) => row?.position?.position_name ?? "",
-        cell: ({ getValue }) => <div>{getValue()}</div>,
-    },
-
-    { accessorKey: "email", header: "Email" },
-    { accessorKey: "phone_number", header: "Phone" },
-    { accessorKey: "date_of_joining", header: "Date Joined" },
-    { accessorKey: "date_of_birth", header: "DOB" },
-
-    {
-        accessorKey: "status",
-        header: "Status",
         cell: ({ row }) => (
-            <div className="capitalize">{row.getValue("status")}</div>
+            <div className="capitalize">{row.getValue("department_name")}</div>
+        ),
+    },
+    { accessorKey: "position_name", header: "Position" },
+    { accessorKey: "phone_number", header: "Phone" },
+    {
+        accessorKey: "staff_status",
+        header: "Staff Status",
+        cell: ({ row }) => (
+            <div className="capitalize">{row.getValue("staff_status")}</div>
+        ),
+    },
+
+    {
+        id: "linked",
+        header: "Linked",
+        accessorFn: (row) => (row.staff_id ? "Yes" : "No"),
+        cell: ({ getValue }) => (
+            <div
+                className={
+                    getValue() === "Yes" ? "text-green-600" : "text-muted-foreground"
+                }
+            >
+                {getValue()}
+            </div>
         ),
     },
 
@@ -97,8 +128,7 @@ export const columns = [
         id: "actions",
         enableHiding: false,
         cell: ({ row }) => {
-            const staffRow = row.original;
-
+            const r = row.original;
             return (
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -111,16 +141,26 @@ export const columns = [
                     <DropdownMenuContent align="end">
                         <DropdownMenuGroup>
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
+
                             <DropdownMenuCheckboxItem
-                                onClick={() =>
-                                    navigator.clipboard.writeText(String(staffRow.id))
-                                }
+                                onClick={() => navigator.clipboard.writeText(String(r.user_id))}
                             >
-                                Copy Staff ID
+                                Copy User ID
                             </DropdownMenuCheckboxItem>
+
+                            {r.staff_id ? (
+                                <DropdownMenuCheckboxItem
+                                    onClick={() =>
+                                        navigator.clipboard.writeText(String(r.staff_id))
+                                    }
+                                >
+                                    Copy Staff ID
+                                </DropdownMenuCheckboxItem>
+                            ) : null}
+
                             <DropdownMenuCheckboxItem
                                 onClick={() =>
-                                    navigator.clipboard.writeText(String(staffRow.email ?? ""))
+                                    navigator.clipboard.writeText(String(r.email ?? ""))
                                 }
                             >
                                 Copy Email
@@ -134,49 +174,85 @@ export const columns = [
 ];
 
 export function TableUser() {
-    const { staff, loading, error, refetch } = useStaffHook();
+    const {
+        rows,
+        loading,
+        error,
+        refetch,
+        page,
+        lastPage,
+        total,
+        perPage,
+        nextPage,
+        prevPage,
+        goToPage, // ✅ add this
+    } = useStaffHook();
+
 
     const [sorting, setSorting] = React.useState([]);
     const [columnFilters, setColumnFilters] = React.useState([]);
     const [columnVisibility, setColumnVisibility] = React.useState({});
     const [rowSelection, setRowSelection] = React.useState({});
 
+
+    const getPageNumbers = (current, total) => {
+        const delta = 2; // how many pages around current
+        const pages = [];
+
+        const left = Math.max(1, current - delta);
+        const right = Math.min(total, current + delta);
+
+        if (left > 1) {
+            pages.push(1);
+            if (left > 2) pages.push("...");
+        }
+
+        for (let i = left; i <= right; i++) {
+            pages.push(i);
+        }
+
+        if (right < total) {
+            if (right < total - 1) pages.push("...");
+            pages.push(total);
+        }
+
+        return pages;
+    };
+
+
     const table = useReactTable({
-        data: staff,
+        data: rows,
         columns,
-        getRowId: (row) => String(row.id),
+        getRowId: (row) => String(row.user_id),
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
         getCoreRowModel: getCoreRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
         getSortedRowModel: getSortedRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         onColumnVisibilityChange: setColumnVisibility,
         onRowSelectionChange: setRowSelection,
-        state: {
-            sorting,
-            columnFilters,
-            columnVisibility,
-            rowSelection,
-        },
+        state: { sorting, columnFilters, columnVisibility, rowSelection },
     });
 
-    // ✅ ERROR UI
     if (error) {
         return (
             <div className="p-4 space-y-3">
-                <div className="text-red-500">Failed to load staff.</div>
+                <div className="text-red-500">Failed to load users/staff.</div>
                 <Button onClick={refetch}>Try again</Button>
             </div>
         );
     }
 
-    // ✅ SKELETON UI (Full table skeleton)
     if (loading) {
         const skeletonRows = Array.from({ length: 8 });
-
         return (
             <div className="w-full">
+                <div className="flex items-center py-4 gap-2">
+                    <Skeleton className="h-10 w-[250px]" />
+                    <Skeleton className="h-10 w-[120px] ml-auto" />
+                    <Skeleton className="h-10 w-[100px]" />
+                </div>
+
                 <div className="overflow-hidden rounded-md border">
                     <Table>
                         <TableHeader>
@@ -188,26 +264,12 @@ export function TableUser() {
                                 ))}
                             </TableRow>
                         </TableHeader>
-
                         <TableBody>
-                            {skeletonRows.map((_, rowIndex) => (
-                                <TableRow key={rowIndex}>
-                                    {columns.map((col, colIndex) => (
-                                        <TableCell key={col.id ?? col.accessorKey ?? colIndex}>
-                                            <Skeleton
-                                                className={`h-4 ${colIndex === 0
-                                                    ? "w-4"
-                                                    : colIndex === 1
-                                                        ? "w-10"
-                                                        : colIndex === 2 || colIndex === 3
-                                                            ? "w-24"
-                                                            : colIndex === 4 || colIndex === 5
-                                                                ? "w-28"
-                                                                : colIndex === 6
-                                                                    ? "w-44"
-                                                                    : "w-20"
-                                                    }`}
-                                            />
+                            {skeletonRows.map((_, r) => (
+                                <TableRow key={r}>
+                                    {columns.map((col, c) => (
+                                        <TableCell key={col.id ?? col.accessorKey ?? c}>
+                                            <Skeleton className="h-4 w-full max-w-[140px]" />
                                         </TableCell>
                                     ))}
                                 </TableRow>
@@ -219,10 +281,52 @@ export function TableUser() {
         );
     }
 
-    // ✅ NORMAL UI
     return (
-        <div className="w-full">
-            <div className="overflow-hidden rounded-md border">
+        <div className="w-full ">
+            <div className="flex items-center gap-2">
+                <Input
+                    placeholder="Filter email..."
+                    value={(table.getColumn("email")?.getFilterValue()) ?? ""}
+                    onChange={(event) =>
+                        table.getColumn("email")?.setFilterValue(event.target.value)
+                    }
+                    className="max-w-sm"
+                />
+
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="outline" className="ml-auto">
+                            Columns <ChevronDown className="ml-2 h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuGroup>
+                            {table
+                                .getAllColumns()
+                                .filter((column) => column.getCanHide())
+                                .map((column) => (
+                                    <DropdownMenuCheckboxItem
+                                        key={column.id}
+                                        className="capitalize"
+                                        checked={column.getIsVisible()}
+                                        onCheckedChange={(value) =>
+                                            column.toggleVisibility(!!value)
+                                        }
+                                    >
+                                        {column.id}
+                                    </DropdownMenuCheckboxItem>
+                                ))}
+                        </DropdownMenuGroup>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+
+                <Button variant="outline" onClick={refetch}>
+                    Refresh
+                </Button>
+            </div>
+
+            <div className="overflow-hidden rounded-md border mt-4">
                 <Table>
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (
@@ -268,6 +372,55 @@ export function TableUser() {
                     </TableBody>
                 </Table>
             </div>
+
+            {/* ✅ SERVER PAGINATION */}
+            <div className="flex items-center justify-between py-4 gap-2 flex-wrap">
+                <div className="text-muted-foreground text-sm">
+                    Page {page} of {lastPage} • {total} records
+                </div>
+
+                <div className="flex items-center gap-1">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={prevPage}
+                        disabled={page <= 1}
+                    >
+                        Previous
+                    </Button>
+
+                    {getPageNumbers(page, lastPage).map((p, idx) =>
+                        p === "..." ? (
+                            <span
+                                key={`ellipsis-${idx}`}
+                                className="px-2 text-muted-foreground"
+                            >
+                                …
+                            </span>
+                        ) : (
+                            <Button
+                                key={p}
+                                variant={p === page ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => goToPage(p)}
+                                className="min-w-[36px]"
+                            >
+                                {p}
+                            </Button>
+                        )
+                    )}
+
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={nextPage}
+                        disabled={page >= lastPage}
+                    >
+                        Next
+                    </Button>
+                </div>
+            </div>
+
         </div>
     );
 }

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import TableUser from './Components/TableUser'
+import TableUser from './Components/TableStaff'
 import useStaffHook from './Hooks/useStaffHook'
 
 function UserManage() {

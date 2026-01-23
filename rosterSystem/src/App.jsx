@@ -14,7 +14,7 @@ import ProtectedRoute from "./auth/ProtectedRoute";
 import NotFoundPage from "./pages/NotFoundPage";
 import BuildingRoom from "./pages/Blocks/BuildingRoom";
 import CardSummary from "./pages/CardGenerator/CardSummary";
-import UserManage from "./pages/UserManage/UserManage";
+import UserManage from "./pages/StaffManage/StaffManage";
 function App() {
   const location = useLocation(); // Get the current location
 
@@ -108,7 +108,7 @@ function App() {
               />
             </Route>
             <Route
-              path="users-manage"
+              path="staff-manage"
               element={
                 <ProtectedRoute allowedRoles={[1, 2]}>
                   <Outlet />
@@ -116,7 +116,7 @@ function App() {
               }
             >
               <Route
-                path="all-users"
+                path="all-staff"
                 element={
                   <AnimatedPage>
                     <UserManage />

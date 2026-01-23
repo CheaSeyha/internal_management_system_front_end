@@ -247,7 +247,7 @@ export function TableUser() {
         const skeletonRows = Array.from({ length: 20 });
         return (
             <div className="w-full">
-                <div className="flex items-center py-4 gap-2">
+                <div className="flex items-center mb-4 gap-2">
                     <Skeleton className="h-10 w-[250px]" />
                     <Skeleton className="h-10 w-[120px] ml-auto" />
                     <Skeleton className="h-10 w-[100px]" />

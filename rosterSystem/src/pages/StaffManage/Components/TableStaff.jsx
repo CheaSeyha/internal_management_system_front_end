@@ -30,6 +30,7 @@ import {
 } from "@tanstack/react-table";
 import { ArrowUpDown, ChevronDown, MoreHorizontal, User } from "lucide-react";
 import useStaffHook from "../Hooks/useStaffHook";
+import AddStaffDialog from "./AddStaffDialog";
 
 export const columns = [
     {
@@ -320,6 +321,8 @@ export function TableUser() {
                         </DropdownMenuGroup>
                     </DropdownMenuContent>
                 </DropdownMenu>
+
+                <AddStaffDialog />
 
                 <Button variant="outline" onClick={refetch}>
                     Refresh

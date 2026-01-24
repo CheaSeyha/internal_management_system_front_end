@@ -22,7 +22,7 @@ export default function DatePicker({ value, onChange }) {
                     type="button" // ✅ IMPORTANT: prevents form submit (popover won't close)
                     variant="outline"
                     data-empty={!value}
-                    className="data-[empty=true]:text-muted-foreground w-[212px] justify-between text-left font-normal"
+                    className="data-[empty=true]:text-muted-foreground w-full justify-between text-left font-normal"
                 >
                     {value ? format(value, "PPP") : <span>Pick a date</span>}
                     <ChevronDownIcon />

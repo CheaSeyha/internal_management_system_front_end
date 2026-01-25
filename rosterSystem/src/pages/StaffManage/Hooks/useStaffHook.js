@@ -22,7 +22,7 @@ const useStaffHook = () => {
     const [perPage, setPerPage] = useState(17);
     const [total, setTotal] = useState(0);
 
-    // cache staff blobs by staff_id
+    // cache staff blobs by staffId (staff table id)
     const staffBlobCacheRef = useRef(new Map());
     const createdBlobUrlsRef = useRef([]);
 
@@ -34,7 +34,10 @@ const useStaffHook = () => {
         staffBlobCacheRef.current.clear();
     };
 
+    // ✅ staffId is STAFF table id (item.id)
     const downloadStaffBlobById = async (staffId) => {
+        if (!staffId) return null;
+
         if (staffBlobCacheRef.current.has(staffId)) {
             return staffBlobCacheRef.current.get(staffId);
         }
@@ -54,86 +57,89 @@ const useStaffHook = () => {
         return blobUrl;
     };
 
+    // ✅ NEW API item is "staff", and item.user is object or null
     const normalizeRow = async (item) => {
-        const staff = item?.staff ?? null;
-        const isLinkedStaff = !!item?.staff_id;
+        const isLinked = !!item?.user; // ✅ THIS is the correct linked check
 
-        // public user image
-        const userPhotoUrl = item?.profile_image
-            ? joinUrl(BASE_URL, item.profile_image)
-            : null;
-
-        // protected staff image (blob)
+        // staff image (protected blob) — always based on staff ID
         let staffPhotoBlob = null;
-        if (isLinkedStaff) {
+        if (item?.profile_picture) {
             try {
-                staffPhotoBlob = await downloadStaffBlobById(item.staff_id);
+                staffPhotoBlob = await downloadStaffBlobById(item.id);
             } catch {
                 staffPhotoBlob = null;
             }
         }
 
-        // priority: staff blob (if linked) -> user public -> null
+        // optional: user profile image (if you want fallback)
+        // but your API shows user.profile_image is null often
+        const userPhotoUrl = item?.user?.profile_image
+            ? joinUrl(BASE_URL, item.user.profile_image)
+            : null;
+
+        // priority: staff blob -> user photo -> null
         const photoSrc = staffPhotoBlob || userPhotoUrl || null;
 
         return {
-            user_id: item?.id,
+            // ✅ IMPORTANT: row id should be staff id (not user id)
+            id: item?.id,
+
+            // staff fields
             staff_id: item?.staff_id ?? null,
-
-            name: item?.name ?? "-",
+            label_id: item?.label_id ?? null,
+            first_name: item?.first_name ?? "",
+            last_name: item?.last_name ?? "",
+            name: `${item?.first_name ?? ""} ${item?.last_name ?? ""}`.trim() || "-",
             email: item?.email ?? "-",
-            role_name: item?.role?.role_name ?? "-",
+            phone_number: item?.phone_number ?? "-",
+            staff_status: item?.status ?? "-",
+            date_of_joining: item?.date_of_joining ?? "-",
+            date_of_birth: item?.date_of_birth ?? "-",
 
-            department_name: staff?.department?.department_name ?? "-",
-            position_name: staff?.position?.position_name ?? "-",
-            phone_number: staff?.phone_number ?? "-",
-            staff_status: staff?.status ?? "-",
+            department_name: item?.department?.department_name ?? "-",
+            position_name: item?.position?.position_name ?? "-",
+
+            // linked user fields
+            user_id: item?.user?.id ?? null,
+            role_name: item?.user?.role?.role_name ?? "-", // will be "-" unless backend includes role
+            isLinked, // ✅ use this in table "Linked" column
 
             photoSrc,
             raw: item,
         };
     };
 
-    const fetchPage = useCallback(
-        async (targetPage = 1) => {
-            try {
-                setLoading(true);
-                setError(null);
+    const fetchPage = useCallback(async (targetPage = 1) => {
+        try {
+            setLoading(true);
+            setError(null);
 
-                const res = await axios.get("/staff/get_all_staff", {
-                    params: { page: targetPage },
-                });
+            const res = await axios.get("/staff/get_all_staff", {
+                params: { page: targetPage },
+            });
 
-                // ✅ new api shape: res.data.data is paginator object
-                const paginator = res.data?.data;
+            const paginator = res.data?.data;
+            const list = paginator?.data ?? [];
 
-                const list = paginator?.data ?? [];
+            setPage(paginator?.current_page ?? targetPage);
+            setLastPage(paginator?.last_page ?? 1);
+            setPerPage(paginator?.per_page ?? 17);
+            setTotal(paginator?.total ?? 0);
 
-                // set pagination meta
-                setPage(paginator?.current_page ?? targetPage);
-                setLastPage(paginator?.last_page ?? 1);
-                setPerPage(paginator?.per_page ?? 17);
-                setTotal(paginator?.total ?? 0);
+            const normalized = await Promise.all(list.map(normalizeRow));
+            setRows(normalized);
+        } catch (err) {
+            setError(err);
+            setRows([]);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
-                // normalize + load staff images for linked staff
-                const normalized = await Promise.all(list.map(normalizeRow));
-                setRows(normalized);
-            } catch (err) {
-                setError(err);
-                setRows([]);
-            } finally {
-                setLoading(false);
-            }
-        },
-        [] // refs are stable; axios instance stable
-    );
-
-    // load first page
     useEffect(() => {
         fetchPage(1);
     }, [fetchPage]);
 
-    // cleanup blobs on unmount
     useEffect(() => {
         return () => cleanupBlobs();
     }, []);
@@ -143,13 +149,11 @@ const useStaffHook = () => {
         loading,
         error,
 
-        // pagination
         page,
         lastPage,
         perPage,
         total,
 
-        // actions
         goToPage: fetchPage,
         nextPage: () => fetchPage(Math.min(page + 1, lastPage)),
         prevPage: () => fetchPage(Math.max(page - 1, 1)),

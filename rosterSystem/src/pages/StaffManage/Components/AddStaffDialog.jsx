@@ -59,20 +59,37 @@ export default function AddStaffDialog() {
           </DialogHeader>
 
           <div className="mt-4 space-y-4">
-            <ImageDropzoneHoverRemove />
-
             <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-3">
-                <Label htmlFor="first_name">First Name</Label>
-                <Input id="first_name" name="first_name" />
-              </div>
+              <ImageDropzoneHoverRemove />
 
-              <div className="grid gap-3">
-                <Label htmlFor="last_name">Last Name</Label>
-                <Input id="last_name" name="last_name" />
+              {/* First name, Last Name  */}
+              <div className="grid grid-cols-1">
+                <div className="grid gap-3">
+                  <Label htmlFor="first_name">First Name</Label>
+                  <Input id="first_name" name="first_name" />
+                </div>
+
+                <div className="grid gap-3">
+                  <Label htmlFor="last_name">Last Name</Label>
+                  <Input id="last_name" name="last_name" />
+                </div>
               </div>
             </div>
 
+            {/* Staff id, label ID  */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-3">
+                <Label htmlFor="staff_id">Staff ID</Label>
+                <Input id="staff_id" name="staff_id" />
+              </div>
+
+              <div className="grid gap-3">
+                <Label htmlFor="label_id">Label ID</Label>
+                <Input id="label_id" name="label_id" />
+              </div>
+            </div>
+
+            {/* Email, Phone Number  */}
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-3">
                 <Label htmlFor="email">Email</Label>
@@ -85,6 +102,7 @@ export default function AddStaffDialog() {
               </div>
             </div>
 
+            {/* Department, Position  */}
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-3">
                 <Label htmlFor="department">Departments</Label>
@@ -118,6 +136,7 @@ export default function AddStaffDialog() {
               </div>
             </div>
 
+            {/* Date Join, Date of Birth  */}
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-3">
                 <Label>Date Join</Label>

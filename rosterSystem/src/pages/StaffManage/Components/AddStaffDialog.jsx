@@ -36,6 +36,8 @@ import DatePicker from "../../../components/DatePicker";
 
 // ✅ use your axios instance if you already have it
 import axios from "../../../api/axios"; // adjust path if different
+import usePositionHook from "../Hooks/usePositionHook";
+import useDepartmentHook from "../Hooks/useDepartmentHook";
 
 const toYMD = (date) => {
   if (!date) return "";
@@ -76,31 +78,21 @@ export default function AddStaffDialog() {
 
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
-
-  // UI-only sample lists (replace with API later)
-  const departmentOptions = useMemo(
-    () => [
-      { value: "HR", label: "HR" },
-      { value: "IT", label: "IT" },
-      { value: "Finance", label: "Finance" },
-    ],
-    [],
-  );
-
-  const positionOptions = useMemo(
-    () => [
-      { value: "IT Officer", label: "IT Officer" },
-      { value: "Accountant", label: "Accountant" },
-      { value: "HR Manager", label: "HR Manager" },
-    ],
-    [],
-  );
+  const { position, loadingPosition, errorPosition } = usePositionHook();
+  const { departments, loadingDepartment, errorDepartment } =
+    useDepartmentHook();
+  const filteredPositions = useMemo(() => {
+    if (!form.department_name) return [];
+    return position.filter(
+      (p) => p.department?.department_name === form.department_name,
+    );
+  }, [position, form.department_name]);
 
   const roleOptions = useMemo(
     () => [
       { value: "super_admin", label: "Super Admin" },
       { value: "admin", label: "Admin" },
-      { value: "staff", label: "Staff" },
+      { value: "user", label: "user" },
     ],
     [],
   );
@@ -513,7 +505,11 @@ export default function AddStaffDialog() {
                   <Label>Department *</Label>
                   <Select
                     value={form.department_name}
-                    onValueChange={(v) => setField("department_name", v)}
+                    onValueChange={(v) => {
+                      setField("department_name", v);
+                      // reset position when department changes
+                      setField("position_name", "");
+                    }}
                   >
                     <SelectTrigger
                       className={`w-full ${errors.department_name ? "border-red-500" : ""}`}
@@ -524,9 +520,14 @@ export default function AddStaffDialog() {
                     <SelectContent>
                       <SelectGroup>
                         <SelectLabel>Departments</SelectLabel>
-                        {departmentOptions.map((d) => (
-                          <SelectItem key={d.value} value={d.value}>
-                            {d.label}
+                        {loadingDepartment && (
+                          <SelectItem disabled value="loading">
+                            Loading...
+                          </SelectItem>
+                        )}
+                        {departments.map((d) => (
+                          <SelectItem key={d.id} value={d.department_name}>
+                            {d.department_name}
                           </SelectItem>
                         ))}
                       </SelectGroup>
@@ -540,21 +541,48 @@ export default function AddStaffDialog() {
                   <Select
                     value={form.position_name}
                     onValueChange={(v) => setField("position_name", v)}
+                    disabled={!form.department_name}
                   >
                     <SelectTrigger
                       className={`w-full ${errors.position_name ? "border-red-500" : ""}`}
                       aria-invalid={!!errors.position_name}
                     >
-                      <SelectValue placeholder="Select a position" />
+                      <SelectValue
+                        placeholder={
+                          !form.department_name
+                            ? "Select department first"
+                            : "Select a position"
+                        }
+                      />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
                         <SelectLabel>Positions</SelectLabel>
-                        {positionOptions.map((p) => (
-                          <SelectItem key={p.value} value={p.value}>
-                            {p.label}
+                        {loadingPosition && (
+                          <SelectItem disabled value="loading">
+                            Loading positions...
                           </SelectItem>
-                        ))}
+                        )}
+                        {errorPosition && (
+                          <SelectItem disabled value="error">
+                            Failed to load positions
+                          </SelectItem>
+                        )}
+                        {!loadingPosition &&
+                          !errorPosition &&
+                          Array.isArray(filteredPositions) &&
+                          filteredPositions.length === 0 && (
+                            <SelectItem disabled value="none">
+                              No positions available
+                            </SelectItem>
+                          )}
+                        {!loadingPosition &&
+                          Array.isArray(filteredPositions) &&
+                          filteredPositions.map((p) => (
+                            <SelectItem key={p.id} value={p.position_name}>
+                              {p.position_name}
+                            </SelectItem>
+                          ))}
                       </SelectGroup>
                     </SelectContent>
                   </Select>

@@ -106,6 +106,8 @@ export const columns = [
   },
 
   { accessorKey: "phone_number", header: "Phone" },
+  { accessorKey: "date_of_joining", header: "Date of Joining" },
+  { accessorKey: "date_of_birth", header: "Date of Birth" },
   {
     accessorKey: "email",
     header: ({ column }) => (
@@ -126,22 +128,6 @@ export const columns = [
         className={`capitalize w-fit h-fit ${row.getValue("staff_status") === "active" ? "bg-green-500" : "bg-red-700"}  rounded-2xl px-2 text-white`}
       >
         {row.getValue("staff_status")}
-      </div>
-    ),
-  },
-
-  // ✅ LINKED status based on user null or not
-  {
-    id: "linked",
-    header: "Linked",
-    accessorFn: (row) => (row.isLinked ? "Linked" : "Not linked"),
-    cell: ({ getValue }) => (
-      <div
-        className={
-          getValue() === "Linked" ? "text-green-600" : "text-muted-foreground"
-        }
-      >
-        {getValue()}
       </div>
     ),
   },
@@ -263,44 +249,6 @@ export function TableUser() {
     );
   }
 
-  if (loading) {
-    const skeletonRows = Array.from({ length: 10 });
-    return (
-      <div className="w-full">
-        <div className="flex items-center mb-4 gap-2">
-          <Skeleton className="h-10 w-[250px]" />
-          <Skeleton className="h-10 w-[120px] ml-auto" />
-          <Skeleton className="h-10 w-[100px]" />
-        </div>
-
-        <div className="overflow-hidden rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                {columns.map((col, idx) => (
-                  <TableHead key={col.id ?? col.accessorKey ?? idx}>
-                    <Skeleton className="h-4 w-[80px]" />
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {skeletonRows.map((_, r) => (
-                <TableRow key={r}>
-                  {columns.map((col, c) => (
-                    <TableCell key={col.id ?? col.accessorKey ?? c}>
-                      <Skeleton className="h-4 w-full max-w-[140px]" />
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="w-full">
       <div className="flex items-center gap-2">
@@ -348,54 +296,80 @@ export function TableUser() {
         </Button>
       </div>
 
-      <div className="overflow-hidden rounded-md border mt-4">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+      <div className="overflow-hidden rounded-md border mt-4 h-[calc(100vh-300px)]">
+        {loading ? (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                {columns.map((col, idx) => (
+                  <TableHead key={col.id ?? col.accessorKey ?? idx}>
+                    <Skeleton className="h-4 w-[80px]" />
                   </TableHead>
                 ))}
               </TableRow>
-            ))}
-          </TableHeader>
+            </TableHeader>
 
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
+            <TableBody>
+              {Array.from({ length: 12 }).map((_, r) => (
+                <TableRow key={r}>
+                  {columns.map((col, c) => (
+                    <TableCell key={col.id ?? col.accessorKey ?? c}>
+                      <Skeleton className="h-10 w-full max-w-[140px]" />
                     </TableCell>
                   ))}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              ))}
+            </TableBody>
+          </Table>
+        ) : (
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    No results.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        )}
       </div>
 
       {/* ✅ SERVER PAGINATION */}

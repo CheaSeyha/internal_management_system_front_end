@@ -1,13 +1,11 @@
-// AddStaffDialog.jsx (UI + client-side validation + console.log on submit)
-// - Shows inline errors under each field
-// - Prevents submit if any required field missing
-// - When valid: logs all form data (including file) to console
-
+// AddStaffDialog.jsx (ScrollArea + fixed Create User toggle + REQUIRED profile_picture + FormData submit)
 "use client";
 
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { UserPlus } from "lucide-react";
 
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -22,7 +20,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UserPlus } from "lucide-react";
 
 import {
   Select,
@@ -36,6 +33,9 @@ import {
 
 import ImageDropzoneHoverRemove from "../../../components/ImageDropzoneHoverRemove";
 import DatePicker from "../../../components/DatePicker";
+
+// ✅ use your axios instance if you already have it
+import axios from "../../../api/axios"; // adjust path if different
 
 const toYMD = (date) => {
   if (!date) return "";
@@ -51,7 +51,7 @@ const isEmail = (v) =>
 export default function AddStaffDialog() {
   const [open, setOpen] = useState(false);
 
-  // UI states
+  // ✅ REQUIRED image
   const [profileFile, setProfileFile] = useState(null);
 
   const [form, setForm] = useState({
@@ -74,8 +74,8 @@ export default function AddStaffDialog() {
     password: "",
   });
 
-  // inline errors
   const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
 
   // UI-only sample lists (replace with API later)
   const departmentOptions = useMemo(
@@ -119,8 +119,11 @@ export default function AddStaffDialog() {
 
   const validate = () => {
     const e = {};
-    const staffId = String(form.staff_id || "").trim();
 
+    // ✅ profile picture required
+    if (!profileFile) e.profile_picture = "Profile picture is required.";
+
+    const staffId = String(form.staff_id || "").trim();
     if (!staffId) e.staff_id = "Staff ID is required.";
     else if (!/^\d+$/.test(staffId)) e.staff_id = "Staff ID must be numeric.";
 
@@ -164,6 +167,7 @@ export default function AddStaffDialog() {
 
   const focusFirstError = (errs) => {
     const order = [
+      "profile_picture",
       "staff_id",
       "label_id",
       "first_name",
@@ -181,12 +185,41 @@ export default function AddStaffDialog() {
     const firstKey = order.find((k) => errs[k]) || Object.keys(errs)[0];
     if (!firstKey) return;
 
-    // Inputs have id, datepicker/select won't always focus; still useful for inputs
     const el = document.getElementById(firstKey);
     if (el && typeof el.focus === "function") el.focus();
   };
 
-  const handleSubmit = (e) => {
+  const buildFormData = () => {
+    const fd = new FormData();
+
+    fd.append("staff_id", String(form.staff_id ?? ""));
+    fd.append("label_id", String(form.label_id ?? ""));
+    fd.append("first_name", String(form.first_name ?? ""));
+    fd.append("last_name", String(form.last_name ?? ""));
+    fd.append("email", String(form.email ?? ""));
+    fd.append("phone_number", String(form.phone_number ?? ""));
+    fd.append("genders", String(form.genders ?? ""));
+
+    fd.append("department_name", String(form.department_name ?? ""));
+    fd.append("position_name", String(form.position_name ?? ""));
+
+    fd.append("date_of_joining", toYMD(form.date_of_joining));
+    fd.append("date_of_birth", toYMD(form.date_of_birth));
+
+    fd.append("isCreatedUser", form.isCreatedUser ? "1" : "0");
+
+    if (form.isCreatedUser) {
+      fd.append("role_name", String(form.role_name ?? ""));
+      fd.append("password", String(form.password ?? ""));
+    }
+
+    // ✅ required file field name must match backend: profile_picture
+    fd.append("profile_picture", profileFile);
+
+    return fd;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const newErrors = validate();
@@ -200,24 +233,42 @@ export default function AddStaffDialog() {
       return;
     }
 
-    // ✅ When valid: show all data in console
-    const payload = {
-      ...form,
-      date_of_joining: toYMD(form.date_of_joining),
-      date_of_birth: toYMD(form.date_of_birth),
-      profile_picture: profileFile || null,
-    };
+    const fd = buildFormData();
 
-    console.log("✅ Add Staff Submit Payload (formatted):", payload);
+    // debug
+    console.log("✅ FormData entries:");
+    for (const [k, v] of fd.entries()) console.log(k, v);
 
-    console.log("✅ Add Staff Submit Payload:", payload);
+    setSubmitting(true);
+    try {
+      // ✅ Adjust endpoint to your real one
+      // Example: /staff/add_new_staff
+      const res = await axios.post("/staff/add_new_staff", fd, {
+        headers: {
+          // axios will set boundary automatically; this is okay to include too
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
-    toast.success("Form is valid ✅", {
-      description: "Check console for submitted data.",
-    });
+      console.log("✅ Add staff response:", res?.data);
 
-    // optional close
-    // setOpen(false);
+      toast.success("Staff created ✅", {
+        description: "Upload + data sent to backend successfully.",
+      });
+
+      // optional close
+      // setOpen(false);
+    } catch (err) {
+      console.log("❌ Add staff error:", err);
+
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to create staff.";
+      toast.error("Create staff failed", { description: msg });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const FieldError = ({ name }) =>
@@ -230,10 +281,7 @@ export default function AddStaffDialog() {
       open={open}
       onOpenChange={(v) => {
         setOpen(v);
-        if (!v) {
-          // optional: reset errors when closing
-          setErrors({});
-        }
+        if (!v) setErrors({});
       }}
     >
       <DialogTrigger asChild>
@@ -243,8 +291,8 @@ export default function AddStaffDialog() {
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-[700px]">
-        <form onSubmit={handleSubmit}>
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh]">
+        <form onSubmit={handleSubmit} className="flex flex-col">
           <DialogHeader>
             <DialogTitle>Add Staff</DialogTitle>
             <DialogDescription>
@@ -252,143 +300,167 @@ export default function AddStaffDialog() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="mt-5 space-y-5">
-            {/* Profile + Name */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label>Profile Picture (optional)</Label>
-                <ImageDropzoneHoverRemove
-                  value={profileFile}
-                  onChange={(file) => setProfileFile(file)}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Allowed: jpg, png, jpeg, webp
-                </p>
+          <ScrollArea className="mt-5 max-h-[65vh] pr-4">
+            <div className="space-y-5">
+              {/* Profile + Name */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Profile Picture *</Label>
+
+                  {/* ✅ required */}
+                  <div id="profile_picture">
+                    <ImageDropzoneHoverRemove
+                      value={profileFile}
+                      onChange={(file) => {
+                        setProfileFile(file);
+
+                        // clear error when selected
+                        setErrors((prev) => {
+                          if (!prev.profile_picture) return prev;
+                          const copy = { ...prev };
+                          delete copy.profile_picture;
+                          return copy;
+                        });
+                      }}
+                    />
+                  </div>
+
+                  <p className="text-xs text-muted-foreground">
+                    Allowed: jpg, png, jpeg, webp
+                  </p>
+                  <FieldError name="profile_picture" />
+                </div>
+
+                <div className="grid gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="first_name">First Name *</Label>
+                    <Input
+                      id="first_name"
+                      value={form.first_name}
+                      onChange={(e) => setField("first_name", e.target.value)}
+                      placeholder="First name"
+                      aria-invalid={!!errors.first_name}
+                    />
+                    <FieldError name="first_name" />
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label htmlFor="last_name">Last Name *</Label>
+                    <Input
+                      id="last_name"
+                      value={form.last_name}
+                      onChange={(e) => setField("last_name", e.target.value)}
+                      placeholder="Last name"
+                      aria-invalid={!!errors.last_name}
+                    />
+                    <FieldError name="last_name" />
+                  </div>
+                </div>
               </div>
 
-              <div className="grid gap-4">
+              {/* Staff ID + Label ID */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
-                  <Label htmlFor="first_name">First Name *</Label>
+                  <Label htmlFor="staff_id">Staff ID *</Label>
                   <Input
-                    id="first_name"
-                    value={form.first_name}
-                    onChange={(e) => setField("first_name", e.target.value)}
-                    placeholder="First name"
-                    aria-invalid={!!errors.first_name}
+                    id="staff_id"
+                    inputMode="numeric"
+                    value={form.staff_id}
+                    onChange={(e) => setField("staff_id", e.target.value)}
+                    placeholder="e.g. 2323"
+                    aria-invalid={!!errors.staff_id}
                   />
-                  <FieldError name="first_name" />
+                  <FieldError name="staff_id" />
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="last_name">Last Name *</Label>
+                  <Label htmlFor="label_id">Label ID *</Label>
                   <Input
-                    id="last_name"
-                    value={form.last_name}
-                    onChange={(e) => setField("last_name", e.target.value)}
-                    placeholder="Last name"
-                    aria-invalid={!!errors.last_name}
+                    id="label_id"
+                    value={form.label_id}
+                    onChange={(e) => setField("label_id", e.target.value)}
+                    placeholder="e.g. ABC-001"
+                    aria-invalid={!!errors.label_id}
                   />
-                  <FieldError name="last_name" />
+                  <FieldError name="label_id" />
                 </div>
               </div>
-            </div>
 
-            {/* Staff ID + Label ID */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="grid gap-2">
-                <Label htmlFor="staff_id">Staff ID *</Label>
-                <Input
-                  id="staff_id"
-                  inputMode="numeric"
-                  value={form.staff_id}
-                  onChange={(e) => setField("staff_id", e.target.value)}
-                  placeholder="e.g. 2323"
-                  aria-invalid={!!errors.staff_id}
-                />
-                <FieldError name="staff_id" />
+              {/* Email + Phone */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="grid gap-2">
+                  <Label htmlFor="email">Email *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => setField("email", e.target.value)}
+                    placeholder="name@example.com"
+                    aria-invalid={!!errors.email}
+                  />
+                  <FieldError name="email" />
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="phone_number">Phone Number *</Label>
+                  <Input
+                    id="phone_number"
+                    value={form.phone_number}
+                    onChange={(e) => setField("phone_number", e.target.value)}
+                    placeholder="e.g. 097xxxxxxx"
+                    aria-invalid={!!errors.phone_number}
+                  />
+                  <FieldError name="phone_number" />
+                </div>
               </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="label_id">Label ID *</Label>
-                <Input
-                  id="label_id"
-                  value={form.label_id}
-                  onChange={(e) => setField("label_id", e.target.value)}
-                  placeholder="e.g. ABC-001"
-                  aria-invalid={!!errors.label_id}
-                />
-                <FieldError name="label_id" />
-              </div>
-            </div>
-
-            {/* Email + Phone */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setField("email", e.target.value)}
-                  placeholder="name@example.com"
-                  aria-invalid={!!errors.email}
-                />
-                <FieldError name="email" />
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="phone_number">Phone Number *</Label>
-                <Input
-                  id="phone_number"
-                  value={form.phone_number}
-                  onChange={(e) => setField("phone_number", e.target.value)}
-                  placeholder="e.g. 097xxxxxxx"
-                  aria-invalid={!!errors.phone_number}
-                />
-                <FieldError name="phone_number" />
-              </div>
-            </div>
-
-            {/* Gender + Create User */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="grid gap-2">
-                <Label>Gender *</Label>
-                <Select
-                  value={form.genders}
-                  onValueChange={(v) => setField("genders", v)}
-                >
-                  <SelectTrigger
-                    className={`w-full ${errors.genders ? "border-red-500" : ""}`}
-                    aria-invalid={!!errors.genders}
+              {/* Gender + Create User */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="grid gap-2">
+                  <Label>Gender *</Label>
+                  <Select
+                    value={form.genders}
+                    onValueChange={(v) => setField("genders", v)}
                   >
-                    <SelectValue placeholder="Select gender" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Genders</SelectLabel>
-                      <SelectItem value="male">Male</SelectItem>
-                      <SelectItem value="female">Female</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-                <FieldError name="genders" />
-              </div>
+                    <SelectTrigger
+                      className={`w-full ${errors.genders ? "border-red-500" : ""}`}
+                      aria-invalid={!!errors.genders}
+                    >
+                      <SelectValue placeholder="Select gender" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>Genders</SelectLabel>
+                        <SelectItem value="male">Male</SelectItem>
+                        <SelectItem value="female">Female</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                  <FieldError name="genders" />
+                </div>
 
-              <div className="grid gap-2">
-                <Label>Create User</Label>
-                <div className="flex items-center gap-2 rounded-md border p-3">
-                  <Checkbox
-                    checked={form.isCreatedUser}
-                    onCheckedChange={(v) => {
-                      const checked = v === true;
-                      setField("isCreatedUser", checked);
+                {/* ✅ FIXED: no nested button + no infinite update */}
+                <div className="grid gap-2">
+                  <Label>Create User</Label>
+
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    className={`flex w-full items-center gap-3 rounded-md border p-3 cursor-pointer text-left transition
+                      hover:bg-muted/50
+                      ${form.isCreatedUser ? "border-primary ring-1 ring-primary/20" : ""}
+                    `}
+                    onClick={() => {
+                      const checked = !form.isCreatedUser;
+
+                      setForm((prev) => ({
+                        ...prev,
+                        isCreatedUser: checked,
+                        ...(checked ? {} : { role_name: "", password: "" }),
+                      }));
 
                       if (!checked) {
-                        setField("role_name", "");
-                        setField("password", "");
-
-                        // clear related errors too
                         setErrors((prev) => {
                           const copy = { ...prev };
                           delete copy.role_name;
@@ -397,165 +469,195 @@ export default function AddStaffDialog() {
                         });
                       }
                     }}
-                  />
-                  <div className="leading-tight">
-                    <p className="text-sm font-medium">Create login account</p>
-                    <p className="text-xs text-muted-foreground">
-                      Enable to set role and password
-                    </p>
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        const checked = !form.isCreatedUser;
+
+                        setForm((prev) => ({
+                          ...prev,
+                          isCreatedUser: checked,
+                          ...(checked ? {} : { role_name: "", password: "" }),
+                        }));
+
+                        if (!checked) {
+                          setErrors((prev) => {
+                            const copy = { ...prev };
+                            delete copy.role_name;
+                            delete copy.password;
+                            return copy;
+                          });
+                        }
+                      }
+                    }}
+                  >
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <Checkbox checked={form.isCreatedUser} />
+                    </div>
+
+                    <div className="leading-tight">
+                      <p className="text-sm font-medium">
+                        Create login account
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Enable to set role and password
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Department + Position */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="grid gap-2">
-                <Label>Department *</Label>
-                <Select
-                  value={form.department_name}
-                  onValueChange={(v) => setField("department_name", v)}
-                >
-                  <SelectTrigger
-                    className={`w-full ${errors.department_name ? "border-red-500" : ""}`}
-                    aria-invalid={!!errors.department_name}
-                  >
-                    <SelectValue placeholder="Select a department" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Departments</SelectLabel>
-                      {departmentOptions.map((d) => (
-                        <SelectItem key={d.value} value={d.value}>
-                          {d.label}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-                <FieldError name="department_name" />
-              </div>
-
-              <div className="grid gap-2">
-                <Label>Position *</Label>
-                <Select
-                  value={form.position_name}
-                  onValueChange={(v) => setField("position_name", v)}
-                >
-                  <SelectTrigger
-                    className={`w-full ${errors.position_name ? "border-red-500" : ""}`}
-                    aria-invalid={!!errors.position_name}
-                  >
-                    <SelectValue placeholder="Select a position" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Positions</SelectLabel>
-                      {positionOptions.map((p) => (
-                        <SelectItem key={p.value} value={p.value}>
-                          {p.label}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-                <FieldError name="position_name" />
-              </div>
-            </div>
-
-            {/* Dates */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="grid gap-2">
-                <Label>Date of Joining *</Label>
-                <div
-                  className={
-                    errors.date_of_joining
-                      ? "rounded-md border border-red-500 p-1"
-                      : ""
-                  }
-                >
-                  <DatePicker
-                    value={form.date_of_joining}
-                    onChange={(d) => setField("date_of_joining", d)}
-                  />
-                </div>
-                <FieldError name="date_of_joining" />
-              </div>
-
-              <div className="grid gap-2">
-                <Label>Date of Birth *</Label>
-                <div
-                  className={
-                    errors.date_of_birth
-                      ? "rounded-md border border-red-500 p-1"
-                      : ""
-                  }
-                >
-                  <DatePicker
-                    value={form.date_of_birth}
-                    onChange={(d) => setField("date_of_birth", d)}
-                    fromYear={1950}
-                    toYear={new Date().getFullYear()} // DOB should not be future
-                    placeholder="Select DOB"
-                  />
-                </div>
-                <FieldError name="date_of_birth" />
-              </div>
-            </div>
-
-            {/* Role + Password (only when Create User enabled) */}
-            {form.isCreatedUser && (
-              <div className="grid grid-cols-1 gap-4 rounded-lg border p-4 sm:grid-cols-2">
+              {/* Department + Position */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
-                  <Label>Role *</Label>
+                  <Label>Department *</Label>
                   <Select
-                    value={form.role_name}
-                    onValueChange={(v) => setField("role_name", v)}
+                    value={form.department_name}
+                    onValueChange={(v) => setField("department_name", v)}
                   >
                     <SelectTrigger
-                      className={errors.role_name ? "border-red-500" : ""}
-                      aria-invalid={!!errors.role_name}
+                      className={`w-full ${errors.department_name ? "border-red-500" : ""}`}
+                      aria-invalid={!!errors.department_name}
                     >
-                      <SelectValue placeholder="Select role" />
+                      <SelectValue placeholder="Select a department" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectLabel>Roles</SelectLabel>
-                        {roleOptions.map((r) => (
-                          <SelectItem key={r.value} value={r.value}>
-                            {r.label}
+                        <SelectLabel>Departments</SelectLabel>
+                        {departmentOptions.map((d) => (
+                          <SelectItem key={d.value} value={d.value}>
+                            {d.label}
                           </SelectItem>
                         ))}
                       </SelectGroup>
                     </SelectContent>
                   </Select>
-                  <FieldError name="role_name" />
+                  <FieldError name="department_name" />
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="password">Password *</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={form.password}
-                    onChange={(e) => setField("password", e.target.value)}
-                    placeholder="Min 8 characters"
-                    aria-invalid={!!errors.password}
-                  />
-                  <FieldError name="password" />
+                  <Label>Position *</Label>
+                  <Select
+                    value={form.position_name}
+                    onValueChange={(v) => setField("position_name", v)}
+                  >
+                    <SelectTrigger
+                      className={`w-full ${errors.position_name ? "border-red-500" : ""}`}
+                      aria-invalid={!!errors.position_name}
+                    >
+                      <SelectValue placeholder="Select a position" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>Positions</SelectLabel>
+                        {positionOptions.map((p) => (
+                          <SelectItem key={p.value} value={p.value}>
+                            {p.label}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                  <FieldError name="position_name" />
                 </div>
               </div>
-            )}
-          </div>
+
+              {/* Dates */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="grid gap-2">
+                  <Label>Date of Joining *</Label>
+                  <div
+                    className={
+                      errors.date_of_joining
+                        ? "rounded-md border border-red-500 p-1"
+                        : ""
+                    }
+                  >
+                    <DatePicker
+                      value={form.date_of_joining}
+                      onChange={(d) => setField("date_of_joining", d)}
+                    />
+                  </div>
+                  <FieldError name="date_of_joining" />
+                </div>
+
+                <div className="grid gap-2">
+                  <Label>Date of Birth *</Label>
+                  <div
+                    className={
+                      errors.date_of_birth
+                        ? "rounded-md border border-red-500 p-1"
+                        : ""
+                    }
+                  >
+                    <DatePicker
+                      value={form.date_of_birth}
+                      onChange={(d) => setField("date_of_birth", d)}
+                      fromYear={1950}
+                      toYear={new Date().getFullYear()}
+                      placeholder="Select DOB"
+                    />
+                  </div>
+                  <FieldError name="date_of_birth" />
+                </div>
+              </div>
+
+              {/* Role + Password */}
+              {form.isCreatedUser && (
+                <div className="grid grid-cols-1 gap-4 rounded-lg border p-4 sm:grid-cols-2">
+                  <div className="grid gap-2">
+                    <Label>Role *</Label>
+                    <Select
+                      value={form.role_name}
+                      onValueChange={(v) => setField("role_name", v)}
+                    >
+                      <SelectTrigger
+                        className={`w-full ${errors.role_name ? "border-red-500" : ""}`}
+                        aria-invalid={!!errors.role_name}
+                      >
+                        <SelectValue placeholder="Select role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Roles</SelectLabel>
+                          {roleOptions.map((r) => (
+                            <SelectItem key={r.value} value={r.value}>
+                              {r.label}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                    <FieldError name="role_name" />
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label htmlFor="password">Password *</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={form.password}
+                      onChange={(e) => setField("password", e.target.value)}
+                      placeholder="Min 8 characters"
+                      aria-invalid={!!errors.password}
+                    />
+                    <FieldError name="password" />
+                  </div>
+                </div>
+              )}
+            </div>
+          </ScrollArea>
 
           <DialogFooter className="mt-6">
             <DialogClose asChild>
-              <Button type="button" variant="outline">
+              <Button type="button" variant="outline" disabled={submitting}>
                 Cancel
               </Button>
             </DialogClose>
 
-            <Button type="submit">Save</Button>
+            <Button type="submit" disabled={submitting}>
+              {submitting ? "Saving..." : "Save"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

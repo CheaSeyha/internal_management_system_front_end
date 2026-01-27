@@ -28,7 +28,13 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, MoreHorizontal, User } from "lucide-react";
+import {
+  ArrowUpDown,
+  ChevronDown,
+  MoreHorizontal,
+  RefreshCcw,
+  User,
+} from "lucide-react";
 import useStaffHook from "../Hooks/useStaffHook";
 import AddStaffDialog from "./AddStaffDialog";
 
@@ -251,7 +257,8 @@ export function TableUser() {
 
   return (
     <div className="w-full">
-      <div className="flex items-center gap-2">
+      {/* Button controller  */}
+      <div className="flex items-center justify-between gap-2">
         <Input
           placeholder="Filter email..."
           value={table.getColumn("email")?.getFilterValue() ?? ""}
@@ -261,42 +268,15 @@ export function TableUser() {
           className="max-w-sm"
         />
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
-              Columns <ChevronDown className="ml-2 h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-
-          <DropdownMenuContent align="end">
-            <DropdownMenuGroup>
-              {table
-                .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
-                  >
-                    {column.id}
-                  </DropdownMenuCheckboxItem>
-                ))}
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <AddStaffDialog />
-
-        <Button variant="outline" onClick={refetch}>
-          Refresh
-        </Button>
+        <div className="action-buttonn flex items-center gap-2">
+          <AddStaffDialog onSuccess={refetch} />
+          <Button variant="outline" onClick={refetch}>
+            <RefreshCcw className="h-4 w-4" /> Refresh
+          </Button>
+        </div>
       </div>
-
-      <div className="overflow-hidden rounded-md border mt-4 h-[calc(100vh-300px)]">
+      {/* table show data  */}
+      <div className="overflow-hidden rounded-md border mt-4 h-[700px]">
         {loading ? (
           <Table>
             <TableHeader>

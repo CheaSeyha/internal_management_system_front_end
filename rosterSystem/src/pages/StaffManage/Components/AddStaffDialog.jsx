@@ -50,33 +50,36 @@ const toYMD = (date) => {
 const isEmail = (v) =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v || "").trim());
 
-export default function AddStaffDialog() {
+const initialFormState = {
+  staff_id: "",
+  label_id: "",
+  first_name: "",
+  last_name: "",
+  email: "",
+  phone_number: "",
+  genders: "",
+  department_name: "",
+  position_name: "",
+  date_of_birth: null,
+  date_of_joining: null,
+  isCreatedUser: false,
+  role_name: "",
+  password: "",
+};
+
+export default function AddStaffDialog({ onSuccess }) {
   const [open, setOpen] = useState(false);
 
-  // ✅ REQUIRED image
   const [profileFile, setProfileFile] = useState(null);
-
-  const [form, setForm] = useState({
-    staff_id: "",
-    label_id: "",
-    first_name: "",
-    last_name: "",
-    email: "",
-    phone_number: "",
-    genders: "",
-
-    department_name: "",
-    position_name: "",
-
-    date_of_birth: null,
-    date_of_joining: null,
-
-    isCreatedUser: false,
-    role_name: "",
-    password: "",
-  });
-
+  const [form, setForm] = useState(initialFormState);
   const [errors, setErrors] = useState({});
+
+  const resetForm = () => {
+    setForm(initialFormState);
+    setProfileFile(null);
+    setErrors({});
+  };
+
   const [submitting, setSubmitting] = useState(false);
   const { position, loadingPosition, errorPosition } = usePositionHook();
   const { departments, loadingDepartment, errorDepartment } =
@@ -248,8 +251,10 @@ export default function AddStaffDialog() {
         description: "Upload + data sent to backend successfully.",
       });
 
-      // optional close
-      // setOpen(false);
+      // ✅ Reset form, close dialog, and refetch data
+      resetForm();
+      setOpen(false);
+      if (typeof onSuccess === "function") onSuccess();
     } catch (err) {
       console.log("❌ Add staff error:", err);
 
@@ -273,12 +278,12 @@ export default function AddStaffDialog() {
       open={open}
       onOpenChange={(v) => {
         setOpen(v);
-        if (!v) setErrors({});
+        if (!v) resetForm();
       }}
     >
       <DialogTrigger asChild>
         <Button type="button" variant="outline">
-          <UserPlus className="h-4 w-4 mr-2" />
+          <UserPlus className="h-4 w-4" />
           Add Staff
         </Button>
       </DialogTrigger>
@@ -663,7 +668,7 @@ export default function AddStaffDialog() {
                     <Label htmlFor="password">Password *</Label>
                     <Input
                       id="password"
-                      type="password"
+                      type="text"
                       value={form.password}
                       onChange={(e) => setField("password", e.target.value)}
                       placeholder="Min 8 characters"

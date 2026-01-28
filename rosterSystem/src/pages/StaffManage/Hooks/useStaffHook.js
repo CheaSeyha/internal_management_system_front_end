@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import axios from "../../../api/axios";
 
-const BASE_URL = import.meta.env.VITE_API_IMAGE_URL; // http://127.0.0.1:8000
+const BASE_URL = import.meta.env.VITE_API_IMAGE_URL;
 
 const joinUrl = (base, path) => {
     if (!path) return null;
-    const cleanBase = base.endsWith("/") ? base.slice(0, -1) : base;
+    const cleanBase = base?.endsWith("/") ? base.slice(0, -1) : base;
     const cleanPath = path.startsWith("/") ? path : `/${path}`;
     return `${cleanBase}${cleanPath}`;
 };
@@ -43,9 +43,7 @@ const useStaffHook = () => {
         }
 
         const token = getAccessToken();
-        const url = `${BASE_URL}/api/staff/image_profile/${staffId}`;
-
-        const res = await axios.get(url, {
+        const res = await axios.get(`/staff/image_profile/${staffId}`, {
             responseType: "blob",
             headers: { Authorization: `Bearer ${token}` },
         });
@@ -71,14 +69,8 @@ const useStaffHook = () => {
             }
         }
 
-        // optional: user profile image (if you want fallback)
-        // but your API shows user.profile_image is null often
-        const userPhotoUrl = item?.user?.profile_image
-            ? joinUrl(BASE_URL, item.user.profile_image)
-            : null;
-
         // priority: staff blob -> user photo -> null
-        const photoSrc = staffPhotoBlob || userPhotoUrl || null;
+        const photoSrc = staffPhotoBlob || null;
 
         return {
             // ✅ IMPORTANT: row id should be staff id (not user id)
@@ -118,12 +110,13 @@ const useStaffHook = () => {
                 params: { page: targetPage },
             });
 
-            const paginator = res.data?.data;
+            // ✅ Based on your API JSON: res.data.message.data is the paginator
+            const paginator = res.data?.message?.data || res.data?.data;
             const list = paginator?.data ?? [];
 
             setPage(paginator?.current_page ?? targetPage);
             setLastPage(paginator?.last_page ?? 1);
-            setPerPage(paginator?.per_page ?? 17);
+            setPerPage(paginator?.per_page ?? 12);
             setTotal(paginator?.total ?? 0);
 
             const normalized = await Promise.all(list.map(normalizeRow));

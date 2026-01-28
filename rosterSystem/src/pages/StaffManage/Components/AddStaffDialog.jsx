@@ -86,8 +86,9 @@ export default function AddStaffDialog({ onSuccess }) {
     useDepartmentHook();
   const filteredPositions = useMemo(() => {
     if (!form.department_name) return [];
+    const searchName = String(form.department_name).toLowerCase();
     return position.filter(
-      (p) => p.department?.department_name === form.department_name,
+      (p) => p.department?.department_name?.toLowerCase() === searchName,
     );
   }, [position, form.department_name]);
 
@@ -247,9 +248,7 @@ export default function AddStaffDialog({ onSuccess }) {
 
       console.log("✅ Add staff response:", res?.data);
 
-      toast.success("Staff created ✅", {
-        description: "Upload + data sent to backend successfully.",
-      });
+      toast.success("Staff created successfully");
 
       // ✅ Reset form, close dialog, and refetch data
       resetForm();
@@ -530,11 +529,12 @@ export default function AddStaffDialog({ onSuccess }) {
                             Loading...
                           </SelectItem>
                         )}
-                        {departments.map((d) => (
-                          <SelectItem key={d.id} value={d.department_name}>
-                            {d.department_name}
-                          </SelectItem>
-                        ))}
+                        {Array.isArray(departments) &&
+                          departments.map((d) => (
+                            <SelectItem key={d.id} value={d.department_name}>
+                              {d.department_name}
+                            </SelectItem>
+                          ))}
                       </SelectGroup>
                     </SelectContent>
                   </Select>

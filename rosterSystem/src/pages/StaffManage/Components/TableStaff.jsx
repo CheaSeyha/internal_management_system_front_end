@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 import useStaffHook from "../Hooks/useStaffHook";
 import AddStaffDialog from "./AddStaffDialog";
+import { useEffect } from "react";
 
 export const columns = [
   {
@@ -200,6 +201,10 @@ export function TableUser() {
     prevPage,
     goToPage,
   } = useStaffHook();
+
+  useEffect(() => {
+    console.log(rows);
+  }, []);
 
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);

@@ -38,6 +38,9 @@ import {
 import useStaffHook from "../Hooks/useStaffHook";
 import AddStaffDialog from "./AddStaffDialog";
 import { useEffect } from "react";
+import usePositionHook from "../Hooks/usePositionHook";
+import useDepartmentHook from "../Hooks/useDepartmentHook";
+import MultiSelectDynamic from "../../../components/MultiSelectDynamic";
 
 export const columns = [
   {
@@ -189,6 +192,12 @@ export const columns = [
 ];
 
 export function TableUser() {
+  const [selectedDepartments, setSelectedDepartments] = React.useState([]);
+  const [selectedPositions, setSelectedPositions] = React.useState([]);
+
+  const position = usePositionHook();
+  const department = useDepartmentHook();
+
   const {
     rows,
     loading,
@@ -205,6 +214,21 @@ export function TableUser() {
   useEffect(() => {
     console.log(rows);
   }, []);
+
+  const filteredPositionOptions = React.useMemo(() => {
+    if (selectedDepartments.length === 0) {
+      return (position.position || [])
+        .filter((p) => p.position_name)
+        .map((p) => ({ value: p.position_name, label: p.position_name }));
+    }
+
+    return (position.position || [])
+      .filter((p) => {
+        const deptName = p.department?.department_name;
+        return deptName && selectedDepartments.includes(deptName);
+      })
+      .map((p) => ({ value: p.position_name, label: p.position_name }));
+  }, [position.position, selectedDepartments]);
 
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
@@ -274,6 +298,35 @@ export function TableUser() {
         />
 
         <div className="action-buttonn flex items-center gap-2">
+          {/* Department */}
+          <MultiSelectDynamic
+            loading={department.loadingDepartment}
+            options={department.departments.map((dep) => ({
+              value: dep.department_name,
+              label: dep.department_name,
+            }))}
+            placeholder="Select Department"
+            value={selectedDepartments} // ✅ controlled value from parent
+            onValueChange={(next) => {
+              // ✅ get selected array here
+              setSelectedDepartments(next);
+              console.log(next);
+            }}
+          />
+          {/* Position  */}
+          {selectedDepartments.length > 0 && (
+            <MultiSelectDynamic
+              loading={position.loadingPosition}
+              options={filteredPositionOptions}
+              placeholder="Select position"
+              value={selectedPositions} // ✅ controlled value from parent
+              onValueChange={(next) => {
+                // ✅ get selected array here
+                setSelectedPositions(next);
+                console.log(next);
+              }}
+            />
+          )}
           <AddStaffDialog onSuccess={refetch} />
           <Button variant="outline" onClick={refetch}>
             <RefreshCcw className="h-4 w-4" /> Refresh

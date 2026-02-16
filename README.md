@@ -1,12 +1,61 @@
-# React + Vite
+# Internal Management System (Frontend)
+## Back end repo https://github.com/CheaSeyha/internal_management_system_api
+A React + Vite web application for managing internal operations such as **staff roster**, **building/rooms**, **ID card generation/printing**, **ISP/customer tracking**, and **staff management**.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Features (Modules)
 
-Currently, two official plugins are available:
+### 1) Staff Roster Management (In progress)
+- View staff roster and working shifts in a calendar/table style UI.
+- Upload/import roster data (UI supports file upload).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### 2) Building & Room Management (Completed)
+- Create/Delete **Buildings**
+- Create/Delete **Rooms** under a building
 
-## Expanding the ESLint configuration
+### 3) Card Generator (Auto layout + printing) (Completed)
+- Auto-generate card layouts ready for printing
+- Track who created cards
+- Card listing with filters & delete
+- Card summary/analytics
 
-If you are developing a production application, we recommend using TypeScript and enable type-aware lint rules. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### 4) ISP Management / Internet Tracking (In progress)
+- CRUD for ISP list
+- Track customer internet status (upgrade/downgrade/stop connection) *(UI present; customer module depends on backend implementation)*
+
+### 5) Staff Management (In progress)
+- Add new staff
+- List staff with pagination
+---
+
+## Tech Stack
+
+- **React 18** + **Vite**
+- **React Router**
+- **Tailwind CSS** (+ DaisyUI)
+- **Radix UI** components
+- **Axios** with access-token injection + auto refresh retry logic
+- **React Hook Form** + **Zod**
+- **Recharts** (charts/analytics)
+- **html-to-image / react-to-print** (printing/export)
+- **Swiper**, **Framer Motion**
+
+---
+
+## Project Structure
+
+```text
+Internal Management System /
+  src/
+    api/axios.js                 # Axios instance + token + 401 retry
+    auth/                        # Auth context + protected routes
+    components/                  # Shared UI components
+    pages/
+      Auth/                      # Login
+      RosterForm/                # Staff roster UI
+      Blocks/                    # Building/Room management
+      CardGenerator/             # Card generator + all cards + summary
+      Internet/                  # ISP/customer pages
+      StaffManage/               # Staff management (RBAC)
+```
+
+---

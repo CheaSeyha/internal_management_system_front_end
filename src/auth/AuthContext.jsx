@@ -10,68 +10,52 @@ export const AuthProvider = ({ children }) => {
   const [access_token, setAccessToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch current user
-  const fetchUser = async () => {
-    if (!access_token) return; // don't fetch without access token
+  const login = async (data) => {
+    setLoading(true);
     try {
-      const res = await axios.get("/user");
-      setUser(res.data.data);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      toast.error("Failed to fetch user", {
-        description: error.response?.data?.message || error.message,
+      const res = await axios.post("/login", {
+        email: data.email,
+        password: data.password,
+        remember_me: data.rememberMe,
       });
-    }
-  };
-
-  // Refresh access token from cookie
-  const refreshAccessToken = async () => {
-    try {
-      const res = await axios.post(
-        "/refresh-token",
-        {},
-        { withCredentials: true },
-      );
-      const token = res.data.data.access_token;
-      setAccessToken(token);
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      return token;
-    } catch (err) {
-      console.log("No refresh token or expired", err);
-      setAccessToken(null);
-      setUser(null);
-      return null;
-    }
-  };
-
-  // Initial load
-  useEffect(() => {
-    const initAuth = async () => {
-      setLoading(true);
-      const token = await refreshAccessToken(); // try to get access token via refresh token
-      if (token) {
-        await fetchUser();
-      }
+      setUser(res.data.data.user);
+      setAccessToken(res.data.data.access_token);
+      axios.defaults.headers.common["Authorization"] =
+        `Bearer ${res.data.data.access_token}`;
+      return res;
+    } catch (error) {
+      throw error;
+    } finally {
       setLoading(false);
-    };
-    initAuth();
-  }, []);
-
-  // Update user whenever access token changes
-  useEffect(() => {
-    if (access_token) fetchUser();
-  }, [access_token]);
-
-  // Set access token after login
-  const getAccessToken = (token) => {
-    setAccessToken(token);
-    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-    fetchUser();
+    }
   };
+
+  // const getUser = async () => {
+  //   setLoading(true);
+  //   try {
+  //     const res = await axios.get("/refresh-token"{
+
+  //     });
+  //     setUser(res.data.data);
+  //     setAccessToken(res.data.data.access_token);
+  //     axios.defaults.headers.common["Authorization"] =
+  //       `Bearer ${res.data.data.access_token}`;
+  //   } catch (error) {
+  //     toast.error("Login failed", {
+  //       description: error?.response?.data?.message || error.message,
+  //     });
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   getUser();
+  // }, []);
 
   const value = {
     access_token,
-    getAccessToken,
+    login,
     user,
     isAuthenticated: !!user,
     loading,

@@ -29,8 +29,7 @@ const formSchema = z.object({
 });
 
 export function Login() {
-  const { access_token, getAccessToken, user, isAuthenticated, loading } =
-    useAuth();
+  const { user, login, loading } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -44,50 +43,26 @@ export function Login() {
     },
   });
 
-  useEffect(() => {
-    if (loading) return; // Wait until auth state is loaded
+  // useEffect(() => {
+  //   if (loading) return; // Wait until auth state is loaded
 
-    if (isAuthenticated) {
-      navigate("/", { replace: true }); // Add replace to prevent back navigation
-      toast.info("Redirecting to dashboard...");
-    }
-  }, [isAuthenticated, loading, navigate]);
+  //   if (isAuthenticated) {
+  //     navigate("/", { replace: true }); // Add replace to prevent back navigation
+  //     toast.info("Redirecting to dashboard...");
+  //   }
+  // }, [isAuthenticated, loading, navigate]);
 
   async function onSubmit(values) {
     setIsLoading(true);
 
     try {
-      // login request
-      const response = await axios.post("/login", {
-        email: values.email,
-        password: values.password,
-        remember_me: values.rememberMe,
-      });
-      console.log(response);
-      if (response) {
-        getAccessToken(response.data.data.access_token);
-        console.log(user);
-        // navigate("/");
-        // toast.success("Login Successful", {
-        //   description: (
-        //     <>
-        //       Welcome back <strong>{response.data.name}</strong>!
-        //     </>
-        //   ),
-        // });
-        // setIsLoading(false);
+      const res = await login(values);
+      if (res) {
+        toast.success("Login successful", {
+          description: `Welcome ${res.data.data.user.name} to dashboard...`,
+        });
+        navigate("/");
       }
-      // if (response.data.success) {
-      //   navigate("/");
-      //   toast.success("Login Successful", {
-      //     description: (
-      //       <>
-      //         Welcome back <strong>{response.data.name}</strong>!
-      //       </>
-      //     ),
-      //   });
-      //   setIsLoading(false);
-      // }
     } catch (error) {
       toast.error("Login failed", {
         description: error?.response?.data?.message || error.message,
@@ -97,13 +72,13 @@ export function Login() {
     }
   }
   // Load remembered email if exists
-  useEffect(() => {
-    const rememberedEmail = localStorage.getItem("rememberedEmail");
-    if (rememberedEmail) {
-      form.setValue("email", rememberedEmail);
-      form.setValue("rememberMe", true);
-    }
-  }, [form]);
+  // useEffect(() => {
+  //   const rememberedEmail = localStorage.getItem("rememberedEmail");
+  //   if (rememberedEmail) {
+  //     form.setValue("email", rememberedEmail);
+  //     form.setValue("rememberMe", true);
+  //   }
+  // }, [form]);
 
   return (
     <main className="w-full h-screen flex justify-center pt-40">

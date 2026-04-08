@@ -29,7 +29,8 @@ const formSchema = z.object({
 });
 
 export function Login() {
-  const { login, isAuthenticated, loading } = useAuth();
+  const { access_token, getAccessToken, user, isAuthenticated, loading } =
+    useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -60,24 +61,33 @@ export function Login() {
       const response = await axios.post("/login", {
         email: values.email,
         password: values.password,
+        remember_me: values.rememberMe,
       });
-
-      if (response.data.success) {
-        login(
-          response.data.data.user,
-          response.data.data.access_token,
-          values.rememberMe
-        );
-        navigate("/");
-        toast.success("Login Successful", {
-          description: (
-            <>
-              Welcome back <strong>{response.data.data.user.name}</strong>!
-            </>
-          ),
-        });
-        setIsLoading(false);
+      console.log(response);
+      if (response) {
+        getAccessToken(response.data.data.access_token);
+        console.log(user);
+        // navigate("/");
+        // toast.success("Login Successful", {
+        //   description: (
+        //     <>
+        //       Welcome back <strong>{response.data.name}</strong>!
+        //     </>
+        //   ),
+        // });
+        // setIsLoading(false);
       }
+      // if (response.data.success) {
+      //   navigate("/");
+      //   toast.success("Login Successful", {
+      //     description: (
+      //       <>
+      //         Welcome back <strong>{response.data.name}</strong>!
+      //       </>
+      //     ),
+      //   });
+      //   setIsLoading(false);
+      // }
     } catch (error) {
       toast.error("Login failed", {
         description: error?.response?.data?.message || error.message,

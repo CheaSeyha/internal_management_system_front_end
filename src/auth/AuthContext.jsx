@@ -33,13 +33,14 @@ export const AuthProvider = ({ children }) => {
 
   const restoreSession = async () => {
     if (isRestoring.current) return;
+    setLoading(true);
     isRestoring.current = true;
-    console.log('1. restoreSession started');
+    console.log("1. restoreSession started");
     try {
       // 1. call refresh token
       const res = await axios.post("/refresh-token");
       const token = res.data?.data?.access_token || res.data?.access_token;
-      
+
       // 2. set access token in axios header
       if (token) {
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -49,9 +50,10 @@ export const AuthProvider = ({ children }) => {
       let userData = res.data?.data?.user || res.data?.user;
       if (!userData) {
         const userRes = await axios.get("/user", {
-          headers: token ? { Authorization: `Bearer ${token}` } : {}
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
-        userData = userRes.data?.data?.user || userRes.data?.data || userRes.data;
+        userData =
+          userRes.data?.data?.user || userRes.data?.data || userRes.data;
       }
 
       if (!userData) {
@@ -59,12 +61,15 @@ export const AuthProvider = ({ children }) => {
       }
       // 4. setUser(user)
       setUser(userData);
-      
+
       // 5. setAccessToken(token)
       setAccessToken(token);
-
     } catch (error) {
-      console.log('restoreSession failed:', error?.response?.status, error?.response?.data);
+      console.log(
+        "restoreSession failed:",
+        error?.response?.status,
+        error?.response?.data,
+      );
       setUser(null);
       setAccessToken(null);
     } finally {

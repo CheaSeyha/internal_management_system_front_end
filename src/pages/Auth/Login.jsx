@@ -29,7 +29,7 @@ const formSchema = z.object({
 });
 
 export function Login() {
-  const { user, login, loading } = useAuth();
+  const { user, isAuthenticated, login, loading } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -43,14 +43,14 @@ export function Login() {
     },
   });
 
-  // useEffect(() => {
-  //   if (loading) return; // Wait until auth state is loaded
+  useEffect(() => {
+    if (loading) return; // Wait until auth state is loaded
 
-  //   if (isAuthenticated) {
-  //     navigate("/", { replace: true }); // Add replace to prevent back navigation
-  //     toast.info("Redirecting to dashboard...");
-  //   }
-  // }, [isAuthenticated, loading, navigate]);
+    if (isAuthenticated) {
+      navigate("/", { replace: true }); // Add replace to prevent back navigation
+      toast.info("Redirecting to dashboard...");
+    }
+  }, [isAuthenticated, loading, navigate]);
 
   async function onSubmit(values) {
     setIsLoading(true);

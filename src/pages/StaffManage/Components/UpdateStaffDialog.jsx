@@ -1,9 +1,5 @@
-// AddStaffDialog.jsx (ScrollArea + fixed Create User toggle + REQUIRED profile_picture + FormData submit)
-"use client";
-
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { toast } from "sonner";
-import { UserPlus } from "lucide-react";
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -16,11 +12,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
 import {
   Select,
   SelectContent,
@@ -33,9 +27,7 @@ import {
 
 import ImageDropzoneHoverRemove from "../../../components/ImageDropzoneHoverRemove";
 import DatePicker from "../../../components/DatePicker";
-
-// ✅ use your axios instance if you already have it
-import axios from "../../../api/axios"; // adjust path if different
+import axios from "../../../api/axios";
 import usePositionHook from "../Hooks/usePositionHook";
 import useDepartmentHook from "../Hooks/useDepartmentHook";
 
@@ -67,12 +59,47 @@ const initialFormState = {
   password: "",
 };
 
-export default function AddStaffDialog({ onSuccess }) {
-  const [open, setOpen] = useState(false);
-
+export default function UpdateStaffDialog({
+  open,
+  onOpenChange,
+  staffData,
+  onSuccess,
+}) {
   const [profileFile, setProfileFile] = useState(null);
   const [form, setForm] = useState(initialFormState);
   const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+
+  const { position, loadingPosition, errorPosition } = usePositionHook();
+  const { departments, loadingDepartment } = useDepartmentHook();
+
+  // ✅ Pre-fill form when staffData changes
+  useEffect(() => {
+    if (staffData) {
+      setForm({
+        staff_id: staffData.staff_id ?? "",
+        label_id: staffData.label_id ?? "",
+        first_name: staffData.first_name ?? "",
+        last_name: staffData.last_name ?? "",
+        email: staffData.email ?? "",
+        phone_number: staffData.phone_number ?? "",
+        genders: staffData.genders ?? "",
+        department_name: staffData.department_name ?? "",
+        position_name: staffData.position_name ?? "",
+        date_of_birth: staffData.date_of_birth
+          ? new Date(staffData.date_of_birth)
+          : null,
+        date_of_joining: staffData.date_of_joining
+          ? new Date(staffData.date_of_joining)
+          : null,
+        isCreatedUser: false,
+        role_name: "",
+        password: "",
+      });
+      setProfileFile(null);
+      setErrors({});
+    }
+  }, [staffData]);
 
   const resetForm = () => {
     setForm(initialFormState);
@@ -80,10 +107,6 @@ export default function AddStaffDialog({ onSuccess }) {
     setErrors({});
   };
 
-  const [submitting, setSubmitting] = useState(false);
-  const { position, loadingPosition, errorPosition } = usePositionHook();
-  const { departments, loadingDepartment, errorDepartment } =
-    useDepartmentHook();
   const filteredPositions = useMemo(() => {
     if (!form.department_name) return [];
     const searchName = String(form.department_name).toLowerCase();
@@ -96,15 +119,13 @@ export default function AddStaffDialog({ onSuccess }) {
     () => [
       { value: "super_admin", label: "Super Admin" },
       { value: "admin", label: "Admin" },
-      { value: "user", label: "user" },
+      { value: "user", label: "User" },
     ],
     [],
   );
 
   const setField = (name, value) => {
     setForm((prev) => ({ ...prev, [name]: value }));
-
-    // clear error for that field as user edits
     setErrors((prev) => {
       if (!prev[name]) return prev;
       const copy = { ...prev };
@@ -116,7 +137,6 @@ export default function AddStaffDialog({ onSuccess }) {
   const validate = () => {
     const e = {};
 
-    // ✅ profile picture required
     if (!profileFile) e.profile_picture = "Profile picture is required.";
 
     const staffId = String(form.staff_id || "").trim();
@@ -125,7 +145,6 @@ export default function AddStaffDialog({ onSuccess }) {
 
     if (!String(form.label_id || "").trim())
       e.label_id = "Label ID is required.";
-
     if (!String(form.first_name || "").trim())
       e.first_name = "First Name is required.";
     if (!String(form.last_name || "").trim())
@@ -136,15 +155,11 @@ export default function AddStaffDialog({ onSuccess }) {
 
     if (!String(form.phone_number || "").trim())
       e.phone_number = "Phone Number is required.";
-
     if (!String(form.genders || "").trim()) e.genders = "Gender is required.";
-
     if (!String(form.department_name || "").trim())
       e.department_name = "Department is required.";
-
     if (!String(form.position_name || "").trim())
       e.position_name = "Position is required.";
-
     if (!form.date_of_joining)
       e.date_of_joining = "Date of Joining is required.";
     if (!form.date_of_birth) e.date_of_birth = "Date of Birth is required.";
@@ -180,14 +195,12 @@ export default function AddStaffDialog({ onSuccess }) {
     ];
     const firstKey = order.find((k) => errs[k]) || Object.keys(errs)[0];
     if (!firstKey) return;
-
     const el = document.getElementById(firstKey);
     if (el && typeof el.focus === "function") el.focus();
   };
 
   const buildFormData = () => {
     const fd = new FormData();
-
     fd.append("staff_id", String(form.staff_id ?? ""));
     fd.append("label_id", String(form.label_id ?? ""));
     fd.append("first_name", String(form.first_name ?? ""));
@@ -195,23 +208,16 @@ export default function AddStaffDialog({ onSuccess }) {
     fd.append("email", String(form.email ?? ""));
     fd.append("phone_number", String(form.phone_number ?? ""));
     fd.append("genders", String(form.genders ?? ""));
-
     fd.append("department_name", String(form.department_name ?? ""));
     fd.append("position_name", String(form.position_name ?? ""));
-
     fd.append("date_of_joining", toYMD(form.date_of_joining));
     fd.append("date_of_birth", toYMD(form.date_of_birth));
-
     fd.append("isCreatedUser", form.isCreatedUser ? "1" : "0");
-
     if (form.isCreatedUser) {
       fd.append("role_name", String(form.role_name ?? ""));
       fd.append("password", String(form.password ?? ""));
     }
-
-    // ✅ required file field name must match backend: profile_picture
     fd.append("profile_picture", profileFile);
-
     return fd;
   };
 
@@ -230,38 +236,26 @@ export default function AddStaffDialog({ onSuccess }) {
     }
 
     const fd = buildFormData();
-
-    // debug
-    console.log("✅ FormData entries:");
-    for (const [k, v] of fd.entries()) console.log(k, v);
-
     setSubmitting(true);
+
     try {
-      // ✅ Adjust endpoint to your real one
-      // Example: /staff/add_new_staff
-      const res = await axios.post("/staff/add_new_staff", fd, {
-        headers: {
-          // axios will set boundary automatically; this is okay to include too
-          "Content-Type": "multipart/form-data",
-        },
+      const res = await axios.post("/staff/update_staff", fd, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
-      console.log("✅ Add staff response:", res?.data);
+      console.log("✅ Update staff response:", res?.data);
+      toast.success("Staff updated successfully");
 
-      toast.success("Staff created successfully");
-
-      // ✅ Reset form, close dialog, and refetch data
       resetForm();
-      setOpen(false);
+      onOpenChange(false); // ✅ close dialog via parent
       if (typeof onSuccess === "function") onSuccess();
     } catch (err) {
-      console.log("❌ Add staff error:", err);
-
+      console.log("❌ Update staff error:", err);
       const msg =
         err?.response?.data?.message ||
         err?.message ||
-        "Failed to create staff.";
-      toast.error("Create staff failed", { description: msg });
+        "Failed to update staff.";
+      toast.error("Update staff failed", { description: msg });
     } finally {
       setSubmitting(false);
     }
@@ -273,24 +267,19 @@ export default function AddStaffDialog({ onSuccess }) {
     ) : null;
 
   return (
+    // ✅ open and onOpenChange fully controlled from parent
     <Dialog
       open={open}
       onOpenChange={(v) => {
-        setOpen(v);
+        onOpenChange(v);
         if (!v) resetForm();
       }}
     >
-      <DialogTrigger asChild>
-        <Button type="button" variant="outline">
-          <UserPlus className="h-4 w-4" />
-          Add Staff
-        </Button>
-      </DialogTrigger>
-
+      {/* ✅ No DialogTrigger — triggered from the dropdown in TableUser */}
       <DialogContent className="sm:max-w-[700px] max-h-[90vh]">
         <form onSubmit={handleSubmit} className="flex flex-col">
           <DialogHeader>
-            <DialogTitle>Add Staff</DialogTitle>
+            <DialogTitle>Update Staff</DialogTitle>
             <DialogDescription>
               Required fields will show an error if you skip them.
             </DialogDescription>
@@ -302,15 +291,11 @@ export default function AddStaffDialog({ onSuccess }) {
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label>Profile Picture *</Label>
-
-                  {/* ✅ required */}
                   <div id="profile_picture">
                     <ImageDropzoneHoverRemove
                       value={profileFile}
                       onChange={(file) => {
                         setProfileFile(file);
-
-                        // clear error when selected
                         setErrors((prev) => {
                           if (!prev.profile_picture) return prev;
                           const copy = { ...prev };
@@ -320,7 +305,6 @@ export default function AddStaffDialog({ onSuccess }) {
                       }}
                     />
                   </div>
-
                   <p className="text-xs text-muted-foreground">
                     Allowed: jpg, png, jpeg, webp
                   </p>
@@ -360,7 +344,6 @@ export default function AddStaffDialog({ onSuccess }) {
                   <Label htmlFor="staff_id">Staff ID *</Label>
                   <Input
                     id="staff_id"
-                    type="number"
                     inputMode="numeric"
                     value={form.staff_id}
                     onChange={(e) => setField("staff_id", e.target.value)}
@@ -437,10 +420,8 @@ export default function AddStaffDialog({ onSuccess }) {
                   <FieldError name="genders" />
                 </div>
 
-                {/* ✅ FIXED: no nested button + no infinite update */}
                 <div className="grid gap-2">
                   <Label>Create User</Label>
-
                   <div
                     role="button"
                     tabIndex={0}
@@ -450,13 +431,11 @@ export default function AddStaffDialog({ onSuccess }) {
                     `}
                     onClick={() => {
                       const checked = !form.isCreatedUser;
-
                       setForm((prev) => ({
                         ...prev,
                         isCreatedUser: checked,
                         ...(checked ? {} : { role_name: "", password: "" }),
                       }));
-
                       if (!checked) {
                         setErrors((prev) => {
                           const copy = { ...prev };
@@ -470,13 +449,11 @@ export default function AddStaffDialog({ onSuccess }) {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
                         const checked = !form.isCreatedUser;
-
                         setForm((prev) => ({
                           ...prev,
                           isCreatedUser: checked,
                           ...(checked ? {} : { role_name: "", password: "" }),
                         }));
-
                         if (!checked) {
                           setErrors((prev) => {
                             const copy = { ...prev };
@@ -491,7 +468,6 @@ export default function AddStaffDialog({ onSuccess }) {
                     <div onClick={(e) => e.stopPropagation()}>
                       <Checkbox checked={form.isCreatedUser} />
                     </div>
-
                     <div className="leading-tight">
                       <p className="text-sm font-medium">
                         Create login account
@@ -512,7 +488,6 @@ export default function AddStaffDialog({ onSuccess }) {
                     value={form.department_name}
                     onValueChange={(v) => {
                       setField("department_name", v);
-                      // reset position when department changes
                       setField("position_name", "");
                     }}
                   >
@@ -688,7 +663,6 @@ export default function AddStaffDialog({ onSuccess }) {
                 Cancel
               </Button>
             </DialogClose>
-
             <Button type="submit" disabled={submitting}>
               {submitting ? "Saving..." : "Save"}
             </Button>

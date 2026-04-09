@@ -74,6 +74,11 @@ export default function UpdateStaffDialog({
   const { departments, loadingDepartment } = useDepartmentHook();
 
   // ✅ Pre-fill form when staffData changes
+
+  useEffect(() => {
+    console.log("staffData in update ", staffData);
+  }, [staffData]);
+
   useEffect(() => {
     if (staffData) {
       setForm({
@@ -83,7 +88,7 @@ export default function UpdateStaffDialog({
         last_name: staffData.last_name ?? "",
         email: staffData.email ?? "",
         phone_number: staffData.phone_number ?? "",
-        genders: staffData.genders ?? "",
+        genders: staffData.raw?.genders ?? "",
         department_name: staffData.department_name ?? "",
         position_name: staffData.position_name ?? "",
         date_of_birth: staffData.date_of_birth
@@ -96,7 +101,7 @@ export default function UpdateStaffDialog({
         role_name: "",
         password: "",
       });
-      setProfileFile(null);
+      setProfileFile(staffData.photoSrc);
       setErrors({});
     }
   }, [staffData]);
@@ -293,16 +298,8 @@ export default function UpdateStaffDialog({
                   <Label>Profile Picture *</Label>
                   <div id="profile_picture">
                     <ImageDropzoneHoverRemove
-                      value={profileFile}
-                      onChange={(file) => {
-                        setProfileFile(file);
-                        setErrors((prev) => {
-                          if (!prev.profile_picture) return prev;
-                          const copy = { ...prev };
-                          delete copy.profile_picture;
-                          return copy;
-                        });
-                      }}
+                      value={profileFile} // can be File OR string (blob/url)
+                      onChange={(fileOrUrl) => setProfileFile(fileOrUrl)}
                     />
                   </div>
                   <p className="text-xs text-muted-foreground">
@@ -399,7 +396,7 @@ export default function UpdateStaffDialog({
                 <div className="grid gap-2">
                   <Label>Gender *</Label>
                   <Select
-                    value={form.genders}
+                    value={form.genders} // "female" or "male"
                     onValueChange={(v) => setField("genders", v)}
                   >
                     <SelectTrigger
@@ -413,7 +410,6 @@ export default function UpdateStaffDialog({
                         <SelectLabel>Genders</SelectLabel>
                         <SelectItem value="male">Male</SelectItem>
                         <SelectItem value="female">Female</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
                       </SelectGroup>
                     </SelectContent>
                   </Select>

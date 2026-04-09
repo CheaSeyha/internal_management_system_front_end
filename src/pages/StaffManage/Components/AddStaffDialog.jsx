@@ -430,7 +430,6 @@ export default function AddStaffDialog({ onSuccess }) {
                         <SelectLabel>Genders</SelectLabel>
                         <SelectItem value="male">Male</SelectItem>
                         <SelectItem value="female">Female</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
                       </SelectGroup>
                     </SelectContent>
                   </Select>

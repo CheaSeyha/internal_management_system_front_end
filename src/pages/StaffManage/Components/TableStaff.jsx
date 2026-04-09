@@ -84,8 +84,8 @@ export function TableUser() {
   } = useStaffHook();
 
   useEffect(() => {
-    console.log(rows);
-  }, []);
+    console.log("Staff Data", rows);
+  }, [rows]);
 
   const filteredPositionOptions = React.useMemo(() => {
     if (selectedDepartments.length === 0) {

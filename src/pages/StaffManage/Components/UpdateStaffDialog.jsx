@@ -223,6 +223,7 @@ export default function UpdateStaffDialog({
       fd.append("password", String(form.password ?? ""));
     }
     fd.append("profile_picture", profileFile);
+    fd.append("_method", "patch");
     return fd;
   };
 
@@ -244,7 +245,7 @@ export default function UpdateStaffDialog({
     setSubmitting(true);
 
     try {
-      const res = await axios.post("/staff/update_staff", fd, {
+      const res = await axios.post(`/staff/${staffData.staff_id}`, fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 

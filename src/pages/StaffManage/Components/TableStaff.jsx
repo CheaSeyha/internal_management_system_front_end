@@ -300,9 +300,11 @@ export function TableUser() {
 
   const handleDeleteStaffSingle = async () => {
     try {
-      const deleteStaff = await handleDeleteStaff(selectedDeleteStaff?.id);
-      toast.success("Staff deleted successfully");
-    } catch (error) {
+      const res = await handleDeleteStaff(selectedDeleteStaff?.staff_id);
+      if (res.status === 200) {
+        toast.success("Staff deleted successfully");
+      }
+    } catch (err) {
       toast.error("Failed to delete staff");
     } finally {
       setDeleteDialogOpen(false);

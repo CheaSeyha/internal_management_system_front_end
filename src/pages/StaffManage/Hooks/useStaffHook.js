@@ -45,7 +45,6 @@ const useStaffHook = () => {
     const token = getAccessToken();
     const res = await axios.get(`/staff/image_profile/${staffId}`, {
       responseType: "blob",
-      headers: { Authorization: `Bearer ${token}` },
     });
 
     const blobUrl = URL.createObjectURL(res.data);
@@ -63,7 +62,7 @@ const useStaffHook = () => {
     let staffPhotoBlob = null;
     if (item?.profile_picture) {
       try {
-        staffPhotoBlob = await downloadStaffBlobById(item.id);
+        staffPhotoBlob = await downloadStaffBlobById(item.staff_id);
       } catch {
         staffPhotoBlob = null;
       }
@@ -106,7 +105,7 @@ const useStaffHook = () => {
       setLoading(true);
       setError(null);
 
-      const res = await axios.get("/staff/get_all_staff", {
+      const res = await axios.get("/staff", {
         params: { page: targetPage },
       });
 
@@ -140,14 +139,9 @@ const useStaffHook = () => {
   const handleDeleteStaff = async (staffId) => {
     try {
       setLoading(true);
-      setError(null);
-      const res = await axios.delete("staff/delete_staffs", {
-        data: { staff_ids: [staffId] },
-      });
-      console.log(res);
+      const res = await axios.delete(`staff/${staffId}`);
       return res;
     } catch (err) {
-      setError(err);
       return err;
     } finally {
       setLoading(false);
@@ -156,16 +150,13 @@ const useStaffHook = () => {
 
   return {
     handleDeleteStaff,
-
     rows,
     loading,
     error,
-
     page,
     lastPage,
     perPage,
     total,
-
     goToPage: fetchPage,
     nextPage: () => fetchPage(Math.min(page + 1, lastPage)),
     prevPage: () => fetchPage(Math.max(page - 1, 1)),

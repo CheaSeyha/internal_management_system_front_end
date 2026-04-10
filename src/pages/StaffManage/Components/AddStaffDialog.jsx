@@ -239,7 +239,7 @@ export default function AddStaffDialog({ onSuccess }) {
     try {
       // ✅ Adjust endpoint to your real one
       // Example: /staff/add_new_staff
-      const res = await axios.post("/staff/add_new_staff", fd, {
+      const res = await axios.post("/staff", fd, {
         headers: {
           // axios will set boundary automatically; this is okay to include too
           "Content-Type": "multipart/form-data",

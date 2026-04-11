@@ -6,12 +6,25 @@ const useStaffHook = () => {
   const [staffLoading, setStaffLoading] = useState(false);
   const [staffError, setStaffError] = useState(null);
 
+  // helper: fetch image as blob URL via your axios instance
+  const loadProfileImage = async (staff) => {
+    try {
+      const response = await axios.get(staff.profile_picture, {
+        responseType: "blob",
+      });
+      const blobUrl = URL.createObjectURL(response.data);
+      return { ...staff, preview_profile: blobUrl };
+    } catch {
+      return { ...staff, preview_profile: null };
+    }
+  };
+
   const fetchStaffs = async () => {
     setStaffLoading(true);
     setStaffError(null);
     try {
       const response = await axios.get("/staff");
-      setStaffs(response.data);
+      setStaffs(response.data.data);
     } catch (error) {
       setStaffError(error);
     } finally {
@@ -37,13 +50,13 @@ const useStaffHook = () => {
       formData.append("date_of_joining", staffData.date_of_joining);
       formData.append("date_of_birth", staffData.date_of_birth);
 
-      // ✅ Only append role & password when user login is enabled
+      // Only append role & password when user login is enabled
       if (staffData.isCreatedUser) {
         formData.append("role_name", staffData.role_name || "");
         formData.append("password", staffData.password || "");
       }
 
-      // ✅ profile_picture is already a File object — no .file wrapper needed
+      // profile_picture is already a File object — no .file wrapper needed
       if (staffData.profile_picture instanceof File) {
         formData.append("profile_picture", staffData.profile_picture);
       }
@@ -55,7 +68,7 @@ const useStaffHook = () => {
       return response;
     } catch (error) {
       setStaffError(error);
-      throw error; // ✅ rethrow so onSubmit catch block can handle it
+      throw error; // rethrow so onSubmit catch block can handle it
     } finally {
       setStaffLoading(false);
     }

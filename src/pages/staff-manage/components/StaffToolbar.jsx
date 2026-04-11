@@ -1,11 +1,9 @@
 import { AddStaffDialog } from "./AddStaffDialog";
 
-function StaffToolbar() {
+export default function StaffToolbar({ fetchStaffs }) {
   return (
     <>
-      <AddStaffDialog />
+      <AddStaffDialog fetchStaffs={fetchStaffs} />
     </>
   );
 }
-
-export default StaffToolbar;

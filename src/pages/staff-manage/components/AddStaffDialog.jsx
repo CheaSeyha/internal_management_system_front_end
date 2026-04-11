@@ -36,7 +36,7 @@ import DatePicker from "../../../components/DatePicker";
 import { useForm, Controller } from "react-hook-form";
 import useStaff from "../hooks/useStaffHook";
 
-export function AddStaffDialog() {
+export function AddStaffDialog({ fetchStaffs }) {
   const [selectDepartment, setSelectDepartment] = useState(null);
   const [isCreateUser, setIsCreateUser] = useState(false);
   const { departments, fetchDepartments } = useDepartment();
@@ -67,7 +67,7 @@ export function AddStaffDialog() {
       date_of_joining: null,
       date_of_birth: null,
       role_name: "",
-      profile_picture: null, // ✅ managed by RHF via Controller
+      profile_picture: null, //  managed by RHF via Controller
     },
   });
 
@@ -101,6 +101,7 @@ export function AddStaffDialog() {
       const response = await addStaff(formatted);
       if (response.status === 200) {
         toast.success("Staff added successfully");
+        fetchStaffs();
         handleReset();
       }
     } catch (error) {
@@ -143,7 +144,7 @@ export function AddStaffDialog() {
                     <ImageDropzoneHoverRemove
                       value={field.value}
                       onChange={(file) => {
-                        field.onChange(file); // ✅ stores File directly in RHF
+                        field.onChange(file); //  stores File directly in RHF
                         trigger("profile_picture");
                       }}
                     />
@@ -275,7 +276,7 @@ export function AddStaffDialog() {
                           checked={field.value}
                           onCheckedChange={(checked) => {
                             field.onChange(checked);
-                            setIsCreateUser(checked); // ✅ keep local state in sync
+                            setIsCreateUser(checked); //  keep local state in sync
                           }}
                           id="terms-checkbox"
                         />
@@ -496,14 +497,14 @@ export function AddStaffDialog() {
             </div>
           </ScrollArea>
 
-          <DialogFooter>
+          <DialogFooter className="mt-5">
             <DialogClose asChild>
               <Button type="button" variant="outline">
                 Cancel
               </Button>
             </DialogClose>
             <Button type="submit" disabled={staffLoading}>
-              {staffLoading ? "Saving..." : "Save changes"}
+              {staffLoading ? "Saving..." : "Save"}
             </Button>
           </DialogFooter>
         </form>

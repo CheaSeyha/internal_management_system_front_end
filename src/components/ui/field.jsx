@@ -182,30 +182,54 @@ function FieldError({
   className,
   children,
   errors,
+  name,
   ...props
 }) {
-  const content = useMemo(() => {
-    if (children) {
-      return children
+  // Extract the specific error for this field
+  const getFieldError = () => {
+    if (!name || !errors || typeof errors !== "object" || Array.isArray(errors)) {
+      return errors
     }
+    return name.split(".").reduce((acc, part) => acc?.[part], errors)
+  }
 
-    if (!errors) {
-      return null
-    }
+  const fieldError = getFieldError()
 
-    if (errors?.length === 1 && errors[0]?.message) {
-      return errors[0].message
-    }
-
+  if (children) {
     return (
-      <ul className="ml-4 flex list-disc flex-col gap-1">
-        {errors.map((error, index) =>
-          error?.message && <li key={index}>{error.message}</li>)}
-      </ul>
-    );
-  }, [children, errors])
+      <div
+        role="alert"
+        data-slot="field-error"
+        className={cn("text-destructive text-sm font-normal", className)}
+        {...props}>
+        {children}
+      </div>
+    )
+  }
 
-  if (!content) {
+  if (!fieldError) {
+    return null
+  }
+
+  let message = null
+  if (typeof fieldError === "string") {
+    message = fieldError
+  } else if (fieldError.message && typeof fieldError.message === "string") {
+    message = fieldError.message
+  } else if (Array.isArray(fieldError)) {
+    if (fieldError.length === 1 && fieldError[0]?.message) {
+      message = fieldError[0].message
+    } else {
+      message = (
+        <ul className="ml-4 flex list-disc flex-col gap-1">
+          {fieldError.map((error, index) =>
+            error?.message && <li key={index}>{error.message}</li>)}
+        </ul>
+      )
+    }
+  }
+
+  if (!message) {
     return null
   }
 
@@ -215,9 +239,9 @@ function FieldError({
       data-slot="field-error"
       className={cn("text-destructive text-sm font-normal", className)}
       {...props}>
-      {content}
+      {message}
     </div>
-  );
+  )
 }
 
 export {

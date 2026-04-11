@@ -84,7 +84,7 @@ export default function ImageDropzoneHoverRemove({
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full max-w-sm mx-auto">
       <input
         ref={inputRef}
         type="file"

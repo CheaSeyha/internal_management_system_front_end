@@ -14,7 +14,8 @@ import ProtectedRoute from "./auth/ProtectedRoute";
 import NotFoundPage from "./pages/NotFoundPage";
 import BuildingRoom from "./pages/Blocks/BuildingRoom";
 import CardSummary from "./pages/CardGenerator/CardSummary";
-import UserManage from "./pages/StaffManage/StaffManage";
+import StaffManage from "./pages/staff-manage/StaffManage";
+
 function App() {
   const location = useLocation(); // Get the current location
 
@@ -119,7 +120,7 @@ function App() {
                 path="all-staff"
                 element={
                   <AnimatedPage>
-                    <UserManage />
+                    <StaffManage />
                   </AnimatedPage>
                 }
               />

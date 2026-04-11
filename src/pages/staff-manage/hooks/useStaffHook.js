@@ -85,7 +85,28 @@ const useStaffHook = () => {
     }
   };
 
-  return { staffs, staffLoading, staffError, fetchStaffs, addStaff };
+  const deleteStaff = async (staffId) => {
+    setStaffLoading(true);
+    setStaffError(null);
+    try {
+      const response = await axios.delete(`/staff/${staffId}`);
+      return response;
+    } catch (error) {
+      setStaffError(error);
+      throw error;
+    } finally {
+      setStaffLoading(false);
+    }
+  };
+
+  return {
+    staffs,
+    staffLoading,
+    staffError,
+    fetchStaffs,
+    addStaff,
+    deleteStaff,
+  };
 };
 
 export default useStaffHook;

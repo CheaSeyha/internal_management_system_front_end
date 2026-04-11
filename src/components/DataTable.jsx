@@ -248,7 +248,7 @@ export default function DataTable({
                 {/* Row actions dropdown */}
                 {showActions && (
                   <TableCell className="w-[100px] text-center">
-                    <DropdownMenu>
+                    <DropdownMenu modal={false}>
                       <DropdownMenuTrigger
                         asChild
                         className={hasSelection ? "hidden" : ""}

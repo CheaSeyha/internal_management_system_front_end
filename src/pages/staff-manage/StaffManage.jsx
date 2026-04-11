@@ -13,12 +13,20 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { UpdateStaffDialog } from "./components/UpdateStaffDialog";
 
 function StaffManage() {
   const [getDeleteStaff, setGetDeleteStaff] = useState(null);
+  const [getUpdateStaff, setGetUpdateStaff] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const { staffs, fetchStaffs, staffLoading, addStaff, deleteStaff } =
-    useStaffHook();
+  const {
+    staffs,
+    fetchStaffs,
+    staffLoading,
+    addStaff,
+    deleteStaff,
+    updateStaff,
+  } = useStaffHook();
 
   useEffect(() => {
     fetchStaffs();
@@ -42,6 +50,16 @@ function StaffManage() {
     }
   };
 
+  const handleUpdateStaff = (staff) => {
+    setGetUpdateStaff(staff);
+  };
+
+  const handleOpenChange = (open) => {
+    if (!open) {
+      setGetUpdateStaff(null);
+    }
+  };
+
   return (
     <>
       <div className="mb-5">
@@ -56,6 +74,16 @@ function StaffManage() {
         fetchStaffs={fetchStaffs}
         staffLoading={staffLoading}
         deleteStaff={handleDeleteStaff}
+        updateStaff={handleUpdateStaff}
+      />
+
+      <UpdateStaffDialog
+        open={!!getUpdateStaff}
+        staff={getUpdateStaff}
+        updateStaff={updateStaff}
+        fetchStaffs={fetchStaffs}
+        staffLoading={staffLoading}
+        handleOpenChange={handleOpenChange}
       />
 
       <AlertDialog
@@ -76,11 +104,11 @@ function StaffManage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            {/* ✅ prevent closing while deleting */}
+            {/* prevent closing while deleting */}
             <AlertDialogCancel disabled={deleteLoading}>
               Cancel
             </AlertDialogCancel>
-            {/* ✅ plain Button so dialog stays open during loading */}
+            {/* plain Button so dialog stays open during loading */}
             <Button
               variant="destructive"
               disabled={deleteLoading}

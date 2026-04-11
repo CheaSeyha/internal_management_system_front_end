@@ -99,6 +99,49 @@ const useStaffHook = () => {
     }
   };
 
+  const updateStaff = async (id, staffData) => {
+    setStaffLoading(true);
+    setStaffError(null);
+    try {
+      const formData = new FormData();
+      // Laravel often requires _method: 'PUT' when using FormData via POST
+      formData.append("_method", "patch");
+      formData.append("first_name", staffData.first_name);
+      formData.append("last_name", staffData.last_name);
+      formData.append("email", staffData.email);
+      formData.append("phone_number", staffData.phone_number);
+      formData.append("staff_id", staffData.staff_id);
+      formData.append("label_id", staffData.label_id);
+      formData.append("isCreatedUser", staffData.isCreatedUser ? "1" : "0");
+      formData.append("gender", staffData.gender);
+      formData.append("department_name", staffData.department_name);
+      formData.append("position_name", staffData.position_name);
+      formData.append("date_of_joining", staffData.date_of_joining);
+      formData.append("date_of_birth", staffData.date_of_birth);
+
+      if (staffData.isCreatedUser) {
+        formData.append("role_name", staffData.role_name || "");
+        if (staffData.password) {
+          formData.append("password", staffData.password);
+        }
+      }
+
+      if (staffData.profile_picture instanceof File) {
+        formData.append("profile_picture", staffData.profile_picture);
+      }
+
+      const response = await axios.post(`/staff/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return response;
+    } catch (error) {
+      setStaffError(error);
+      throw error;
+    } finally {
+      setStaffLoading(false);
+    }
+  };
+
   return {
     staffs,
     staffLoading,
@@ -106,6 +149,7 @@ const useStaffHook = () => {
     fetchStaffs,
     addStaff,
     deleteStaff,
+    updateStaff,
   };
 };
 

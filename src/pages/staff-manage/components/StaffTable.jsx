@@ -1,7 +1,12 @@
 import DataTable from "@/components/DataTable";
 import { Pencil, Trash } from "lucide-react";
 
-export default function StaffTable({ staffs, staffLoading, deleteStaff }) {
+export default function StaffTable({
+  staffs,
+  staffLoading,
+  deleteStaff,
+  updateStaff,
+}) {
   // staffs is now the direct array from the hook
   const data = Array.isArray(staffs) ? staffs : [];
 
@@ -54,7 +59,7 @@ export default function StaffTable({ staffs, staffLoading, deleteStaff }) {
         {
           label: "Edit",
           icon: <Pencil className="h-4 w-4" />,
-          onClick: (row) => console.log("Edit", row),
+          onClick: (row) => updateStaff(row),
         },
         {
           label: "Delete",

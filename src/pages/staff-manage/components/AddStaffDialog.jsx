@@ -11,44 +11,41 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Shield } from "lucide-react";
+import { Plus } from "lucide-react";
 import ImageDropzoneHoverRemove from "../../../components/ImageDropzoneHoverRemove";
 import {
   Select,
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Field,
-  FieldContent,
   FieldDescription,
   FieldError,
   FieldGroup,
-  FieldLabel,
-  FieldLegend,
-  FieldSeparator,
-  FieldSet,
-  FieldTitle,
 } from "@/components/ui/field";
+import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEffect, useState } from "react";
 import useDepartment from "../hooks/useDepartmenet";
 import DatePicker from "../../../components/DatePicker";
 import { useForm, Controller } from "react-hook-form";
+import useStaff from "../hooks/useStaffHook";
+
 export function AddStaffDialog() {
   const [selectDepartment, setSelectDepartment] = useState(null);
   const [isCreateUser, setIsCreateUser] = useState(false);
   const { departments, fetchDepartments } = useDepartment();
+  const { addStaff, staffLoading } = useStaff();
+
   const {
     register,
     handleSubmit,
     control,
-    watch,
     reset,
     formState: { errors },
     trigger,
@@ -59,36 +56,61 @@ export function AddStaffDialog() {
       first_name: "",
       last_name: "",
       email: "",
-      phone: "",
+      phone_number: "",
       staff_id: "",
       label_id: "",
+      isCreatedUser: false,
       gender: "male",
       password: "",
       department_name: "",
       position_name: "",
       date_of_joining: null,
       date_of_birth: null,
-      role: "",
-      profile_image: null,
+      role_name: "",
+      profile_picture: null, // ✅ managed by RHF via Controller
     },
   });
+
   useEffect(() => {
     fetchDepartments();
   }, []);
 
-  const handleSelectDepartment = (department) => {
-    setSelectDepartment(department);
+  const formatDate = (isoString) => {
+    if (!isoString) return null;
+    return new Date(isoString).toISOString().split("T")[0];
+  };
+
+  const handleReset = () => {
+    reset();
+    setSelectDepartment(null);
+    setIsCreateUser(false);
   };
 
   const onSubmit = async (data) => {
-    console.log("Form Data:", data);
+    const formatted = {
+      ...data,
+      date_of_joining: formatDate(data.date_of_joining),
+      date_of_birth: formatDate(data.date_of_birth),
+      // profile_picture is already a File object from the Controller
+    };
+
+    console.log("Submitting data:", formatted);
+    console.log("profile_picture:", formatted.profile_picture); // should be a File object
+
+    try {
+      const response = await addStaff(formatted);
+      if (response.status === 200) {
+        toast.success("Staff added successfully");
+        handleReset();
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
   };
 
   const handleOpenChange = (open) => {
     if (!open) {
-      reset();
-      setSelectDepartment(null);
-      setIsCreateUser(false);
+      handleReset();
     }
   };
 
@@ -105,32 +127,35 @@ export function AddStaffDialog() {
           <DialogHeader>
             <DialogTitle>Add New Staff</DialogTitle>
             <DialogDescription>
-              Please Fill Infor For New Staff
+              Please Fill Info For New Staff
             </DialogDescription>
           </DialogHeader>
+
           <ScrollArea className="h-[60vh] w-full rounded-md">
             <div className="flex flex-col gap-6">
-              <Field data-invalid={!!errors.profile_image}>
+              {/* Profile Picture */}
+              <Field data-invalid={!!errors.profile_picture}>
                 <Controller
-                  name="profile_image"
+                  name="profile_picture"
                   control={control}
                   rules={{ required: "Profile image is required" }}
                   render={({ field }) => (
                     <ImageDropzoneHoverRemove
                       value={field.value}
-                      onChange={(val) => {
-                        field.onChange(val);
-                        trigger("profile_image");
+                      onChange={(file) => {
+                        field.onChange(file); // ✅ stores File directly in RHF
+                        trigger("profile_picture");
                       }}
                     />
                   )}
                 />
-                <FieldError name="profile_image" errors={errors} />
+                <FieldError name="profile_picture" errors={errors} />
               </Field>
+
               <FieldGroup className="grid grid-cols-2 gap-4">
-                {/* First Name  */}
+                {/* First Name */}
                 <Field data-invalid={!!errors.first_name}>
-                  <Label htmlFor="first-name-1">First Name</Label>
+                  <Label>First Name</Label>
                   <Input
                     {...register("first_name", {
                       required: "First name is required",
@@ -139,9 +164,10 @@ export function AddStaffDialog() {
                   />
                   <FieldError name="first_name" errors={errors} />
                 </Field>
-                {/* Last Name  */}
+
+                {/* Last Name */}
                 <Field data-invalid={!!errors.last_name}>
-                  <Label htmlFor="last-name-1">Last Name</Label>
+                  <Label>Last Name</Label>
                   <Input
                     {...register("last_name", {
                       required: "Last name is required",
@@ -150,9 +176,10 @@ export function AddStaffDialog() {
                   />
                   <FieldError name="last_name" errors={errors} />
                 </Field>
-                {/* Email  */}
+
+                {/* Email */}
                 <Field data-invalid={!!errors.email}>
-                  <Label htmlFor="email-1">Email</Label>
+                  <Label>Email</Label>
                   <Input
                     {...register("email", {
                       required: "Email is required",
@@ -165,21 +192,24 @@ export function AddStaffDialog() {
                   />
                   <FieldError name="email" errors={errors} />
                 </Field>
-                {/* Phone  */}
-                <Field data-invalid={!!errors.phone}>
-                  <Label htmlFor="phone-1">Phone</Label>
+
+                {/* Phone */}
+                <Field data-invalid={!!errors.phone_number}>
+                  <Label>Phone</Label>
                   <Input
-                    {...register("phone", {
+                    {...register("phone_number", {
                       required: "Phone is required",
                     })}
                     placeholder="e.g 1234567890"
                   />
-                  <FieldError name="phone" errors={errors} />
+                  <FieldError name="phone_number" errors={errors} />
                 </Field>
-                {/* Staff ID  */}
+
+                {/* Staff ID */}
                 <Field data-invalid={!!errors.staff_id}>
-                  <Label htmlFor="staff-id-1">Staff ID</Label>
+                  <Label>Staff ID</Label>
                   <Input
+                    type="number"
                     {...register("staff_id", {
                       required: "Staff ID is required",
                     })}
@@ -187,9 +217,10 @@ export function AddStaffDialog() {
                   />
                   <FieldError name="staff_id" errors={errors} />
                 </Field>
-                {/* Lable ID  */}
+
+                {/* Label ID */}
                 <Field data-invalid={!!errors.label_id}>
-                  <Label htmlFor="label-id-1">Label ID</Label>
+                  <Label>Label ID</Label>
                   <Input
                     {...register("label_id", {
                       required: "Label ID is required",
@@ -198,9 +229,10 @@ export function AddStaffDialog() {
                   />
                   <FieldError name="label_id" errors={errors} />
                 </Field>
-                {/* Gender  */}
+
+                {/* Gender */}
                 <Field data-invalid={!!errors.gender}>
-                  <Label htmlFor="gender-1">Gender</Label>
+                  <Label>Gender</Label>
                   <Controller
                     name="gender"
                     control={control}
@@ -218,12 +250,8 @@ export function AddStaffDialog() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
-                            <SelectItem key="male" value="male">
-                              Male
-                            </SelectItem>
-                            <SelectItem key="female" value="female">
-                              Female
-                            </SelectItem>
+                            <SelectItem value="male">Male</SelectItem>
+                            <SelectItem value="female">Female</SelectItem>
                           </SelectGroup>
                         </SelectContent>
                       </Select>
@@ -231,65 +259,74 @@ export function AddStaffDialog() {
                   />
                   <FieldError name="gender" errors={errors} />
                 </Field>
-                {/* Create Login User  */}
+
+                {/* Create User Login */}
                 <Field>
-                  <Label htmlFor="gender-1">Create User Login</Label>
-                  <Field
-                    orientation="horizontal"
-                    className="border w-full h-full ps-2 rounded-lg"
-                  >
-                    <Checkbox
-                      checked={isCreateUser}
-                      onCheckedChange={(e) => setIsCreateUser(e)}
-                      id="terms-checkbox"
-                      name="terms-checkbox"
-                    />
-                    <Label
-                      htmlFor="terms-checkbox"
-                      className="text-[10px] font-light"
-                    >
-                      Staff Can Use This Account To login
-                    </Label>
-                  </Field>
+                  <Label>Create User Login</Label>
+                  <Controller
+                    name="isCreatedUser"
+                    control={control}
+                    render={({ field }) => (
+                      <Field
+                        orientation="horizontal"
+                        className="border w-full h-full ps-2 rounded-lg"
+                      >
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={(checked) => {
+                            field.onChange(checked);
+                            setIsCreateUser(checked); // ✅ keep local state in sync
+                          }}
+                          id="terms-checkbox"
+                        />
+                        <Label
+                          htmlFor="terms-checkbox"
+                          className="text-[10px] font-light"
+                        >
+                          Staff Can Use This Account To Login
+                        </Label>
+                      </Field>
+                    )}
+                  />
                 </Field>
-                {/* User Role And Password  */}
+
+                {/* User Role & Password — only when isCreateUser is true */}
                 {isCreateUser && (
                   <>
-                    <Field data-invalid={!!errors.role}>
-                      <Label htmlFor="user-role-1">User Role</Label>
+                    <Field data-invalid={!!errors.role_name}>
+                      <Label>User Role</Label>
                       <Controller
-                        name="role"
+                        name="role_name"
                         control={control}
-                        rules={{ required: "Role is required" }}
+                        rules={{
+                          required: isCreateUser ? "Role is required" : false,
+                        }}
                         render={({ field }) => (
                           <Select
                             onValueChange={(val) => {
                               field.onChange(val);
-                              trigger("role");
+                              trigger("role_name");
                             }}
                             defaultValue={field.value}
                           >
                             <SelectTrigger className="w-full">
-                              <SelectValue />
+                              <SelectValue placeholder="Select Role" />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectGroup>
                                 <SelectItem
-                                  key="super-admin"
                                   value="super-admin"
                                   className="text-green-500"
                                 >
                                   Super Admin
                                 </SelectItem>
                                 <SelectItem
-                                  key="admin"
                                   value="admin"
                                   className="text-blue-500"
                                 >
                                   Admin
                                 </SelectItem>
                                 <SelectItem
-                                  key="user"
                                   value="user"
                                   className="text-gray-500"
                                 >
@@ -300,10 +337,11 @@ export function AddStaffDialog() {
                           </Select>
                         )}
                       />
-                      <FieldError name="role" errors={errors} />
+                      <FieldError name="role_name" errors={errors} />
                     </Field>
+
                     <Field data-invalid={!!errors.password}>
-                      <Label htmlFor="password-1">Password</Label>
+                      <Label>Password</Label>
                       <Input
                         {...register("password", {
                           required: isCreateUser
@@ -324,9 +362,10 @@ export function AddStaffDialog() {
                     </Field>
                   </>
                 )}
-                {/* Department  */}
+
+                {/* Department */}
                 <Field data-invalid={!!errors.department_name}>
-                  <Label htmlFor="department-1">Department</Label>
+                  <Label>Department</Label>
                   <Controller
                     name="department_name"
                     control={control}
@@ -335,7 +374,7 @@ export function AddStaffDialog() {
                       <Select
                         onValueChange={(val) => {
                           field.onChange(val);
-                          handleSelectDepartment(val);
+                          setSelectDepartment(val);
                           trigger("department_name");
                         }}
                         value={field.value}
@@ -360,9 +399,10 @@ export function AddStaffDialog() {
                   />
                   <FieldError name="department_name" errors={errors} />
                 </Field>
-                {/* Position  */}
+
+                {/* Position */}
                 <Field data-invalid={!!errors.position_name}>
-                  <Label htmlFor="position-1">Position</Label>
+                  <Label>Position</Label>
                   <Controller
                     name="position_name"
                     control={control}
@@ -391,7 +431,7 @@ export function AddStaffDialog() {
 
                               if (positions.length === 0) {
                                 return (
-                                  <SelectItem key="none" value="none" disabled>
+                                  <SelectItem value="none" disabled>
                                     No Position Available
                                   </SelectItem>
                                 );
@@ -410,9 +450,10 @@ export function AddStaffDialog() {
                   />
                   <FieldError name="position_name" errors={errors} />
                 </Field>
-                {/* Date of joining  */}
+
+                {/* Date of Joining */}
                 <Field data-invalid={!!errors.date_of_joining}>
-                  <Label htmlFor="date-of-joining-1">Date of Joining</Label>
+                  <Label>Date of Joining</Label>
                   <Controller
                     name="date_of_joining"
                     control={control}
@@ -429,9 +470,10 @@ export function AddStaffDialog() {
                   />
                   <FieldError name="date_of_joining" errors={errors} />
                 </Field>
-                {/* Date of birth  */}
+
+                {/* Date of Birth */}
                 <Field data-invalid={!!errors.date_of_birth}>
-                  <Label htmlFor="date-of-birth-1">Date of Birth</Label>
+                  <Label>Date of Birth</Label>
                   <Controller
                     name="date_of_birth"
                     control={control}
@@ -453,13 +495,16 @@ export function AddStaffDialog() {
               </FieldGroup>
             </div>
           </ScrollArea>
+
           <DialogFooter>
             <DialogClose asChild>
               <Button type="button" variant="outline">
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit">Save changes</Button>
+            <Button type="submit" disabled={staffLoading}>
+              {staffLoading ? "Saving..." : "Save changes"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

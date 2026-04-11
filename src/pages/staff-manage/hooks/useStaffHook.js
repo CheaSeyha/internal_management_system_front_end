@@ -6,12 +6,15 @@ const useStaffHook = () => {
   const [staffLoading, setStaffLoading] = useState(false);
   const [staffError, setStaffError] = useState(null);
 
-  // helper: fetch image as blob URL via your axios instance
+  // helper lives in hook now
   const loadProfileImage = async (staff) => {
     try {
-      const response = await axios.get(staff.profile_picture, {
-        responseType: "blob",
-      });
+      const response = await axios.get(
+        "staff/image_profile/" + staff.staff_id,
+        {
+          responseType: "blob",
+        },
+      );
       const blobUrl = URL.createObjectURL(response.data);
       return { ...staff, preview_profile: blobUrl };
     } catch {
@@ -24,10 +27,24 @@ const useStaffHook = () => {
     setStaffError(null);
     try {
       const response = await axios.get("/staff");
-      setStaffs(response.data.data);
+      // response.data.data is the paginator, response.data.data.data is the array
+      const staffList = response.data.data?.data ?? [];
+
+      // Set initial staff list to show data immediately
+      setStaffs(staffList);
+      setStaffLoading(false);
+
+      // Load images for each staff independently in the background
+      staffList.forEach(async (staff) => {
+        const updatedStaff = await loadProfileImage(staff);
+        setStaffs((prevStaffs) =>
+          prevStaffs.map((s) =>
+            s.staff_id === staff.staff_id ? updatedStaff : s,
+          ),
+        );
+      });
     } catch (error) {
       setStaffError(error);
-    } finally {
       setStaffLoading(false);
     }
   };
@@ -49,26 +66,20 @@ const useStaffHook = () => {
       formData.append("position_name", staffData.position_name);
       formData.append("date_of_joining", staffData.date_of_joining);
       formData.append("date_of_birth", staffData.date_of_birth);
-
-      // Only append role & password when user login is enabled
       if (staffData.isCreatedUser) {
         formData.append("role_name", staffData.role_name || "");
         formData.append("password", staffData.password || "");
       }
-
-      // profile_picture is already a File object — no .file wrapper needed
       if (staffData.profile_picture instanceof File) {
         formData.append("profile_picture", staffData.profile_picture);
       }
-
       const response = await axios.post("/staff", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-
       return response;
     } catch (error) {
       setStaffError(error);
-      throw error; // rethrow so onSubmit catch block can handle it
+      throw error;
     } finally {
       setStaffLoading(false);
     }

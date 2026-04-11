@@ -34,13 +34,11 @@ import { useEffect, useState } from "react";
 import useDepartment from "../hooks/useDepartmenet";
 import DatePicker from "../../../components/DatePicker";
 import { useForm, Controller } from "react-hook-form";
-import useStaff from "../hooks/useStaffHook";
 
-export function AddStaffDialog({ fetchStaffs }) {
+export function AddStaffDialog({ fetchStaffs, addStaff, staffLoading }) {
   const [selectDepartment, setSelectDepartment] = useState(null);
   const [isCreateUser, setIsCreateUser] = useState(false);
   const { departments, fetchDepartments } = useDepartment();
-  const { addStaff, staffLoading } = useStaff();
 
   const {
     register,

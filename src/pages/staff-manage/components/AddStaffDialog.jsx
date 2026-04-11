@@ -33,32 +33,15 @@ import {
 } from "@/components/ui/field";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEffect, useState } from "react";
+import useDepartment from "../hooks/useDepartmenet";
 export function AddStaffDialog() {
   const [selectDepartment, setSelectDepartment] = useState(null);
   const [isCreateUser, setIsCreateUser] = useState(false);
+  const { departments, fetchDepartments } = useDepartment();
 
-  const dumpData = [
-    {
-      department: "HR",
-      position: ["HR1", "HR2", "HR3"],
-    },
-    {
-      department: "IT",
-      position: ["IT1", "IT2", "IT3"],
-    },
-    {
-      department: "Finance",
-      position: ["Finance1", "Finance2", "Finance3"],
-    },
-    {
-      department: "Sales",
-      position: ["Sales1", "Sales2", "Sales3"],
-    },
-    {
-      department: "Marketing",
-      position: ["Marketing1", "Marketing2", "Marketing3"],
-    },
-  ];
+  useEffect(() => {
+    fetchDepartments();
+  }, []);
 
   const handleSelectDepartment = (department) => {
     setSelectDepartment(department);
@@ -88,6 +71,7 @@ export function AddStaffDialog() {
             <div className="flex flex-col gap-6">
               <ImageDropzoneHoverRemove />
               <FieldGroup className="grid grid-cols-2 gap-4">
+                {/* First Name  */}
                 <Field>
                   <Label htmlFor="first-name-1">First Name</Label>
                   <Input
@@ -96,6 +80,7 @@ export function AddStaffDialog() {
                     placeholder="e.g John"
                   />
                 </Field>
+                {/* Last Name  */}
                 <Field>
                   <Label htmlFor="last-name-1">Last Name</Label>
                   <Input
@@ -104,6 +89,7 @@ export function AddStaffDialog() {
                     placeholder="e.g Doe"
                   />
                 </Field>
+                {/* Email  */}
                 <Field>
                   <Label htmlFor="email-1">Email</Label>
                   <Input
@@ -112,6 +98,7 @@ export function AddStaffDialog() {
                     placeholder="demo@gamil.com"
                   />
                 </Field>
+                {/* Phone  */}
                 <Field>
                   <Label htmlFor="phone-1">Phone</Label>
                   <Input
@@ -120,6 +107,7 @@ export function AddStaffDialog() {
                     placeholder="e.g 1234567890"
                   />
                 </Field>
+                {/* Staff ID  */}
                 <Field>
                   <Label htmlFor="staff-id-1">Staff ID</Label>
                   <Input
@@ -128,6 +116,7 @@ export function AddStaffDialog() {
                     placeholder="e.g 1882"
                   />
                 </Field>
+                {/* Lable ID  */}
                 <Field>
                   <Label htmlFor="label-id-1">Label ID</Label>
                   <Input
@@ -136,6 +125,7 @@ export function AddStaffDialog() {
                     placeholder="e.g HR1882"
                   />
                 </Field>
+                {/* Gender  */}
                 <Field>
                   <Label htmlFor="gender-1">Gender</Label>
                   <Select defaultValue="male">
@@ -154,6 +144,7 @@ export function AddStaffDialog() {
                     </SelectContent>
                   </Select>
                 </Field>
+                {/* Create Login User  */}
                 <Field>
                   <Label htmlFor="gender-1">Create User Login</Label>
                   <Field
@@ -174,6 +165,7 @@ export function AddStaffDialog() {
                     </Label>
                   </Field>
                 </Field>
+                {/* User Role And Password  */}
                 {isCreateUser && (
                   <>
                     <Field>
@@ -223,10 +215,11 @@ export function AddStaffDialog() {
                     </Field>
                   </>
                 )}
+                {/* Department  */}
                 <Field>
                   <Label htmlFor="department-1">Department</Label>
                   <Select
-                    key={selectDepartment || "Department"}
+                    value={selectDepartment || undefined}
                     onValueChange={handleSelectDepartment}
                   >
                     <SelectTrigger className="w-full">
@@ -234,7 +227,7 @@ export function AddStaffDialog() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        {dumpData.map((item) => (
+                        {departments.map((item) => (
                           <SelectItem
                             key={item.department}
                             value={item.department}
@@ -246,6 +239,7 @@ export function AddStaffDialog() {
                     </SelectContent>
                   </Select>
                 </Field>
+                {/* Position  */}
                 <Field>
                   <Label htmlFor="position-1">Position</Label>
                   <Select
@@ -257,13 +251,26 @@ export function AddStaffDialog() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        {dumpData
-                          .find((item) => item.department === selectDepartment)
-                          ?.position.map((pos) => (
+                        {(() => {
+                          const positions =
+                            departments.find(
+                              (item) => item.department === selectDepartment,
+                            )?.positions || [];
+
+                          if (positions.length === 0) {
+                            return (
+                              <SelectItem key="none" value="none" disabled>
+                                No Position Available
+                              </SelectItem>
+                            );
+                          }
+
+                          return positions.map((pos) => (
                             <SelectItem key={pos} value={pos}>
                               {pos}
                             </SelectItem>
-                          ))}
+                          ));
+                        })()}
                       </SelectGroup>
                     </SelectContent>
                   </Select>

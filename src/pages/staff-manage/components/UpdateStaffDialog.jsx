@@ -97,7 +97,9 @@ export function UpdateStaffDialog({
         date_of_joining: staff.date_of_joining
           ? new Date(staff.date_of_joining)
           : null,
-        date_of_birth: staff.date_of_birth ? new Date(staff.date_of_birth) : null,
+        date_of_birth: staff.date_of_birth
+          ? new Date(staff.date_of_birth)
+          : null,
         role_name: staff.user?.role?.role_name || "",
         profile_picture: staff.preview_profile || null,
       });
@@ -336,7 +338,7 @@ export function UpdateStaffDialog({
                             <SelectContent>
                               <SelectGroup>
                                 <SelectItem
-                                  value="super-admin"
+                                  value="super_admin"
                                   className="text-green-500"
                                 >
                                   Super Admin

@@ -314,7 +314,7 @@ export function AddStaffDialog({ fetchStaffs, addStaff, staffLoading }) {
                             <SelectContent>
                               <SelectGroup>
                                 <SelectItem
-                                  value="super-admin"
+                                  value="super_admin"
                                   className="text-green-500"
                                 >
                                   Super Admin

@@ -17,7 +17,7 @@ export default function StaffTable({
       columns={[
         {
           key: "profile_picture",
-          label: "Avatar",
+          label: "Profile",
           render: (_, row) => {
             if (row.preview_profile === undefined) {
               return (
@@ -34,26 +34,36 @@ export default function StaffTable({
           },
         },
         { key: "staff_id", label: "Staff ID" },
+        { key: "first_name", label: "First Name" },
+        { key: "last_name", label: "Last Name" },
         {
-          key: "first_name",
-          label: "Full Name",
-          render: (_, row) => `${row.first_name} ${row.last_name}`,
+          key: "genders",
+          label: "Gender",
+          render: (value) => (
+            <p className="capitalize">{value || "No Gender"}</p>
+          ),
         },
-        { key: "genders", label: "Gender" },
-        { key: "email", label: "Email" },
         { key: "phone_number", label: "Phone Number" },
         {
-          key: "department",
-          label: "Department",
-          render: (value) => value?.department_name ?? "-",
+          key: "role_name",
+          label: "User Role",
+          render: (value) => <p className="capitalize">{value || "No User"}</p>,
         },
+        { key: "department_name", label: "Department" },
+        { key: "position_name", label: "Position" },
         {
-          key: "position",
-          label: "Position",
-          render: (value) => value?.position_name ?? "-",
+          key: "status",
+          label: "Status",
+          render: (value) => (
+            <p
+              className={`capitalize ${
+                value === "active" ? "text-green-500" : "text-red-500"
+              }`}
+            >
+              {value}
+            </p>
+          ),
         },
-        { key: "date_of_joining", label: "Date of Joining" },
-        { key: "date_of_birth", label: "Date of Birth" },
       ]}
       actions={[
         {

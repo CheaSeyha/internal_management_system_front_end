@@ -12,6 +12,7 @@ export default function StaffTable({
 
   return (
     <DataTable
+      showCheckbox={false}
       data={data}
       loading={staffLoading}
       columns={[

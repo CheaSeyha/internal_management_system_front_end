@@ -73,6 +73,7 @@ export function UpdateStaffDialog({
       date_of_birth: null,
       role_name: "",
       profile_picture: null, //  managed by RHF via Controller
+      status: "",
     },
   });
 
@@ -89,22 +90,23 @@ export function UpdateStaffDialog({
         phone_number: staff.phone_number || "",
         staff_id: staff.staff_id || "",
         label_id: staff.label_id || "",
-        isCreatedUser: !!staff.user,
+        isCreatedUser: !!staff.role_name,
         gender: staff.gender || "male",
         password: "",
-        department_name: staff.department?.department_name || "",
-        position_name: staff.position?.position_name || "",
+        department_name: staff.department_name || "",
+        position_name: staff.position_name || "",
         date_of_joining: staff.date_of_joining
           ? new Date(staff.date_of_joining)
           : null,
         date_of_birth: staff.date_of_birth
           ? new Date(staff.date_of_birth)
           : null,
-        role_name: staff.user?.role?.role_name || "",
+        role_name: staff.role_name || "",
         profile_picture: staff.preview_profile || null,
+        status: staff.status || "",
       });
-      setSelectDepartment(staff.department?.department_name || null);
-      setIsCreateUser(!!staff.user);
+      setSelectDepartment(staff.department_name || null);
+      setIsCreateUser(!!staff.role_name);
     }
   }, [staff, reset]);
 
@@ -367,9 +369,6 @@ export function UpdateStaffDialog({
                       <Label>Password</Label>
                       <Input
                         {...register("password", {
-                          required: isCreateUser
-                            ? "Password is required"
-                            : false,
                           minLength: {
                             value: 8,
                             message: "Password must be at least 8 characters",
@@ -514,6 +513,39 @@ export function UpdateStaffDialog({
                     )}
                   />
                   <FieldError name="date_of_birth" errors={errors} />
+                </Field>
+                {/* Status */}
+                <Field data-invalid={!!errors.status}>
+                  <Label>Status</Label>
+                  <Controller
+                    name="status"
+                    control={control}
+                    rules={{ required: "Status is required" }}
+                    render={({ field }) => (
+                      <Select
+                        value={field.value}
+                        onValueChange={(val) => {
+                          field.onChange(val);
+                          trigger("status");
+                        }}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectItem value="active">Active</SelectItem>
+                            <SelectItem value="resigned">Resigned</SelectItem>
+                            <SelectItem value="terminated">
+                              Terminated
+                            </SelectItem>
+                            <SelectItem value="probation">Probation</SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  <FieldError name="status" errors={errors} />
                 </Field>
               </FieldGroup>
             </div>

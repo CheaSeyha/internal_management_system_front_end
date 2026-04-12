@@ -118,6 +118,7 @@ const useStaffHook = () => {
       formData.append("position_name", staffData.position_name);
       formData.append("date_of_joining", staffData.date_of_joining);
       formData.append("date_of_birth", staffData.date_of_birth);
+      formData.append("status", staffData.status);
 
       if (staffData.isCreatedUser) {
         formData.append("role_name", staffData.role_name || "");

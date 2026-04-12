@@ -110,6 +110,7 @@ export default function DataTable({
   bulkActions = [],
   loading = false,
   skeletonRows = 10,
+  showCheckbox = true,
 }) {
   const [selectedRows, setSelectedRows] = useState([]);
 
@@ -137,12 +138,14 @@ export default function DataTable({
         <TableHeader className="bg-accent rounded-md">
           <TableRow>
             {/* Checkbox column */}
-            <TableHead className="w-[50px]">
-              <Checkbox
-                checked={allSelected}
-                onCheckedChange={toggleSelectAll}
-              />
-            </TableHead>
+            {showCheckbox && (
+              <TableHead className="w-[50px]">
+                <Checkbox
+                  checked={allSelected}
+                  onCheckedChange={toggleSelectAll}
+                />
+              </TableHead>
+            )}
 
             {/* Dynamic column headers */}
             {columns.map((col) => (
@@ -226,12 +229,14 @@ export default function DataTable({
                 }
               >
                 {/* Checkbox */}
-                <TableCell className="w-[50px]">
-                  <Checkbox
-                    checked={selectedRows.some((r) => r.id === row.id)}
-                    onCheckedChange={() => toggleSelect(row)}
-                  />
-                </TableCell>
+                {showCheckbox && (
+                  <TableCell className="w-[50px]">
+                    <Checkbox
+                      checked={selectedRows.some((r) => r.id === row.id)}
+                      onCheckedChange={() => toggleSelect(row)}
+                    />
+                  </TableCell>
+                )}
 
                 {/* Dynamic cells */}
                 {columns.map((col) => (

@@ -1,14 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import {
-  BadgeCheck,
-  Bell,
-  ChevronsUpDown,
-  CreditCard,
-  LogOut,
-  Sparkles,
-} from "lucide-react";
+import { ChevronsUpDown, LogOut } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -30,7 +23,6 @@ import { useAuth } from "../auth/AuthContext";
 import axios from "../api/axios";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import { set } from "zod";
 
 export function NavUser({ user: userProp }) {
   const { isMobile } = useSidebar();
@@ -38,15 +30,36 @@ export function NavUser({ user: userProp }) {
   const [userInfo, setUserInfo] = useState(user);
 
   useEffect(() => {
-    if (user) {
-      setUserInfo({
-        ...user,
-        avatar: user.profile_image
-          ? import.meta.env.VITE_API_IMAGE_URL + user.profile_image
-          : null,
-      });
-    }
+    setUserInfo(user);
   }, [user]);
+
+  const downloadImageProfile = async () => {
+    if (!user?.id) return;
+    try {
+      const response = await axios.get("/user/image/" + user.id, {
+        responseType: "blob",
+      });
+      const imageUrl = URL.createObjectURL(response.data);
+      setUserInfo((prev) => ({
+        ...prev,
+        avatar: imageUrl,
+      }));
+
+      // Cleanup function to avoid memory leaks
+      return () => URL.revokeObjectURL(imageUrl);
+    } catch (err) {
+      console.error("Failed to fetch user image:", err);
+    }
+  };
+
+  useEffect(() => {
+    let cleanup;
+    downloadImageProfile().then((cb) => (cleanup = cb));
+
+    return () => {
+      if (cleanup) cleanup();
+    };
+  }, [user?.id]);
 
   const [loading, setLoading] = useState(false); // loading state
   const navigate = useNavigate();
@@ -125,8 +138,9 @@ export function NavUser({ user: userProp }) {
               className="cursor-pointer flex items-center gap-2"
             >
               <LogOut
-                className={`transition-opacity ${loading ? "opacity-50" : "opacity-100"
-                  }`}
+                className={`transition-opacity ${
+                  loading ? "opacity-50" : "opacity-100"
+                }`}
               />
               {loading ? (
                 <>

@@ -87,10 +87,11 @@ export function UpdateStaffDialog({
         first_name: staff.first_name || "",
         last_name: staff.last_name || "",
         email: staff.email || "",
+        account_status: staff.account_status || "",
         phone_number: staff.phone_number || "",
         staff_id: staff.staff_id || "",
         label_id: staff.label_id || "",
-        isCreatedUser: !!staff.role_name,
+        isCreatedUser: staff.account_status === "active" ? true : false,
         gender: staff.gender || "male",
         password: "",
         department_name: staff.department_name || "",
@@ -106,7 +107,7 @@ export function UpdateStaffDialog({
         status: staff.status || "",
       });
       setSelectDepartment(staff.department_name || null);
-      setIsCreateUser(!!staff.role_name);
+      setIsCreateUser(staff.account_status === "active" ? true : false);
     }
   }, [staff, reset]);
 

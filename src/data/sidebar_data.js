@@ -50,6 +50,7 @@ export const getSidebarData = (user) => ({
       roles: [1, 2], // 👈 Super Admin & Admin only
       items: [
         { title: "All Staff", url: "all-staff" },
+        { title: "All Departments", url: "all-departments" },
       ],
     },
     {

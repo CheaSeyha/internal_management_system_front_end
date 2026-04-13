@@ -15,6 +15,7 @@ import NotFoundPage from "./pages/NotFoundPage";
 import BuildingRoom from "./pages/Blocks/BuildingRoom";
 import CardSummary from "./pages/CardGenerator/CardSummary";
 import StaffManage from "./pages/staff-manage/StaffManage";
+import Departmenent from "./pages/staff-manage/Departmenent";
 
 function App() {
   const location = useLocation(); // Get the current location
@@ -129,6 +130,14 @@ function App() {
                 element={
                   <AnimatedPage>
                     <AllISP />
+                  </AnimatedPage>
+                }
+              />
+              <Route
+                path="all-departments"
+                element={
+                  <AnimatedPage>
+                    <Departmenent />
                   </AnimatedPage>
                 }
               />

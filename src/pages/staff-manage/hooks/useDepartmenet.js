@@ -7,6 +7,8 @@ const useDepartment = () => {
   const [departments, setDepartments] = useState([]);
 
   const fetchDepartments = async () => {
+    setLoading(true);
+    setError(null);
     try {
       setLoading(true);
       const response = await axios.get("department");
@@ -18,7 +20,21 @@ const useDepartment = () => {
     }
   };
 
-  return { departments, loading, error, fetchDepartments };
+  const addDepartment = async (department_name)=>{
+    setLoading(true);
+    try {
+      const res = await axios.post("department",{
+        department_name: department_name
+      });
+      return res;
+    } catch (error) {
+      return error;
+    }finally{
+      setLoading(false);
+    }
+  }
+
+  return { departments,addDepartment, loading, error, fetchDepartments };
 };
 
 export default useDepartment;

@@ -21,6 +21,7 @@ function StaffManage() {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const {
     staffs,
+    pagination,
     fetchStaffs,
     staffLoading,
     addStaff,
@@ -71,6 +72,7 @@ function StaffManage() {
       </div>
       <StaffTable
         staffs={staffs}
+        pagination={pagination}
         fetchStaffs={fetchStaffs}
         staffLoading={staffLoading}
         deleteStaff={handleDeleteStaff}

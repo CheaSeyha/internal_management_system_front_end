@@ -1,5 +1,14 @@
 import DataTable from "@/components/DataTable";
 import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import {
   Pencil,
   Trash,
   Briefcase,
@@ -8,15 +17,63 @@ import {
   Clock,
   Shield,
 } from "lucide-react";
-import { useEffect } from "react";
 
 export default function StaffTable({
   staffs,
+  pagination,
+  fetchStaffs,
   staffLoading,
   deleteStaff,
   updateStaff,
 }) {
   const data = Array.isArray(staffs) ? staffs : [];
+
+  const renderPageNumbers = () => {
+    if (!pagination) return null;
+
+    const { current_page, last_page } = pagination;
+    const pages = [];
+
+    const start = Math.max(1, current_page - 2);
+    const end = Math.min(last_page, current_page + 2);
+
+    if (start > 1) {
+      pages.push(1);
+      if (start > 2) pages.push("left-ellipsis");
+    }
+
+    for (let i = start; i <= end; i += 1) {
+      pages.push(i);
+    }
+
+    if (end < last_page) {
+      if (end < last_page - 1) pages.push("right-ellipsis");
+      pages.push(last_page);
+    }
+
+    return pages.map((item, idx) => {
+      if (typeof item !== "number") {
+        return <PaginationEllipsis key={`${item}-${idx}`} />;
+      }
+
+      return (
+        <PaginationItem key={item}>
+          <PaginationLink
+            href="#"
+            isActive={item === current_page}
+            onClick={(e) => {
+              e.preventDefault();
+              if (item !== current_page) {
+                fetchStaffs(item);
+              }
+            }}
+          >
+            {item}
+          </PaginationLink>
+        </PaginationItem>
+      );
+    });
+  };
 
   //  Theme-aware badge system (ShadCN style)
   const badge = (type, value) => {
@@ -86,12 +143,13 @@ export default function StaffTable({
   };
 
   return (
-    <DataTable
-      showCheckbox={false}
-      data={data}
-      loading={staffLoading}
-      className="bg-background text-foreground"
-      columns={[
+    <div className="space-y-4">
+      <DataTable
+        showCheckbox={false}
+        data={data}
+        loading={staffLoading}
+        className="bg-background text-foreground"
+        columns={[
         // Profile
         {
           key: "profile_picture",
@@ -174,8 +232,8 @@ export default function StaffTable({
           label: "Employment Status",
           render: (value) => badge(value, value),
         },
-      ]}
-      actions={[
+        ]}
+        actions={[
         {
           label: "Edit",
           icon: <Pencil className="w-4 h-4" />,
@@ -188,7 +246,57 @@ export default function StaffTable({
           className: "text-red-500",
           separator: true,
         },
-      ]}
-    />
+        ]}
+      />
+
+      {pagination && pagination.last_page > 1 && (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm text-muted-foreground">
+            Showing page {pagination.current_page} of {pagination.last_page} (
+            {pagination.total} staffs)
+          </p>
+
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  className={
+                    pagination.current_page <= 1
+                      ? "pointer-events-none opacity-50"
+                      : ""
+                  }
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (pagination.current_page > 1) {
+                      fetchStaffs(pagination.current_page - 1);
+                    }
+                  }}
+                />
+              </PaginationItem>
+
+              {renderPageNumbers()}
+
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  className={
+                    pagination.current_page >= pagination.last_page
+                      ? "pointer-events-none opacity-50"
+                      : ""
+                  }
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (pagination.current_page < pagination.last_page) {
+                      fetchStaffs(pagination.current_page + 1);
+                    }
+                  }}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
+    </div>
   );
 }

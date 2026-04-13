@@ -3,6 +3,7 @@ import axios from "../../../api/axios";
 
 const useStaffHook = () => {
   const [staffs, setStaffs] = useState([]);
+  const [pagination, setPagination] = useState(null);
   const [staffLoading, setStaffLoading] = useState(false);
   const [staffError, setStaffError] = useState(null);
 
@@ -22,13 +23,15 @@ const useStaffHook = () => {
     }
   };
 
-  const fetchStaffs = async () => {
+  const fetchStaffs = async (page = 1) => {
     setStaffLoading(true);
     setStaffError(null);
     try {
-      const response = await axios.get("/staff");
+      const response = await axios.get(`/staff?page=${page}`);
       // response.data.data is the paginator, response.data.data.data is the array
-      const staffList = response.data.data?.data ?? [];
+      const paginator = response.data.data ?? null;
+      const staffList = paginator?.data ?? [];
+      setPagination(paginator);
 
       // Set initial staff list to show data immediately
       setStaffs(staffList);
@@ -145,6 +148,7 @@ const useStaffHook = () => {
 
   return {
     staffs,
+    pagination,
     staffLoading,
     staffError,
     fetchStaffs,

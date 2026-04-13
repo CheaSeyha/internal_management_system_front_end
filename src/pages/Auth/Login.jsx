@@ -20,7 +20,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import axios from "../../api/axios";
 import useAuth from "../../auth/useAuth";
-
+import LoadingSpinner from "../../components/LoadingSpinner";
 // Form validation schema
 const formSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -43,15 +43,6 @@ export function Login() {
     },
   });
 
-  useEffect(() => {
-    if (loading) return; // Wait until auth state is loaded
-
-    if (isAuthenticated) {
-      navigate("/", { replace: true }); // Add replace to prevent back navigation
-      toast.info("Redirecting to dashboard...");
-    }
-  }, [isAuthenticated, loading, navigate]);
-
   async function onSubmit(values) {
     setIsLoading(true);
 
@@ -71,14 +62,16 @@ export function Login() {
       setIsLoading(false);
     }
   }
-  // Load remembered email if exists
-  // useEffect(() => {
-  //   const rememberedEmail = localStorage.getItem("rememberedEmail");
-  //   if (rememberedEmail) {
-  //     form.setValue("email", rememberedEmail);
-  //     form.setValue("rememberMe", true);
-  //   }
-  // }, [form]);
+
+  if (loading) {
+    return (
+      <LoadingSpinner />
+    );
+  }
+
+  if(isAuthenticated && !loading) {
+    navigate("/");
+  }
 
   return (
     <main className="w-full h-screen flex justify-center pt-40">

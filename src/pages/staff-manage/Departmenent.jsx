@@ -4,7 +4,7 @@ import useDepartment from "./hooks/useDepartmenet";
 import DepartmentToolbar from "./components/DepartmentToolbar";
 import { toast } from "sonner"
 function Departmenent() {
-    const { departments, error, loading, fetchDepartments, addDepartment } = useDepartment();
+    const { departments, error, loading, fetchDepartments, addDepartment, addPosition } = useDepartment();
 
     useEffect(() => {
         fetchDepartments();
@@ -17,19 +17,53 @@ function Departmenent() {
     const addNewDepartment = async (departmentName) => {
         try {
             const res = await addDepartment(departmentName);
-            fetchDepartments();
-            toast.success("New Department Created...")
-            console.log(res)
+
+            await fetchDepartments();
+
+            toast.success("New Department Created...");
+            console.log(res);
+
         } catch (error) {
-            console.log(res)
-            toast.error("Can't not create new Department")
+            const message =
+                error?.errors?.department_name?.[0] ||
+                error?.message ||
+                "Can't create department";
+
+            toast.error(message);
+        }
+    };
+
+    const addNewPosition = async (departmentName, positionName) => {
+        try {
+            const res = await addPosition({
+                department_name: departmentName,
+                position_name: positionName,
+            });
+
+            await fetchDepartments();
+
+            toast.success("New Position Created...");
+            console.log(res);
+        } catch (error) {
+            const message =
+                error?.errors?.position_name?.[0] ||
+                error?.errors?.department_name?.[0] ||
+                error?.message ||
+                "Can't create position";
+
+            toast.error(message);
         }
     };
 
     return (
         <>
             <div className="mb-5">
-                <DepartmentToolbar onCreate={addNewDepartment} loading={loading} />
+                <DepartmentToolbar
+                    departments={departments}
+                    onCreate={addNewDepartment}
+                    onCreatePosition={addNewPosition}
+                    loading={loading}
+                />
             </div>
 
             <DepartmentTable

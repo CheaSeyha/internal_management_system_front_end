@@ -20,21 +20,47 @@ const useDepartment = () => {
     }
   };
 
-  const addDepartment = async (department_name)=>{
+  const addDepartment = async (department_name) => {
     setLoading(true);
+
     try {
-      const res = await axios.post("department",{
-        department_name: department_name
+      const res = await axios.post("department", {
+        department_name,
       });
-      return res;
+
+      return res.data;
     } catch (error) {
-      return error;
-    }finally{
+      throw error.response?.data; // ✅ MUST throw
+    } finally {
       setLoading(false);
     }
-  }
+  };
 
-  return { departments,addDepartment, loading, error, fetchDepartments };
+  const addPosition = async ({ department_name, position_name }) => {
+    setLoading(true);
+
+    try {
+      const res = await axios.post("positions", {
+        department_name,
+        position_name,
+      });
+
+      return res.data;
+    } catch (error) {
+      throw error.response?.data;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    departments,
+    addDepartment,
+    addPosition,
+    loading,
+    error,
+    fetchDepartments,
+  };
 };
 
 export default useDepartment;

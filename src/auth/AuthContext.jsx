@@ -10,6 +10,25 @@ export const AuthProvider = ({ children }) => {
   const [access_token, setAccessToken] = useState(null);
   const [loading, setLoading] = useState(true);
   const isRestoring = useRef(false);
+  const avatarUrlRef = useRef(null);
+
+  const fetchUserImage = async (userId) => {
+    if (!userId) return null;
+    try {
+      const response = await axios.get("/user/image/" + userId, {
+        responseType: "blob",
+      });
+      if (avatarUrlRef.current) {
+        URL.revokeObjectURL(avatarUrlRef.current);
+      }
+      const imageUrl = URL.createObjectURL(response.data);
+      avatarUrlRef.current = imageUrl;
+      return imageUrl;
+    } catch (err) {
+      console.error("Failed to fetch user image:", err);
+      return null;
+    }
+  };
 
   const login = async (data) => {
     setLoading(true);
@@ -19,10 +38,23 @@ export const AuthProvider = ({ children }) => {
         password: data.password,
         remember_me: data.rememberMe,
       });
-      setUser(res.data.data.user);
-      setAccessToken(res.data.data.access_token);
-      axios.defaults.headers.common["Authorization"] =
-        `Bearer ${res.data.data.access_token}`;
+      const user = res.data.data.user;
+      const token = res.data.data.access_token;
+
+      // Set token first so image fetch can use it
+      setAccessToken(token);
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+      // Set user immediately
+      setUser(user);
+
+      // 3. fetch image in background
+      fetchUserImage(user.id).then((avatar) => {
+        if (avatar) {
+          setUser((prev) => (prev ? { ...prev, avatar } : null));
+        }
+      });
+
       return res;
     } catch (error) {
       throw error;
@@ -59,11 +91,20 @@ export const AuthProvider = ({ children }) => {
       if (!userData) {
         throw new Error("No user fetched");
       }
-      // 4. setUser(user)
-      setUser(userData);
 
-      // 5. setAccessToken(token)
+      // 4. setUser(user) first to unblock UI
+      setUser(userData);
       setAccessToken(token);
+
+      // 5. Success, stop initial loading
+      setLoading(false);
+
+      // 6. Fetch avatar in the background
+      fetchUserImage(userData.id).then((avatar) => {
+        if (avatar) {
+          setUser((prev) => (prev ? { ...prev, avatar } : null));
+        }
+      });
     } catch (error) {
       console.log(
         "restoreSession failed:",
@@ -79,11 +120,16 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
+    setLoading(true);
     try {
       await axios.post("/logout");
     } catch (error) {
       // silent fail
     } finally {
+      if (avatarUrlRef.current) {
+        URL.revokeObjectURL(avatarUrlRef.current);
+        avatarUrlRef.current = null;
+      }
       setUser(null);
       setAccessToken(null);
       delete axios.defaults.headers.common["Authorization"];

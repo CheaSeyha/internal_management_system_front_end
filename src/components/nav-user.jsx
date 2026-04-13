@@ -27,40 +27,6 @@ import { useNavigate } from "react-router-dom";
 export function NavUser({ user: userProp }) {
   const { isMobile } = useSidebar();
   const { logout, user } = useAuth();
-  const [userInfo, setUserInfo] = useState(user);
-
-  useEffect(() => {
-    setUserInfo(user);
-  }, [user]);
-
-  const downloadImageProfile = async () => {
-    if (!user?.id) return;
-    try {
-      const response = await axios.get("/user/image/" + user.id, {
-        responseType: "blob",
-      });
-      const imageUrl = URL.createObjectURL(response.data);
-      setUserInfo((prev) => ({
-        ...prev,
-        avatar: imageUrl,
-      }));
-
-      // Cleanup function to avoid memory leaks
-      return () => URL.revokeObjectURL(imageUrl);
-    } catch (err) {
-      console.error("Failed to fetch user image:", err);
-    }
-  };
-
-  useEffect(() => {
-    let cleanup;
-    downloadImageProfile().then((cb) => (cleanup = cb));
-
-    return () => {
-      if (cleanup) cleanup();
-    };
-  }, [user?.id]);
-
   const [loading, setLoading] = useState(false); // loading state
   const navigate = useNavigate();
 
@@ -68,14 +34,13 @@ export function NavUser({ user: userProp }) {
     event.preventDefault(); // prevent dropdown close
     setLoading(true);
     try {
-      await axios.post("/logout");
+      await logout();
       toast.success("Logged out successfully");
+      navigate("/auth/login", { replace: true });
     } catch (err) {
       toast.error("Failed to log out");
     } finally {
-      logout();
       setLoading(false);
-      navigate("/auth/login", { replace: true });
     }
   };
   return (
@@ -89,8 +54,8 @@ export function NavUser({ user: userProp }) {
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage
-                  src={userInfo?.avatar}
-                  alt={userInfo?.name}
+                  src={user?.avatar}
+                  alt={user?.name}
                   className="object-cover"
                 />
                 <AvatarFallback className="rounded-lg">CN</AvatarFallback>
@@ -98,9 +63,9 @@ export function NavUser({ user: userProp }) {
 
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">
-                  {userInfo?.name?.toUpperCase()}
+                  {user?.name?.toUpperCase()}
                 </span>
-                <span className="truncate text-xs">{userInfo?.email}</span>
+                <span className="truncate text-xs">{user?.email}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -115,8 +80,8 @@ export function NavUser({ user: userProp }) {
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage
-                    src={userInfo?.avatar}
-                    alt={userInfo?.name}
+                    src={user?.avatar}
+                    alt={user?.name}
                     className="object-cover"
                   />
                   <AvatarFallback className="rounded-lg">CN</AvatarFallback>
@@ -124,9 +89,9 @@ export function NavUser({ user: userProp }) {
 
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">
-                    {userInfo?.name?.toUpperCase()}
+                    {user?.name?.toUpperCase()}
                   </span>
-                  <span className="truncate text-xs">{userInfo?.email}</span>
+                  <span className="truncate text-xs">{user?.email}</span>
                 </div>
               </div>
             </DropdownMenuLabel>

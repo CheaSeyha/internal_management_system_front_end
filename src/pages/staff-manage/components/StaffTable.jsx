@@ -250,7 +250,7 @@ export default function StaffTable({
       />
 
       {pagination && pagination.last_page > 1 && (
-        <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="sticky bottom-0 z-10 flex flex-wrap items-center justify-between gap-2 border-t bg-background/95 px-1 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80">
           <p className="text-sm text-muted-foreground">
             Showing page {pagination.current_page} of {pagination.last_page} (
             {pagination.total} staffs)

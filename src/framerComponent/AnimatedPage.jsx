@@ -10,6 +10,7 @@ const AnimatedPage = ({ children }) => {
         duration: 0.5,
         ease: [0.22, 1, 0.36, 1]       // Smoother easing (optional)
       }}
+      className="h-full"
     >
       {children}
     </motion.div>

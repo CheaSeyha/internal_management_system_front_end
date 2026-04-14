@@ -17,7 +17,7 @@ function Pagination({
       role="navigation"
       aria-label="pagination"
       data-slot="pagination"
-      className={cn("mx-auto flex w-full justify-center", className)}
+      className={cn("mx-auto flex w-fit items-center justify-center", className)}
       {...props} />
   );
 }

@@ -28,6 +28,8 @@ import useDepartment from "./hooks/useDepartmenet";
 function StaffManage() {
   const [getDeleteStaff, setGetDeleteStaff] = useState(null);
   const [getUpdateStaff, setGetUpdateStaff] = useState(null);
+  const [selectedDepartments, setSelectedDepartments] = useState([]);
+  const [selectedPositions, setSelectedPositions] = useState([]);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const {
     staffs,
@@ -40,10 +42,18 @@ function StaffManage() {
   } = useStaffHook();
 
   const { fetchDepartments, departments, loading } = useDepartment();
+  const currentFilters = {
+    department: selectedDepartments,
+    position: selectedPositions,
+  };
 
   useEffect(() => {
-    fetchStaffs();
+    fetchDepartments();
   }, []);
+
+  useEffect(() => {
+    fetchStaffs(1, currentFilters);
+  }, [selectedDepartments, selectedPositions]);
 
   const handleDeleteStaff = (staff) => {
     setGetDeleteStaff(staff);
@@ -53,7 +63,7 @@ function StaffManage() {
     setDeleteLoading(true);
     try {
       await deleteStaff(getDeleteStaff.staff_id);
-      await fetchStaffs();
+      await fetchStaffs(1, currentFilters);
       setGetDeleteStaff(null);
       toast.success("Delete Staff Success");
     } catch (error) {
@@ -109,7 +119,7 @@ function StaffManage() {
             onClick={(e) => {
               e.preventDefault();
               if (item !== current_page) {
-                fetchStaffs(item);
+                fetchStaffs(item, currentFilters);
               }
             }}
           >
@@ -130,6 +140,10 @@ function StaffManage() {
           fetchStaffs={fetchStaffs}
           addStaff={addStaff}
           staffLoading={staffLoading}
+          selectedDepartments={selectedDepartments}
+          setSelectedDepartments={setSelectedDepartments}
+          selectedPositions={selectedPositions}
+          setSelectedPositions={setSelectedPositions}
         />
       </div>
       <div className="h-[85%] flex flex-col justify-between">
@@ -154,7 +168,7 @@ function StaffManage() {
                     onClick={(e) => {
                       e.preventDefault();
                       if (pagination.current_page > 1) {
-                        fetchStaffs(pagination.current_page - 1);
+                        fetchStaffs(pagination.current_page - 1, currentFilters);
                       }
                     }}
                   />
@@ -173,7 +187,7 @@ function StaffManage() {
                     onClick={(e) => {
                       e.preventDefault();
                       if (pagination.current_page < pagination.last_page) {
-                        fetchStaffs(pagination.current_page + 1);
+                        fetchStaffs(pagination.current_page + 1, currentFilters);
                       }
                     }}
                   />
@@ -183,6 +197,9 @@ function StaffManage() {
           </div>
         )}
       </div>
+
+
+      
       <UpdateStaffDialog
         open={!!getUpdateStaff}
         staff={getUpdateStaff}
@@ -191,7 +208,6 @@ function StaffManage() {
         staffLoading={staffLoading}
         handleOpenChange={handleOpenChange}
       />
-
       <AlertDialog
         open={!!getDeleteStaff}
         onOpenChange={(open) =>

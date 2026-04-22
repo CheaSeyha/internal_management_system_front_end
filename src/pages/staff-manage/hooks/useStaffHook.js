@@ -23,11 +23,35 @@ const useStaffHook = () => {
     }
   };
 
-  const fetchStaffs = async (page = 1) => {
+  const fetchStaffs = async (
+    page = 1,
+    { department = [], position = [] } = {},
+  ) => {
     setStaffLoading(true);
     setStaffError(null);
     try {
-      const response = await axios.get(`/staff?page=${page}`);
+      const params = new URLSearchParams();
+      params.set("page", String(page));
+
+      const departmentArray = Array.isArray(department)
+        ? department
+        : department
+          ? [department]
+          : [];
+      const positionArray = Array.isArray(position)
+        ? position
+        : position
+          ? [position]
+          : [];
+
+      departmentArray.forEach((item) => {
+        if (item) params.append("department[]", String(item));
+      });
+      positionArray.forEach((item) => {
+        if (item) params.append("position[]", String(item));
+      });
+
+      const response = await axios.get(`/staff?${params.toString()}`);
       // response.data.data is the paginator, response.data.data.data is the array
       const paginator = response.data.data ?? null;
       const staffList = paginator?.data ?? [];

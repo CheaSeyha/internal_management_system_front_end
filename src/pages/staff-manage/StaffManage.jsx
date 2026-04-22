@@ -23,6 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { UpdateStaffDialog } from "./components/UpdateStaffDialog";
+import useDepartment from "./hooks/useDepartmenet";
 
 function StaffManage() {
   const [getDeleteStaff, setGetDeleteStaff] = useState(null);
@@ -37,6 +38,8 @@ function StaffManage() {
     deleteStaff,
     updateStaff,
   } = useStaffHook();
+
+  const { fetchDepartments, departments, loading } = useDepartment();
 
   useEffect(() => {
     fetchStaffs();
@@ -121,6 +124,9 @@ function StaffManage() {
     <>
       <div className="mb-5">
         <StaffToolbar
+          departments={departments}
+          fetchDepartments={fetchDepartments}
+          loading={loading}
           fetchStaffs={fetchStaffs}
           addStaff={addStaff}
           staffLoading={staffLoading}

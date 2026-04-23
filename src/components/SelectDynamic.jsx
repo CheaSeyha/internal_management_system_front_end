@@ -16,6 +16,7 @@ function SelectDynamic({
     onChange,
     multiple = false,
     loading = false,
+    isHasCount = false, // <-- new prop
 }) {
     const [isOpen, setIsOpen] = useState(false)
     const [internalValues, setInternalValues] = useState([])
@@ -106,7 +107,14 @@ function SelectDynamic({
                                         onCheckedChange={() => toggleMultiValue(item.value)}
                                         className="pointer-events-none"
                                     />
-                                    <span>{item.data}</span>
+                                    <span className="flex-1">{item.data}</span>
+
+                                    {/* Count badge */}
+                                    {isHasCount && item.count !== undefined && (
+                                        <span className="bg-muted text-muted-foreground ml-auto rounded-full px-2 py-0.5 text-xs font-medium">
+                                            {item.count}
+                                        </span>
+                                    )}
                                 </div>
                             )
                         })}
@@ -117,25 +125,32 @@ function SelectDynamic({
     }
 
     return (
-        <>
-            <Select value={value} onValueChange={onChange} disabled={loading}>
-                <SelectTrigger className="w-fit">
-                    <SelectValue placeholder={loading ? "Loading..." : placeholder} />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectGroup>
-                        {!selectData.length && (
-                            <div className="text-muted-foreground px-2 py-1.5 text-sm">No options available</div>
-                        )}
-                        {selectData.map((item) => (
-                            <SelectItem key={item.value} value={item.value}>
-                                {item.data}
-                            </SelectItem>
-                        ))}
-                    </SelectGroup>
-                </SelectContent>
-            </Select>
-        </>
+        <Select value={value} onValueChange={onChange} disabled={loading}>
+            <SelectTrigger className="w-fit">
+                <SelectValue placeholder={loading ? "Loading..." : placeholder} />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectGroup>
+                    {!selectData.length && (
+                        <div className="text-muted-foreground px-2 py-1.5 text-sm">No options available</div>
+                    )}
+                    {selectData.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>
+                            <span className="flex items-center gap-2">
+                                <span>{item.data}</span>
+
+                                {/* Count badge */}
+                                {isHasCount && item.count !== undefined && (
+                                    <span className="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-xs font-medium">
+                                        {item.count}
+                                    </span>
+                                )}
+                            </span>
+                        </SelectItem>
+                    ))}
+                </SelectGroup>
+            </SelectContent>
+        </Select>
     )
 }
 

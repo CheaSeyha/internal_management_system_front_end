@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { RefreshCw } from 'lucide-react';
 import {
     Select,
     SelectContent,
@@ -74,8 +75,8 @@ function SelectDynamic({
                     onClick={() => setIsOpen((prev) => !prev)}
                     className="border-input bg-transparent flex h-9 w-full items-center justify-between rounded-md border px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                    <span className={selectedValues.length ? "text-foreground" : "text-muted-foreground"}>
-                        {loading ? "Loading..." : selectedText}
+                    <span className={`flex items-center gap-2 ${selectedValues.length ? "text-foreground" : "text-muted-foreground"}`}>
+                        {loading ? <RefreshCw className="w-3.5 animate-spin" /> : selectedText}
                     </span>
                     <span className="ml-2 text-xs opacity-70">▼</span>
                 </button>
@@ -127,7 +128,7 @@ function SelectDynamic({
     return (
         <Select value={value} onValueChange={onChange} disabled={loading}>
             <SelectTrigger className="w-fit">
-                <SelectValue placeholder={loading ? "Loading..." : placeholder} />
+                <SelectValue placeholder={loading ? <RefreshCw /> : placeholder} />
             </SelectTrigger>
             <SelectContent>
                 <SelectGroup>

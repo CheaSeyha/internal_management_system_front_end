@@ -1,7 +1,12 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import SelectCustome from "../../../components/SelectDynamic";
 import { AddStaffDialog } from "./AddStaffDialog";
-
+import {
+  Field,
+  FieldDescription,
+  FieldLabel,
+} from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
 export default function StaffToolbar({
   fetchStaffs,
   addStaff,
@@ -13,6 +18,7 @@ export default function StaffToolbar({
   setSelectedDepartments,
   selectedPositions,
   setSelectedPositions,
+  onSearchChange,
 }) {
   const selectData = useMemo(
     () =>
@@ -51,31 +57,47 @@ export default function StaffToolbar({
 
   return (
     <>
-      <div className="flex gap-2">
+      <div className="flex justify-between">
+        {/* Search Staff Name and ID */}
+        <div className="flex gap-2">
+
+
+          <Field className="w-fit min-w-56">
+            <Input
+              onChange={(e) => onSearchChange(e.target.value)}
+              id="input-field-username"
+              type="text"
+              placeholder="Search Staff Name,ID"
+            />
+          </Field>
+          {/* Select Department  */}
+          <SelectCustome
+            selectData={selectData}
+            placeholder={"Select Department"}
+            multiple={true}
+            loading={loading}
+            value={selectedDepartments}
+            onChange={setSelectedDepartments}
+          />
+          {/* Select Position  */}
+          {selectedDepartments.length > 0 && (
+            <SelectCustome
+              selectData={positionData}
+              placeholder={"Select Position"}
+              multiple={true}
+              loading={loading}
+              value={selectedPositions}
+              onChange={setSelectedPositions}
+              isHasCount={true} // <-- add this
+            />
+          )}
+        </div>
+        {/* Add Staff  */}
         <AddStaffDialog
           fetchStaffs={fetchStaffs}
           addStaff={addStaff}
           staffLoading={staffLoading}
         />
-        <SelectCustome
-          selectData={selectData}
-          placeholder={"Select Department"}
-          multiple={true}
-          loading={loading}
-          value={selectedDepartments}
-          onChange={setSelectedDepartments}
-        />
-        {selectedDepartments.length > 0 && (
-          <SelectCustome
-            selectData={positionData}
-            placeholder={"Select Position"}
-            multiple={true}
-            loading={loading}
-            value={selectedPositions}
-            onChange={setSelectedPositions}
-            isHasCount={true} // <-- add this
-          />
-        )}
       </div>
     </>
   );

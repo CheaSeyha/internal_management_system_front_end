@@ -25,7 +25,7 @@ const useStaffHook = () => {
 
   const fetchStaffs = async (
     page = 1,
-    { department = [], position = [] } = {},
+    { department = [], position = [], staff_name = "" } = {}
   ) => {
     setStaffLoading(true);
     setStaffError(null);
@@ -35,14 +35,10 @@ const useStaffHook = () => {
 
       const departmentArray = Array.isArray(department)
         ? department
-        : department
-          ? [department]
-          : [];
+        : department ? [department] : [];
       const positionArray = Array.isArray(position)
         ? position
-        : position
-          ? [position]
-          : [];
+        : position ? [position] : [];
 
       departmentArray.forEach((item) => {
         if (item) params.append("department[]", String(item));
@@ -51,17 +47,16 @@ const useStaffHook = () => {
         if (item) params.append("position[]", String(item));
       });
 
+      // add staff_name
+      if (staff_name) params.set("staff_name", staff_name);
+
       const response = await axios.get(`/staff?${params.toString()}`);
-      // response.data.data is the paginator, response.data.data.data is the array
       const paginator = response.data.data ?? null;
       const staffList = paginator?.data ?? [];
       setPagination(paginator);
-
-      // Set initial staff list to show data immediately
       setStaffs(staffList);
       setStaffLoading(false);
 
-      // Load images for each staff independently in the background
       staffList.forEach(async (staff) => {
         const updatedStaff = await loadProfileImage(staff);
         setStaffs((prevStaffs) =>

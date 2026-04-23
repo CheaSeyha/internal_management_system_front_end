@@ -24,13 +24,14 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { UpdateStaffDialog } from "./components/UpdateStaffDialog";
 import useDepartment from "./hooks/useDepartmenet";
-
+import { useDebouncedCallback } from "use-debounce";
 function StaffManage() {
   const [getDeleteStaff, setGetDeleteStaff] = useState(null);
   const [getUpdateStaff, setGetUpdateStaff] = useState(null);
   const [selectedDepartments, setSelectedDepartments] = useState([]);
   const [selectedPositions, setSelectedPositions] = useState([]);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [searchStaff, setSerachStaff] = useState("");
   const {
     staffs,
     pagination,
@@ -46,6 +47,14 @@ function StaffManage() {
     department: selectedDepartments,
     position: selectedPositions,
   };
+
+  const debouncedFetch = useDebouncedCallback((value) => {
+    fetchStaffs(1, {
+      department: selectedDepartments,
+      position: selectedPositions,
+      staff_name: value,
+    });
+  }, 500);
 
   useEffect(() => {
     fetchDepartments();
@@ -130,10 +139,20 @@ function StaffManage() {
     });
   };
 
+
+  useEffect(() => {
+    console.log(searchStaff)
+  }, [searchStaff])
+
+
   return (
     <>
       <div className="mb-5">
         <StaffToolbar
+          onSearchChange={(value) => {
+            setSerachStaff(value);
+            debouncedFetch(value);
+          }}
           departments={departments}
           fetchDepartments={fetchDepartments}
           loading={loading}
@@ -146,6 +165,7 @@ function StaffManage() {
           setSelectedPositions={setSelectedPositions}
         />
       </div>
+      {/* Staff table Data  */}
       <div className="h-[85%] flex flex-col justify-between">
         <StaffTable
           staffs={staffs}
@@ -199,7 +219,7 @@ function StaffManage() {
       </div>
 
 
-      
+      {/* Update Staff Dialog  */}
       <UpdateStaffDialog
         open={!!getUpdateStaff}
         staff={getUpdateStaff}
@@ -208,6 +228,7 @@ function StaffManage() {
         staffLoading={staffLoading}
         handleOpenChange={handleOpenChange}
       />
+      {/* Delete Staff Alert  */}
       <AlertDialog
         open={!!getDeleteStaff}
         onOpenChange={(open) =>

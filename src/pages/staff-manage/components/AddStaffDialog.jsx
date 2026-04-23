@@ -424,8 +424,7 @@ export function AddStaffDialog({ fetchStaffs, addStaff, staffLoading }) {
                             {(() => {
                               const positions =
                                 departments.find(
-                                  (item) =>
-                                    item.department === selectDepartment,
+                                  (item) => item.department === selectDepartment,
                                 )?.positions || [];
 
                               if (positions.length === 0) {
@@ -436,9 +435,10 @@ export function AddStaffDialog({ fetchStaffs, addStaff, staffLoading }) {
                                 );
                               }
 
+                              // ✅ pos is now an object {position_name, staff_count}
                               return positions.map((pos) => (
-                                <SelectItem key={pos} value={pos}>
-                                  {pos}
+                                <SelectItem key={pos.position_name} value={pos.position_name}>
+                                  {pos.position_name}
                                 </SelectItem>
                               ));
                             })()}

@@ -424,6 +424,7 @@ export function UpdateStaffDialog({
                 </Field>
 
                 {/* Position */}
+                {/* Position */}
                 <Field data-invalid={!!errors.position_name}>
                   <Label>Position</Label>
                   <Controller
@@ -448,8 +449,7 @@ export function UpdateStaffDialog({
                             {(() => {
                               const positions =
                                 departments.find(
-                                  (item) =>
-                                    item.department === selectDepartment,
+                                  (item) => item.department === selectDepartment,
                                 )?.positions || [];
 
                               if (positions.length === 0) {
@@ -460,9 +460,10 @@ export function UpdateStaffDialog({
                                 );
                               }
 
+                              // ✅ pos is now an object {position_name, staff_count}
                               return positions.map((pos) => (
-                                <SelectItem key={pos} value={pos}>
-                                  {pos}
+                                <SelectItem key={pos.position_name} value={pos.position_name}>
+                                  {pos.position_name}
                                 </SelectItem>
                               ));
                             })()}
@@ -535,7 +536,7 @@ export function UpdateStaffDialog({
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
-                            <SelectItem value="active">Active</SelectItem>
+                            <SelectItem value="working">Working</SelectItem>
                             <SelectItem value="resigned">Resigned</SelectItem>
                             <SelectItem value="terminated">
                               Terminated

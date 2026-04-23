@@ -78,8 +78,7 @@ export default function StaffTable({
       <span
         className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium capitalize ${cfg.class}`}
       >
-        {cfg.icon}
-        {value || "Unknown"}
+        {value || "—"}
       </span>
     );
   };
@@ -92,102 +91,105 @@ export default function StaffTable({
         loading={staffLoading}
         className="bg-background text-foreground"
         columns={[
-        // Profile
-        {
-          key: "profile_picture",
-          label: "Profile",
-          render: (_, row) => {
-            if (row.preview_profile === undefined) {
+          // Profile
+          {
+            key: "profile_picture",
+            label: "Profile",
+            render: (_, row) => {
+              if (row.preview_profile === undefined) {
+                return (
+                  <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />
+                );
+              }
+
               return (
-                <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />
+                <img
+                  src={row.preview_profile || "/placeholder.png"}
+                  alt={`${row.first_name} ${row.last_name}`}
+                  className="w-8 h-8 rounded-full object-cover border border-border"
+                />
               );
-            }
-
-            return (
-              <img
-                src={row.preview_profile || "/placeholder.png"}
-                alt={`${row.first_name} ${row.last_name}`}
-                className="w-8 h-8 rounded-full object-cover border border-border"
-              />
-            );
+            },
           },
-        },
 
-        { key: "staff_id", label: "Staff ID" },
+          { key: "staff_id", label: "Staff ID" },
 
-        { key: "first_name", label: "First Name" },
-        { key: "last_name", label: "Last Name" },
+          { key: "first_name", label: "First Name" },
+          { key: "last_name", label: "Last Name" },
 
-        //  Gender
-        {
-          key: "genders",
-          label: "Gender",
-          render: (value) => (
-            <span className="text-muted-foreground capitalize">
-              {value || "Not set"}
-            </span>
-          ),
-        },
+          //  Gender
+          {
+            key: "genders",
+            label: "Gender",
+            render: (value) => (
+              <span className="text-muted-foreground capitalize">
+                {value || "Not set"}
+              </span>
+            ),
+          },
 
-        // Phone
-        {
-          key: "phone_number",
-          label: "Phone",
-          render: (value) => (
-            <span className="text-muted-foreground">{value || "—"}</span>
-          ),
-        },
+          // Phone
+          {
+            key: "phone_number",
+            label: "Phone",
+            render: (value) => (
+              <span className="text-muted-foreground">{value || "—"}</span>
+            ),
+          },
 
-        // Department
-        {
-          key: "department_name",
-          label: "Department",
-          render: (value) => (
-            <span className="text-foreground/80">{value || "—"}</span>
-          ),
-        },
+          // Department
+          {
+            key: "department_name",
+            label: "Department",
+            render: (value) => (
+              <span className="text-foreground/80">{value || "—"}</span>
+            ),
+          },
 
-        // Position
-        {
-          key: "position_name",
-          label: "Position",
-          render: (value) => (
-            <span className="text-foreground/80">{value || "—"}</span>
-          ),
-        },
-        // Role
-        {
-          key: "role_name",
-          label: "Role",
-          render: (value) => badge("role", value),
-        },
+          // Position
+          {
+            key: "position_name",
+            label: "Position",
+            render: (value) => (
+              <span className="text-foreground/80">{value || "—"}</span>
+            ),
+          },
+          // Role
+          {
+            key: "role_name",
+            label: "Role",
+            render: (value) => badge("role", value),
+          },
 
-        // Account Status
-        {
-          key: "account_status",
-          label: "Account Status",
-          render: (value) => badge(value, value),
-        },
-        // Employment Status
-        {
-          key: "status",
-          label: "Employment Status",
-          render: (value) => badge(value, value),
-        },
+          // Account Status
+          {
+            key: "account_status",
+            label: "Account Status",
+            render: (value) => badge(value, value),
+          },
+          // Employment Status
+          {
+            key: "status",
+            label: "Employment Status",
+            render: (value) => badge(value, value),
+          },
         ]}
         actions={[
-        {
-          label: "Edit",
-          icon: <Pencil className="w-4 h-4" />,
-          onClick: (row) => updateStaff(row),
-        },
-        {
-          label: "Delete",
-          icon: <Trash className="w-4 h-4" />,
-          onClick: (row) => deleteStaff(row),
-          className: "text-red-500",
-          separator: true,
-        },
+          {
+            label: "Edit",
+            icon: <Pencil className="w-4 h-4" />,
+            onClick: (row) => {
+              console.log("edit row:", row) // <-- add this
+              updateStaff(row)
+            },
+          },
+          {
+            label: "Delete",
+            icon: <Trash className="w-4 h-4" />,
+            onClick: (row) => deleteStaff(row),
+            className: "text-red-500",
+            separator: true,
+          },
         ]}
       />
     </div>

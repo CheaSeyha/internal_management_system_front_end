@@ -9,7 +9,7 @@ import Login from "./pages/Auth/Login";
 import { Toaster } from "@/components/ui/sonner";
 import AllCustomer from "./pages/Internet/AllCustomer";
 import AllISP from "./pages/Internet/AllISP";
-import RosterForm from "./pages/RosterForm/RosterForm";
+import RosterForm from "./pages/roster/RosterForm";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import NotFoundPage from "./pages/NotFoundPage";
 import BuildingRoom from "./pages/Blocks/BuildingRoom";

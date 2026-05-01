@@ -21,7 +21,7 @@ const RosterSkeleton = ({ daysCount }) => {
   return (
     <>
       {[...Array(5)].map((_, i) => (
-        <tr key={i} className="animate-pulse">
+        <tr key={`skeleton-row-${i}`} className="animate-pulse">
           <td className="border p-2 sticky left-0 bg-card z-20">
             <div className="flex items-center gap-3 w-[250px]">
               <Skeleton className="h-10 w-10 rounded-full" />
@@ -31,13 +31,13 @@ const RosterSkeleton = ({ daysCount }) => {
               </div>
             </div>
           </td>
-          {[...Array(daysCount)].map((_, j) => (
-            <td key={j} className="border p-1">
+          {[...Array(daysCount || 31)].map((_, j) => (
+            <td key={`skeleton-day-${i}-${j}`} className="border p-1">
               <Skeleton className="h-8 w-8 mx-auto" />
             </td>
           ))}
-          {[...Array(5)].map((_, j) => (
-            <td key={j} className="border p-1">
+          {[...Array(4)].map((_, j) => (
+            <td key={`skeleton-balance-${i}-${j}`} className="border p-1">
               <Skeleton className="h-6 w-10 mx-auto" />
             </td>
           ))}
@@ -270,70 +270,57 @@ export default function RosterTable({ roster, rosterLoading, fetchRoster }) {
 
     // Replace the state with the new staff list
     setStaff_shift_data(allStaff);
+
   };
+
+  useEffect(() => {
+    console.log(staff_shift_data)
+  }, [staff_shift_data])
 
   return (
     <>
       {/* BUTTON + SELECT */}
       <div className="button-controller flex flex-col lg:flex-row items-center gap-3 relative mb-4">
-        <AnimatePresence>
-          {!editMode && (
-            <>
-              <motion.div
-                initial={{ x: -40, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                exit={{ x: -40, opacity: 0 }}
-                transition={{ duration: 0.25 }}
-                className="z-10 flex gap-3"
-              >
-                <Select defaultValue="all-department">
-                  <SelectTrigger className="w-full lg:w-fit">
-                    <span>
-                      <ChartBarStacked />
-                    </span>
-                    <SelectValue placeholder="Select a Department" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectItem value="all-department">
-                        All Department
-                      </SelectItem>
-                      <SelectItem value="IT">IT</SelectItem>
-                      <SelectItem value="HR">HR</SelectItem>
-                      <SelectItem value="gaming">Gaming</SelectItem>
-                      <SelectItem value="f-and-B">F & B</SelectItem>
-                      <SelectItem value="Security">Security</SelectItem>
-                      <SelectItem value="external-security">
-                        External Security
-                      </SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
+        <AnimatePresence mode="wait">
+          {!editMode ? (
+            <motion.div
+              key="view-controls"
+              initial={{ x: -40, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -40, opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="z-10 flex gap-3"
+            >
+              <Select defaultValue="all-department">
+                <SelectTrigger className="w-full lg:w-fit">
+                  <span>
+                    <ChartBarStacked />
+                  </span>
+                  <SelectValue placeholder="Select a Department" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value="all-department">
+                      All Department
+                    </SelectItem>
+                    <SelectItem value="IT">IT</SelectItem>
+                    <SelectItem value="HR">HR</SelectItem>
+                    <SelectItem value="gaming">Gaming</SelectItem>
+                    <SelectItem value="f-and-B">F & B</SelectItem>
+                    <SelectItem value="Security">Security</SelectItem>
+                    <SelectItem value="external-security">
+                      External Security
+                    </SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
 
-                <MonthYearPicker value={date} onChange={handleSelectDate} />
-              </motion.div>
-            </>
-          )}
-          <Button
-            variant="outline"
-            onClick={() => setEditMode(!editMode)}
-            className="relative z-20 w-full lg:w-fit"
-          >
-            {editMode ? (
-              <>
-                <Save className="w-4 h-4 mr-2" />
-                Save
-              </>
-            ) : (
-              <>
-                <PencilLine className="w-4 h-4 mr-2" />
-                Edit Roster
-              </>
-            )}
-          </Button>
-          {editMode && (
-            <>
+              <MonthYearPicker value={date} onChange={handleSelectDate} />
+            </motion.div>
+          ) : (
+            <div key="edit-controls-wrapper" className="flex flex-col lg:flex-row gap-3">
               <motion.div
+                key="shift-selector"
                 initial={{ x: -40, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: -40, opacity: 0 }}
@@ -357,7 +344,7 @@ export default function RosterTable({ roster, rosterLoading, fetchRoster }) {
                       <SelectLabel>Select Time Shift</SelectLabel>
                       {timeShiftOptions.map((opt) => (
                         <SelectItem
-                          key={opt.value}
+                          key={`shift-opt-${opt.value}`}
                           value={opt.value}
                           style={{ backgroundColor: opt.color, color: "#fff" }}
                         >
@@ -369,6 +356,7 @@ export default function RosterTable({ roster, rosterLoading, fetchRoster }) {
                 </Select>
               </motion.div>
               <motion.div
+                key="upload-button"
                 initial={{ x: -40, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: -40, opacity: 0 }}
@@ -379,11 +367,27 @@ export default function RosterTable({ roster, rosterLoading, fetchRoster }) {
                   onRoster={(monthData) => insertNewStaffShiftData(monthData)}
                 />
               </motion.div>
-            </>
+            </div>
           )}
         </AnimatePresence>
 
-        {/* File Upload  */}
+        <Button
+          variant="outline"
+          onClick={() => setEditMode(!editMode)}
+          className="relative z-20 w-full lg:w-fit"
+        >
+          {editMode ? (
+            <>
+              <Save className="w-4 h-4 mr-2" />
+              Save
+            </>
+          ) : (
+            <>
+              <PencilLine className="w-4 h-4 mr-2" />
+              Edit Roster
+            </>
+          )}
+        </Button>
       </div>
 
       {/* TABLE */}
@@ -406,8 +410,8 @@ export default function RosterTable({ roster, rosterLoading, fetchRoster }) {
                 Staff Info
               </th>
               {daysOfMonth.map((day, index) => (
-                <td
-                  key={index}
+                <th
+                  key={`header-day-${index}`}
                   className={`border sticky top-0 bg-card z-10 w-[50px] p-2 text-center text-sm ${day.day === "Sun" ? "text-red-600" : ""
                     } ${day.date === currentDay
                       ? "bg-gray-300 dark:bg-gray-700"
@@ -416,7 +420,7 @@ export default function RosterTable({ roster, rosterLoading, fetchRoster }) {
                 >
                   <div>{day.date}</div>
                   <div>{day.day}</div>
-                </td>
+                </th>
               ))}
               <th className="border sticky left-0 top-0 bg-card z-30 px-2 text-red-500">
                 Off
@@ -437,7 +441,7 @@ export default function RosterTable({ roster, rosterLoading, fetchRoster }) {
               <RosterSkeleton daysCount={daysOfMonth.length} />
             ) : (
               staff_shift_data.map((data, i) => (
-                <tr key={i}>
+                <tr key={`staff-${data.staff_id || i}`}>
                   <td className="border sticky left-0 bg-card z-20 p-2">
                     <StaffInfor {...data} />
                   </td>
@@ -448,7 +452,7 @@ export default function RosterTable({ roster, rosterLoading, fetchRoster }) {
                     );
                     return (
                       <td
-                        key={index}
+                        key={`shift-${data.staff_id}-${index}`}
                         onMouseDown={(e) =>
                           handleCellMouseDown(data.staff_id, index, e)
                         }
@@ -476,6 +480,7 @@ export default function RosterTable({ roster, rosterLoading, fetchRoster }) {
                   <td className="border text-center px-2">
                     {data.day_off.balance_off}
                   </td>
+
                   <td className="border text-center px-2">{data.day_off.upl}</td>
                   <td className="border text-center px-2">{data.day_off.AL}</td>
                 </tr>
@@ -484,7 +489,7 @@ export default function RosterTable({ roster, rosterLoading, fetchRoster }) {
 
             {/* Count time shift */}
             {timeShiftOptions.map((timeShift, index) => (
-              <tr key={index}>
+              <tr key={`summary-shift-${timeShift.value || index}`}>
                 <td
                   className={`border sticky left-0 z-20 ${timeShift.value === "7" ||
                     timeShift.value === "23" ||
@@ -505,7 +510,7 @@ export default function RosterTable({ roster, rosterLoading, fetchRoster }) {
 
                     return (
                       <td
-                        key={dayIndex}
+                        key={`count-${index}-${dayIndex}`}
                         className={`border text-center text-sm ${count === 0 ? "text-blue-500" : ""
                           }`}
                       >

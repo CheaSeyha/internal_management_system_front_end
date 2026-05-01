@@ -23,9 +23,6 @@ export default function useRosterHook() {
         }
     }
 
-
-
-
     return {
         roster,
         rosterLoading,

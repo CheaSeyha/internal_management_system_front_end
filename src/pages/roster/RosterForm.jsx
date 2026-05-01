@@ -15,7 +15,11 @@ function RosterForm() {
 
   return (
     <div className="w-full h-full ">
-      <ShowStaffRoster />
+      <ShowStaffRoster
+        roster={roster}
+        rosterLoading={rosterLoading}
+        fetchRoster={fetchRoster}
+      />
     </div>
   );
 }

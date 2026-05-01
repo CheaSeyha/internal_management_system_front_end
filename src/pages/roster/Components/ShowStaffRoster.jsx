@@ -15,487 +15,75 @@ import { motion, AnimatePresence, time } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
 import MonthYearPicker from "../../../components/MonthYearPicker";
 import DropUploadButton from "../../../components/DropUploadButton";
+import { Skeleton } from "@/components/ui/skeleton";
 
-export default function RosterTable() {
+const RosterSkeleton = ({ daysCount }) => {
+  return (
+    <>
+      {[...Array(5)].map((_, i) => (
+        <tr key={i} className="animate-pulse">
+          <td className="border p-2 sticky left-0 bg-card z-20">
+            <div className="flex items-center gap-3 w-[250px]">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+            </div>
+          </td>
+          {[...Array(daysCount)].map((_, j) => (
+            <td key={j} className="border p-1">
+              <Skeleton className="h-8 w-8 mx-auto" />
+            </td>
+          ))}
+          {[...Array(5)].map((_, j) => (
+            <td key={j} className="border p-1">
+              <Skeleton className="h-6 w-10 mx-auto" />
+            </td>
+          ))}
+        </tr>
+      ))}
+    </>
+  );
+};
+
+export default function RosterTable({ roster, rosterLoading, fetchRoster }) {
   // -------------------- State --------------------
-  const [staff_shift_data, setStaff_shift_data] = useState([
-    {
-      staff_profile: "https://randomuser.me/api/portraits/men/15.jpg",
-      staff_name: "Sok Kim",
-      staff_position: "IT OFFICER",
-      staff_role: "STAFF",
-      staff_id: "EMP-1001",
-      staff_gender: "M",
-      shift_data: [
-        "7",
-        "9",
-        "7",
-        "11",
-        "15",
-        "23",
-        "OFF",
-        "7",
-        "9",
-        "11",
-        "15",
-        "23",
-        "OFF",
-        "7",
-        "9",
-        "11",
-        "15",
-        "23",
-        "7",
-        "7",
-        "9",
-        "15",
-        "23",
-        "OFF",
-        "UPL",
-        "7",
-        "9",
-        "11",
-        "15",
-        "23",
-      ],
-      day_off: {
-        last_month_off: 1,
-        this_month_off: 3,
-        balance_off: 2,
-        upl: 1,
-        AL: 0,
-      },
-    },
-    {
-      staff_profile: "https://randomuser.me/api/portraits/women/20.jpg",
-      staff_name: "Chan Lay",
-      staff_position: "IT OFFICER",
-      staff_role: "STAFF",
-      staff_id: "EMP-1002",
-      staff_gender: "F",
-      shift_data: [
-        "9",
-        "9",
-        "15",
-        "23",
-        "7",
-        "7",
-        "7",
-        "11",
-        "15",
-        "23",
-        "OFF",
-        "UPL",
-        "7",
-        "9",
-        "15",
-        "23",
-        "11",
-        "7",
-        "7",
-        "15",
-        "9",
-        "23",
-        "OFF",
-        "7",
-        "9",
-        "11",
-        "15",
-        "23",
-        "7",
-        "7",
-      ],
-      day_off: {
-        last_month_off: 0,
-        this_month_off: 2,
-        balance_off: 1,
-        upl: 0,
-        AL: 1,
-      },
-    },
-    {
-      staff_profile: "https://randomuser.me/api/portraits/men/45.jpg",
-      staff_name: "Dara Lim",
-      staff_position: "IT LEADER",
-      staff_role: "ADMIN",
-      staff_id: "EMP-1003",
-      staff_gender: "M",
-      shift_data: [
-        "11",
-        "15",
-        "23",
-        "7",
-        "9",
-        "7",
-        "7",
-        "15",
-        "23",
-        "OFF",
-        "UPL",
-        "7",
-        "9",
-        "15",
-        "23",
-        "11",
-        "7",
-        "7",
-        "9",
-        "15",
-        "23",
-        "OFF",
-        "7",
-        "9",
-        "11",
-        "15",
-        "23",
-        "7",
-        "7",
-        "7",
-      ],
-      day_off: {
-        last_month_off: 2,
-        this_month_off: 4,
-        balance_off: 0,
-        upl: 0,
-        AL: 0,
-      },
-    },
-    {
-      staff_profile: "https://randomuser.me/api/portraits/women/32.jpg",
-      staff_name: "Ly Chea",
-      staff_position: "SHIFT LEADER",
-      staff_role: "SHIFT_LEADER",
-      staff_id: "EMP-1004",
-      staff_gender: "F",
-      shift_data: [
-        "15",
-        "23",
-        "7",
-        "7",
-        "9",
-        "11",
-        "15",
-        "23",
-        "OFF",
-        "7",
-        "9",
-        "15",
-        "23",
-        "11",
-        "7",
-        "7",
-        "9",
-        "15",
-        "23",
-        "OFF",
-        "UPL",
-        "7",
-        "9",
-        "11",
-        "15",
-        "23",
-        "7",
-        "7",
-        "7",
-        "15",
-      ],
-      day_off: {
-        last_month_off: 1,
-        this_month_off: 3,
-        balance_off: 1,
-        upl: 1,
-        AL: 0,
-      },
-    },
-    {
-      staff_profile: "https://randomuser.me/api/portraits/men/40.jpg",
-      staff_name: "Vanna Hun",
-      staff_position: "IT SUPPORT",
-      staff_role: "STAFF",
-      staff_id: "EMP-1005",
-      staff_gender: "M",
-      shift_data: [
-        "23",
-        "23",
-        "7",
-        "9",
-        "11",
-        "15",
-        "23",
-        "OFF",
-        "UPL",
-        "7",
-        "9",
-        "15",
-        "23",
-        "11",
-        "7",
-        "7",
-        "9",
-        "15",
-        "23",
-        "OFF",
-        "7",
-        "9",
-        "11",
-        "15",
-        "23",
-        "7",
-        "7",
-        "7",
-        "15",
-        "23",
-      ],
-      day_off: {
-        last_month_off: 3,
-        this_month_off: 2,
-        balance_off: 2,
-        upl: 0,
-        AL: 0,
-      },
-    },
-    {
-      staff_profile: "https://randomuser.me/api/portraits/women/11.jpg",
-      staff_name: "Kimly Chheng",
-      staff_position: "IT OFFICER",
-      staff_role: "STAFF",
-      staff_id: "EMP-1006",
-      staff_gender: "F",
-      shift_data: [
-        "7",
-        "7",
-        "7",
-        "11",
-        "15",
-        "23",
-        "OFF",
-        "UPL",
-        "7",
-        "9",
-        "15",
-        "23",
-        "11",
-        "7",
-        "9",
-        "15",
-        "23",
-        "7",
-        "7",
-        "9",
-        "15",
-        "23",
-        "OFF",
-        "7",
-        "9",
-        "11",
-        "15",
-        "23",
-        "7",
-        "7",
-      ],
-      day_off: {
-        last_month_off: 0,
-        this_month_off: 1,
-        balance_off: 0,
-        upl: 1,
-        AL: 1,
-      },
-    },
-    {
-      staff_profile: "https://randomuser.me/api/portraits/men/28.jpg",
-      staff_name: "Piseth Ng",
-      staff_position: "IT SUPPORT",
-      staff_role: "STAFF",
-      staff_id: "EMP-1007",
-      staff_gender: "M",
-      shift_data: [
-        "9",
-        "11",
-        "15",
-        "23",
-        "7",
-        "7",
-        "OFF",
-        "UPL",
-        "7",
-        "9",
-        "11",
-        "15",
-        "23",
-        "7",
-        "7",
-        "9",
-        "15",
-        "23",
-        "OFF",
-        "UPL",
-        "7",
-        "9",
-        "11",
-        "15",
-        "23",
-        "7",
-        "7",
-        "7",
-        "15",
-        "23",
-      ],
-      day_off: {
-        last_month_off: 2,
-        this_month_off: 3,
-        balance_off: 1,
-        upl: 1,
-        AL: 0,
-      },
-    },
-    {
-      staff_profile: "https://randomuser.me/api/portraits/women/38.jpg",
-      staff_name: "Srey Mao",
-      staff_position: "HELPDESK",
-      staff_role: "STAFF",
-      staff_id: "EMP-1008",
-      staff_gender: "F",
-      shift_data: [
-        "7",
-        "9",
-        "11",
-        "15",
-        "23",
-        "7",
-        "7",
-        "9",
-        "15",
-        "23",
-        "OFF",
-        "7",
-        "9",
-        "15",
-        "23",
-        "11",
-        "7",
-        "7",
-        "9",
-        "15",
-        "23",
-        "OFF",
-        "UPL",
-        "7",
-        "9",
-        "11",
-        "15",
-        "23",
-        "7",
-        "7",
-      ],
-      day_off: {
-        last_month_off: 1,
-        this_month_off: 2,
-        balance_off: 0,
-        upl: 0,
-        AL: 0,
-      },
-    },
-    {
-      staff_profile: "https://randomuser.me/api/portraits/men/12.jpg",
-      staff_name: "Kimsan Dara",
-      staff_position: "NETWORK SUPPORT",
-      staff_role: "STAFF",
-      staff_id: "EMP-1009",
-      staff_gender: "M",
-      shift_data: [
-        "11",
-        "15",
-        "23",
-        "7",
-        "9",
-        "7",
-        "7",
-        "15",
-        "23",
-        "OFF",
-        "UPL",
-        "7",
-        "9",
-        "15",
-        "23",
-        "11",
-        "7",
-        "7",
-        "9",
-        "15",
-        "23",
-        "OFF",
-        "7",
-        "9",
-        "11",
-        "15",
-        "23",
-        "7",
-        "7",
-        "7",
-      ],
-      day_off: {
-        last_month_off: 2,
-        this_month_off: 4,
-        balance_off: 2,
-        upl: 0,
-        AL: 0,
-      },
-    },
-    {
-      staff_profile: "https://randomuser.me/api/portraits/women/29.jpg",
-      staff_name: "Dalin Lim",
-      staff_position: "SHIFT LEADER",
-      staff_role: "SHIFT_LEADER",
-      staff_id: "EMP-1010",
-      staff_gender: "F",
-      shift_data: [
-        "23",
-        "7",
-        "9",
-        "11",
-        "15",
-        "23",
-        "OFF",
-        "UPL",
-        "7",
-        "9",
-        "15",
-        "23",
-        "11",
-        "7",
-        "9",
-        "15",
-        "23",
-        "7",
-        "7",
-        "9",
-        "15",
-        "23",
-        "OFF",
-        "7",
-        "9",
-        "11",
-        "15",
-        "23",
-        "7",
-        "7",
-      ],
-      day_off: {
-        last_month_off: 1,
-        this_month_off: 3,
-        balance_off: 1,
-        upl: 1,
-        AL: 1,
-      },
-    },
-  ]);
+
+
+  const [staff_shift_data, setStaff_shift_data] = useState([]);
+
+  useEffect(() => {
+    if (roster?.data?.departments) {
+      const flattened = roster.data.departments.flatMap((dept) =>
+        dept.staffs.map((staff) => ({
+          staff_profile: staff.profile_picture,
+          staff_name: staff.name,
+          staff_position: staff.position,
+          staff_role: staff.role,
+          staff_id: staff.staff_id,
+          staff_gender: staff.gender,
+          shift_data: staff.shift_data,
+          day_off: {
+            this_month_off: staff.leave_balance?.monthly_off?.used || 0,
+            balance_off: staff.leave_balance?.monthly_off?.remaining || 0,
+            upl: staff.leave_balance?.unpaid_leave?.used || 0,
+            AL: staff.leave_balance?.annual_leave?.used || 0,
+          },
+        }))
+      );
+      setStaff_shift_data(flattened);
+    }
+  }, [roster]);
 
   const now = new Date();
+  const displayYear = roster?.data?.year ? parseInt(roster.data.year) : now.getFullYear();
+  const displayMonth = roster?.data?.month ? parseInt(roster.data.month) - 1 : now.getMonth();
+
   const daysOfMonth = Array.from(
-    { length: new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() },
+    { length: new Date(displayYear, displayMonth + 1, 0).getDate() },
     (_, i) => {
-      const date = new Date(now.getFullYear(), now.getMonth(), i + 1);
+      const date = new Date(displayYear, displayMonth, i + 1);
       const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
       return { date: date.getDate(), day: dayNames[date.getDay()] };
     }
@@ -820,13 +408,11 @@ export default function RosterTable() {
               {daysOfMonth.map((day, index) => (
                 <td
                   key={index}
-                  className={`border sticky top-0 bg-card z-10 w-[50px] p-2 text-center text-sm ${
-                    day.day === "Sun" ? "text-red-600" : ""
-                  } ${
-                    day.date === currentDay
+                  className={`border sticky top-0 bg-card z-10 w-[50px] p-2 text-center text-sm ${day.day === "Sun" ? "text-red-600" : ""
+                    } ${day.date === currentDay
                       ? "bg-gray-300 dark:bg-gray-700"
                       : ""
-                  }`}
+                    }`}
                 >
                   <div>{day.date}</div>
                   <div>{day.day}</div>
@@ -839,9 +425,6 @@ export default function RosterTable() {
                 Balance
               </th>
               <th className="border sticky left-0 top-0 bg-card z-30 px-2">
-                Last Month
-              </th>
-              <th className="border sticky left-0 top-0 bg-card z-30 px-2">
                 UPL
               </th>
               <th className="border sticky left-0 top-0 bg-card z-30 px-2">
@@ -850,82 +433,72 @@ export default function RosterTable() {
             </tr>
           </thead>
           <tbody>
-            {staff_shift_data.map((data, i) => (
-              <tr key={i}>
-                <td className="border sticky left-0 bg-card z-20 p-2">
-                  <StaffInfor {...data} />
-                </td>
-                {/* //show work time of staff  */}
-                {data.shift_data.map((shift_time, index) => {
-                  const option = timeShiftOptions.find(
-                    (opt) => opt.value === shift_time
-                  );
-                  return (
-                    <td
-                      key={index}
-                      onMouseDown={(e) =>
-                        handleCellMouseDown(data.staff_id, index, e)
-                      }
-                      onMouseEnter={() =>
-                        handleCellMouseEnter(data.staff_id, index)
-                      }
-                      onMouseUp={handleCellMouseUp}
-                      onContextMenu={disableContextMenu}
-                      className={`border text-center ${
-                        shift_time === "7" ||
-                        shift_time === "23" ||
-                        shift_time === "UPL"
+            {rosterLoading ? (
+              <RosterSkeleton daysCount={daysOfMonth.length} />
+            ) : (
+              staff_shift_data.map((data, i) => (
+                <tr key={i}>
+                  <td className="border sticky left-0 bg-card z-20 p-2">
+                    <StaffInfor {...data} />
+                  </td>
+                  {/* show work time of staff */}
+                  {data.shift_data.map((shift_time, index) => {
+                    const option = timeShiftOptions.find(
+                      (opt) => opt.value === shift_time
+                    );
+                    return (
+                      <td
+                        key={index}
+                        onMouseDown={(e) =>
+                          handleCellMouseDown(data.staff_id, index, e)
+                        }
+                        onMouseEnter={() =>
+                          handleCellMouseEnter(data.staff_id, index)
+                        }
+                        onMouseUp={handleCellMouseUp}
+                        onContextMenu={disableContextMenu}
+                        className={`border text-center ${shift_time === "7" ||
+                          shift_time === "23" ||
+                          shift_time === "UPL"
                           ? "text-white"
                           : "text-black"
-                      }  select-none cursor-pointer`}
-                      style={{ backgroundColor: option?.color || "#ffbb01" }}
-                    >
-                      {shift_time}
-                    </td>
-                  );
-                })}
+                          } select-none cursor-pointer`}
+                        style={{ backgroundColor: option?.color || "#ffbb01" }}
+                      >
+                        {shift_time}
+                      </td>
+                    );
+                  })}
 
-                <td className="border text-center px-2 text-red-500">
-                  {data.day_off.this_month_off}
-                </td>
-                <td className="border text-center px-2">
-                  {data.day_off.balance_off}
-                </td>
-                <td
-                  className={`border text-center px-2 ${
-                    typeof data.day_off.last_month_off === "number"
-                      ? ""
-                      : "text-red-500"
-                  }`}
-                >
-                  {data.day_off.last_month_off}
-                </td>
+                  <td className="border text-center px-2 text-red-500">
+                    {data.day_off.this_month_off}
+                  </td>
+                  <td className="border text-center px-2">
+                    {data.day_off.balance_off}
+                  </td>
+                  <td className="border text-center px-2">{data.day_off.upl}</td>
+                  <td className="border text-center px-2">{data.day_off.AL}</td>
+                </tr>
+              ))
+            )}
 
-                <td className="border text-center px-2">{data.day_off.upl}</td>
-                <td className="border text-center px-2">{data.day_off.AL}</td>
-              </tr>
-            ))}
-            {/* Count time shift  */}
+            {/* Count time shift */}
             {timeShiftOptions.map((timeShift, index) => (
               <tr key={index}>
-                {/* shift label cell */}
                 <td
-                  className={`border sticky left-0 z-20 ${
-                    timeShift.value === "7" ||
+                  className={`border sticky left-0 z-20 ${timeShift.value === "7" ||
                     timeShift.value === "23" ||
                     timeShift.value === "UPL"
-                      ? "text-white"
-                      : "text-black"
-                  } text-center p-1`}
+                    ? "text-white"
+                    : "text-black"
+                    } text-center p-1`}
                   style={{ backgroundColor: timeShift.color }}
                 >
                   {timeShift.label}
                 </td>
 
-                {/* count staff by shift per day */}
                 {Array.from({ length: daysOfMonth.length }).map(
                   (_, dayIndex) => {
-                    // count how many staff have this shift on this day
                     const count = staff_shift_data.filter(
                       (staff) => staff.shift_data[dayIndex] === timeShift.value
                     ).length;
@@ -933,9 +506,8 @@ export default function RosterTable() {
                     return (
                       <td
                         key={dayIndex}
-                        className={`border text-center text-sm${
-                          count === 0 ? " text-blue-500" : ""
-                        } `}
+                        className={`border text-center text-sm ${count === 0 ? "text-blue-500" : ""
+                          }`}
                       >
                         {count}
                       </td>

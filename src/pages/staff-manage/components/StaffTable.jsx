@@ -112,7 +112,7 @@ export default function StaffTable({
             },
           },
 
-          { key: "staff_id", label: "Staff ID" },
+          { key: "id", label: "Staff ID" },
 
           { key: "first_name", label: "First Name" },
           { key: "last_name", label: "Last Name" },

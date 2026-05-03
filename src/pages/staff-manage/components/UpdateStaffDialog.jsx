@@ -89,7 +89,7 @@ export function UpdateStaffDialog({
         email: staff.email || "",
         account_status: staff.account_status || "",
         phone_number: staff.phone_number || "",
-        staff_id: staff.staff_id || "",
+        staff_id: staff.id || "",
         label_id: staff.label_id || "",
         isCreatedUser: staff.account_status === "active" ? true : false,
         gender: staff.gender || "male",
@@ -134,7 +134,7 @@ export function UpdateStaffDialog({
     console.log("profile_picture:", formatted.profile_picture); // should be a File object
 
     try {
-      const response = await updateStaff(staff.staff_id, formatted);
+      const response = await updateStaff(staff.id, formatted);
       if (response.status === 200) {
         toast.success("Staff updated successfully");
         fetchStaffs();

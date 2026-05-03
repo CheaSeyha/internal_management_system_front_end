@@ -71,7 +71,7 @@ function StaffManage() {
   const confirmDeleteStaff = async () => {
     setDeleteLoading(true);
     try {
-      await deleteStaff(getDeleteStaff.staff_id);
+      await deleteStaff(getDeleteStaff.id);
       await fetchStaffs(1, currentFilters);
       setGetDeleteStaff(null);
       toast.success("Delete Staff Success");
@@ -144,6 +144,8 @@ function StaffManage() {
     console.log(searchStaff)
   }, [searchStaff])
 
+
+  console.log(staffs)
 
   return (
     <>

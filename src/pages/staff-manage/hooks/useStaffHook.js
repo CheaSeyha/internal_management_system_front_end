@@ -11,7 +11,7 @@ const useStaffHook = () => {
   const loadProfileImage = async (staff) => {
     try {
       const response = await axios.get(
-        "staff/image_profile/" + staff.staff_id,
+        "staff/image_profile/" + staff.id,
         {
           responseType: "blob",
         },
@@ -55,16 +55,12 @@ const useStaffHook = () => {
       const staffList = paginator?.data ?? [];
       setPagination(paginator);
       setStaffs(staffList);
-      setStaffLoading(false);
+      const updatedStaffList = await Promise.all(
+        staffList.map(async (staff) => await loadProfileImage(staff))
+      );
 
-      staffList.forEach(async (staff) => {
-        const updatedStaff = await loadProfileImage(staff);
-        setStaffs((prevStaffs) =>
-          prevStaffs.map((s) =>
-            s.staff_id === staff.staff_id ? updatedStaff : s,
-          ),
-        );
-      });
+      setStaffs(updatedStaffList);
+      setStaffLoading(false);
     } catch (error) {
       setStaffError(error);
       setStaffLoading(false);

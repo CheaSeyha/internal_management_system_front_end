@@ -23,9 +23,27 @@ export default function useRosterHook() {
         }
     }
 
+    const createRoster = async (month, year, staff_roster) => {
+        setRosterLoading(true);
+        try {
+            const res = await axios.post('roster', {
+                month: month,
+                year: year,
+                staff_roster: staff_roster
+            });
+            fetchRoster();
+            return res.data;
+        } catch (e) {
+            throw new e;
+        } finally {
+            setRosterLoading(false);
+        }
+    }
+
     return {
         roster,
         rosterLoading,
-        fetchRoster
+        fetchRoster,
+        createRoster
     }
 }

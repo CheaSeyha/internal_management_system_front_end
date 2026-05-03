@@ -47,9 +47,9 @@ const RosterSkeleton = ({ daysCount }) => {
   );
 };
 
-export default function RosterTable({ roster, rosterLoading, fetchRoster }) {
+export default function RosterTable({ roster, rosterLoading, fetchRoster, createRoster }) {
   // -------------------- State --------------------
-
+  const [saveRoster, setSaveRoster] = useState([]);
 
   const [staff_shift_data, setStaff_shift_data] = useState([]);
 
@@ -153,19 +153,98 @@ export default function RosterTable({ roster, rosterLoading, fetchRoster }) {
     (opt) => opt.value === updateTimeShift
   );
 
+  // const handleEditRoster = (staff_id, dayIndex, isRightClick = false) => {
+  //   if (!editMode) return;
+
+  //   console.log(staff_id, dayIndex, isRightClick);
+  //   // setStaff_shift_data((prevData) =>
+  //   //   prevData.map((staff) => {
+  //   //     if (staff.staff_id === staff_id) {
+  //   //       const updated = [...staff.shift_data];
+  //   //       updated[dayIndex] = isRightClick ? defaultShift : updateTimeShift;
+  //   //       return { ...staff, shift_data: updated };
+  //   //     }
+  //   //     return staff;
+  //   //   })
+  //   // );
+  // };
+  const [staffRoster, setStaffRoster] = useState([])
+
+  const getDateFromIndex = (year, month, dayIndex) => {
+    const day = dayIndex + 2;
+    return new Date(year, month - 1, day)
+      .toISOString()
+      .split("T")[0];
+  };
+
   const handleEditRoster = (staff_id, dayIndex, isRightClick = false) => {
     if (!editMode) return;
-    setStaff_shift_data((prevData) =>
-      prevData.map((staff) => {
+
+    const date = getDateFromIndex(2026, 5, dayIndex);
+    const selectedShift = isRightClick ? defaultShift : updateTimeShift;
+
+    // update for api state
+    setStaffRoster(prev => {
+      const newData = [...prev];
+
+      let staff = newData.find(s => s.staff_id === staff_id);
+
+      if (!staff) {
+        staff = {
+          staff_id,
+          roster: []
+        };
+        newData.push(staff);
+      }
+
+      const existingDay = staff.roster.find(r => r.date === date);
+
+      if (existingDay) {
+        existingDay.shift_name = selectedShift;
+      } else {
+        staff.roster.push({
+          date,
+          shift_name: selectedShift
+        });
+      }
+
+      return newData;
+    });
+    //update ui state
+    setStaff_shift_data(prevData =>
+      prevData.map(staff => {
         if (staff.staff_id === staff_id) {
           const updated = [...staff.shift_data];
-          updated[dayIndex] = isRightClick ? defaultShift : updateTimeShift;
+          updated[dayIndex] = selectedShift;
           return { ...staff, shift_data: updated };
         }
         return staff;
       })
     );
+
   };
+
+  const handleSaveRoster = async () => {
+
+    if (!editMode) {
+      setEditMode(true);
+      return;
+    }
+    try {
+      const res = await createRoster(date.getMonth() + 1, date.getFullYear(), staffRoster);
+      console.log(res)
+    } catch (e) {
+      throw new e;
+    } finally {
+      setEditMode(false)
+    }
+  }
+
+  useEffect(() => {
+    console.log(staffRoster)
+  }, [staffRoster])
+
+
 
   const handleCellMouseDown = (staff_id, dayIndex, e) => {
     e.preventDefault();
@@ -373,7 +452,7 @@ export default function RosterTable({ roster, rosterLoading, fetchRoster }) {
 
         <Button
           variant="outline"
-          onClick={() => setEditMode(!editMode)}
+          onClick={handleSaveRoster}
           className="relative z-20 w-full lg:w-fit"
         >
           {editMode ? (

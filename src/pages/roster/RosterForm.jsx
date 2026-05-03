@@ -3,7 +3,7 @@ import useRosterHook from "@/hooks/useRosterHook";
 import { useEffect } from "react";
 
 function RosterForm() {
-  const { roster, rosterLoading, fetchRoster } = useRosterHook();
+  const { roster, rosterLoading, fetchRoster, createRoster } = useRosterHook();
 
   useEffect(() => {
     // Fetch the first month of the year
@@ -19,6 +19,7 @@ function RosterForm() {
         roster={roster}
         rosterLoading={rosterLoading}
         fetchRoster={fetchRoster}
+        createRoster={createRoster}
       />
     </div>
   );

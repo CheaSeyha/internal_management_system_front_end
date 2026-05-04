@@ -31,7 +31,7 @@ export default function useRosterHook() {
                 year: year,
                 staff_roster: staff_roster
             });
-            fetchRoster();
+            fetchRoster(month, year);
             return res.data;
         } catch (e) {
             throw new e;

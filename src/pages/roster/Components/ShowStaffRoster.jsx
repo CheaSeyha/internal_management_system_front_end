@@ -1,5 +1,5 @@
 "use client";
-import { CalendarSync, PencilLine, Save, ChartBarStacked } from "lucide-react";
+import { CalendarSync, PencilLine, Save, ChartBarStacked, Loader2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -16,6 +16,7 @@ import { useRef, useState, useEffect } from "react";
 import MonthYearPicker from "../../../components/MonthYearPicker";
 import DropUploadButton from "../../../components/DropUploadButton";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner"
 
 const RosterSkeleton = ({ daysCount }) => {
   return (
@@ -115,6 +116,7 @@ export default function RosterTable({ roster, rosterLoading, fetchRoster, create
   const [updateTimeShift, setUpdateTimeShift] = useState("7");
   const [isPainting, setIsPainting] = useState(false);
   const [isRightPainting, setIsRightPainting] = useState(false);
+  const [staffRoster, setStaffRoster] = useState([]) //for api post call data only
 
   const handleSelectDate = (date) => {
     setDate(date);
@@ -152,24 +154,6 @@ export default function RosterTable({ roster, rosterLoading, fetchRoster, create
   const selectedOption = timeShiftOptions.find(
     (opt) => opt.value === updateTimeShift
   );
-
-  // const handleEditRoster = (staff_id, dayIndex, isRightClick = false) => {
-  //   if (!editMode) return;
-
-  //   console.log(staff_id, dayIndex, isRightClick);
-  //   // setStaff_shift_data((prevData) =>
-  //   //   prevData.map((staff) => {
-  //   //     if (staff.staff_id === staff_id) {
-  //   //       const updated = [...staff.shift_data];
-  //   //       updated[dayIndex] = isRightClick ? defaultShift : updateTimeShift;
-  //   //       return { ...staff, shift_data: updated };
-  //   //     }
-  //   //     return staff;
-  //   //   })
-  //   // );
-  // };
-  const [staffRoster, setStaffRoster] = useState([])
-
   const getDateFromIndex = (year, month, dayIndex) => {
     const day = dayIndex + 2;
     return new Date(year, month - 1, day)
@@ -225,20 +209,36 @@ export default function RosterTable({ roster, rosterLoading, fetchRoster, create
   };
 
   const handleSaveRoster = async () => {
-
+    // Enter edit mode
     if (!editMode) {
       setEditMode(true);
       return;
     }
-    try {
-      const res = await createRoster(date.getMonth() + 1, date.getFullYear(), staffRoster);
-      console.log(res)
-    } catch (e) {
-      throw new e;
-    } finally {
-      setEditMode(false)
+
+    // Validate before saving
+    if (staffRoster.length === 0) {
+      toast.error("No shift Change!");
+      setEditMode(false);
+      return;
     }
-  }
+
+    try {
+      const res = await createRoster(
+        date.getMonth() + 1,
+        date.getFullYear(),
+        staffRoster
+      );
+
+      console.log(res);
+      toast.success("Roster saved successfully");
+
+      setEditMode(false);
+      setStaffRoster([]); // clear only AFTER success
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to save roster. Please try again.");
+    }
+  };
 
   useEffect(() => {
     console.log(staffRoster)
@@ -452,14 +452,22 @@ export default function RosterTable({ roster, rosterLoading, fetchRoster, create
 
         <Button
           variant="outline"
+          disabled={rosterLoading}
           onClick={handleSaveRoster}
-          className="relative z-20 w-full lg:w-fit"
+          className="relative z-20 w-full lg:w-fit flex items-center justify-center"
         >
           {editMode ? (
-            <>
-              <Save className="w-4 h-4 mr-2" />
-              Save
-            </>
+            rosterLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4 mr-2" />
+                Save
+              </>
+            )
           ) : (
             <>
               <PencilLine className="w-4 h-4 mr-2" />

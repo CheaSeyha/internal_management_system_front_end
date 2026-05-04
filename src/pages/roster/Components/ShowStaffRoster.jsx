@@ -3,6 +3,7 @@ import React, { useRef, useState, useEffect, useCallback, useMemo, memo } from "
 import { CalendarSync, PencilLine, Save, ChartBarStacked, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import { useAuth } from "../../../auth/AuthContext";
 
 // UI Components
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -64,10 +65,10 @@ const RosterSkeleton = memo(({ daysCount }) => (
 ));
 RosterSkeleton.displayName = "RosterSkeleton";
 
-const RosterHeader = memo(({ daysOfMonth, currentDay, width, onResizeMouseDown }) => (
+const RosterHeader = memo(({ daysOfMonth, currentDay, width, onResizeMouseDown, hoveredDayIndex }) => (
   <thead>
     <tr className="bg-card">
-      <th 
+      <th
         className="border sticky left-0 top-0 bg-card z-30 shadow-[1px_0_0_0_#e2e8f0] group/header"
         style={{ width: `${width}px`, minWidth: `${width}px`, maxWidth: `${width}px` }}
       >
@@ -83,8 +84,8 @@ const RosterHeader = memo(({ daysOfMonth, currentDay, width, onResizeMouseDown }
       {daysOfMonth.map((day, index) => (
         <th
           key={`header-day-${index}`}
-          className={`border sticky top-0 bg-card z-10 w-[50px] p-2 text-center text-xs font-semibold ${day.day === "Sun" ? "text-red-600" : ""
-            } ${day.date === currentDay ? "bg-accent" : ""}`}
+          className={`border sticky top-0 bg-card z-10 w-[50px] p-2 text-center text-xs font-semibold transition-colors ${day.day === "Sun" ? "text-red-600 bg-red-100" : ""
+            } ${day.date === currentDay ? "bg-primary/20 text-primary font-bold shadow-sm" : ""} ${hoveredDayIndex === index ? "bg-muted shadow-inner ring-1 ring-inset ring-muted-foreground/10" : ""}`}
         >
           <div>{day.date}</div>
           <div className="text-[10px] opacity-60 uppercase">{day.day}</div>
@@ -100,18 +101,28 @@ const RosterHeader = memo(({ daysOfMonth, currentDay, width, onResizeMouseDown }
 ));
 RosterHeader.displayName = "RosterHeader";
 
-const ShiftCell = memo(({ staffId, dayIndex, shiftTime, onMouseDown, onMouseEnter, onMouseUp, onContextMenu }) => {
+const ShiftCell = memo(({ staffId, dayIndex, shiftTime, onMouseDown, onMouseEnter, onMouseUp, onContextMenu, canEdit, editMode }) => {
   const option = TIME_SHIFT_OPTIONS.find((opt) => opt.value === shiftTime);
   const isDark = ["7", "23", "UPL"].includes(shiftTime);
 
+  const isInteractive = canEdit && editMode;
+
   return (
     <td
-      onMouseDown={(e) => onMouseDown(staffId, dayIndex, e)}
-      onMouseEnter={() => onMouseEnter(staffId, dayIndex)}
+      onMouseDown={(e) => {
+        if (!isInteractive) {
+          console.log("Cell Locked:", { canEdit, editMode, staffId, userRole: user?.role_id });
+        }
+        isInteractive && onMouseDown(staffId, dayIndex, e);
+      }}
+      onMouseEnter={() => isInteractive && onMouseEnter(staffId, dayIndex)}
       onMouseUp={onMouseUp}
       onContextMenu={onContextMenu}
       className={`border text-center transition-all duration-150 text-[11px] font-medium ${isDark ? "text-white" : "text-black"
-        } select-none cursor-pointer h-10 w-10 hover:brightness-90 active:scale-95`}
+        } select-none h-10 w-10 ${editMode
+          ? (isInteractive ? "cursor-pointer hover:brightness-90 active:scale-95" : "cursor-not-allowed opacity-40")
+          : "cursor-default"
+        }`}
       style={{ backgroundColor: option?.color || "#ffbb01" }}
     >
       {shiftTime}
@@ -145,11 +156,11 @@ const RosterSummary = memo(({ staffData, daysCount, width }) => {
           <td
             className={`border sticky left-0 z-20 shadow-[2px_0_5px_rgba(0,0,0,0.05)] text-center p-1 text-[10px] font-bold ${["7", "23", "UPL"].includes(shift.value) ? "text-white" : "text-black"
               }`}
-            style={{ 
+            style={{
               backgroundColor: shift.color,
-              width: `${width}px`, 
-              minWidth: `${width}px`, 
-              maxWidth: `${width}px` 
+              width: `${width}px`,
+              minWidth: `${width}px`,
+              maxWidth: `${width}px`
             }}
           >
             {shift.label}
@@ -174,6 +185,7 @@ RosterSummary.displayName = "RosterSummary";
 
 export default function RosterTable({ roster, rosterLoading, fetchRoster, createRoster }) {
   // -------------------- State --------------------
+  const { user } = useAuth();
   const [staff_shift_data, setStaff_shift_data] = useState([]);
   const [staffRoster, setStaffRoster] = useState([]);
   const [date, setDate] = useState(new Date());
@@ -234,11 +246,23 @@ export default function RosterTable({ roster, rosterLoading, fetchRoster, create
 
   const getDateFromIndex = useCallback((dayIndex) => {
     const d = new Date(displayYear, displayMonth, dayIndex + 1);
-    return d.toISOString().split("T")[0];
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }, [displayYear, displayMonth]);
 
   const handleEditRoster = useCallback((staff_id, dayIndex, isRightClick = false) => {
     if (!editMode) return;
+
+    // RBAC Check - Using role_id (1: Super Admin, 2: Admin)
+    const isAdmin = Number(user?.role_id) === 1 || Number(user?.role_id) === 2;
+    const isOwnRoster = user?.staff_id && String(user.staff_id) === String(staff_id);
+
+    if (!isAdmin && !isOwnRoster) {
+      toast.error("Permission Denied: You can only edit your own roster.");
+      return;
+    }
 
     const formattedDate = getDateFromIndex(dayIndex);
     const selectedShift = isRightClick ? DEFAULT_SHIFT : updateTimeShift;
@@ -266,7 +290,8 @@ export default function RosterTable({ roster, rosterLoading, fetchRoster, create
       }
       return s;
     }));
-  }, [editMode, updateTimeShift, getDateFromIndex]);
+
+  }, [editMode, updateTimeShift, getDateFromIndex, user]);
 
   // Table Scrolling
   const handleScrollMouseDown = (e) => {
@@ -314,7 +339,7 @@ export default function RosterTable({ roster, rosterLoading, fetchRoster, create
       setIsPainting(true);
       handleEditRoster(staff_id, dayIndex, false);
     }
-  }, [editMode, handleEditRoster]);
+  }, [editMode, handleEditRoster, user]);
 
   const handleCellMouseEnter = useCallback((staff_id, dayIndex) => {
     if (!editMode) return;
@@ -431,46 +456,59 @@ export default function RosterTable({ roster, rosterLoading, fetchRoster, create
         }}
       >
         <table className="min-w-max border-separate border-spacing-0 w-full">
-          <RosterHeader 
-            daysOfMonth={daysOfMonth} 
-            currentDay={new Date().getDate()} 
+          <RosterHeader
+            daysOfMonth={daysOfMonth}
+            currentDay={new Date().getDate()}
             width={staffInfoWidth}
             onResizeMouseDown={handleResizeMouseDown}
+            hoveredDayIndex={hoveredCell?.dayIndex}
           />
           <tbody>
             {rosterLoading ? (
               <RosterSkeleton daysCount={daysOfMonth.length} />
             ) : (
-              staff_shift_data.map((staff, i) => (
-                <tr key={staff.staff_id || i} className="group hover:bg-muted/30">
-                  <td 
-                    className="border sticky left-0 bg-card z-20 p-2 shadow-[1px_0_0_0_#e2e8f0] overflow-hidden whitespace-nowrap"
-                    style={{ width: `${staffInfoWidth}px`, minWidth: `${staffInfoWidth}px`, maxWidth: `${staffInfoWidth}px` }}
+              staff_shift_data.map((staff, i) => {
+                const isAdmin = Number(user?.role_id) === 1 || Number(user?.role_id) === 2;
+                const isOwnRow = user?.staff_id && String(user.staff_id) === String(staff.staff_id);
+                const canEdit = isAdmin || isOwnRow;
+
+                return (
+                  <tr
+                    key={staff.staff_id || i}
+                    className={`group hover:bg-muted/30 transition-opacity ${editMode && !canEdit ? "opacity-60 grayscale-[0.5]" : ""
+                      }`}
                   >
-                    <StaffInfor {...staff} />
-                  </td>
-                  {staff.shift_data.map((shift, idx) => (
-                    <ShiftCell
-                      key={`${staff.staff_id}-${idx}`}
-                      staffId={staff.staff_id}
-                      dayIndex={idx}
-                      shiftTime={shift}
-                      onMouseDown={handleCellMouseDown}
-                      onMouseEnter={handleCellMouseEnter}
-                      onMouseUp={handleGlobalMouseUp}
-                      onContextMenu={(e) => e.preventDefault()}
-                    />
-                  ))}
-                  <td className="border text-center text-xs font-bold text-red-500 bg-muted/10">{staff.day_off.this_month_off}</td>
-                  <td className="border text-center text-xs font-bold bg-muted/10">{staff.day_off.balance_off}</td>
-                  <td className="border text-center text-xs font-bold bg-muted/10">{staff.day_off.upl}</td>
-                  <td className="border text-center text-xs font-bold bg-muted/10">{staff.day_off.AL}</td>
-                </tr>
-              ))
+                    <td
+                      className="border sticky left-0 bg-card z-20 p-2 shadow-[1px_0_0_0_#e2e8f0] overflow-hidden whitespace-nowrap"
+                      style={{ width: `${staffInfoWidth}px`, minWidth: `${staffInfoWidth}px`, maxWidth: `${staffInfoWidth}px` }}
+                    >
+                      <StaffInfor {...staff} />
+                    </td>
+                    {staff.shift_data.map((shift, idx) => (
+                      <ShiftCell
+                        key={`${staff.staff_id}-${idx}`}
+                        staffId={staff.staff_id}
+                        dayIndex={idx}
+                        shiftTime={shift}
+                        onMouseDown={handleCellMouseDown}
+                        onMouseEnter={handleCellMouseEnter}
+                        onMouseUp={handleGlobalMouseUp}
+                        onContextMenu={(e) => e.preventDefault()}
+                        canEdit={canEdit}
+                        editMode={editMode}
+                      />
+                    ))}
+                    <td className="border text-center text-xs font-bold text-red-500 bg-muted/10">{staff.day_off.this_month_off}</td>
+                    <td className="border text-center text-xs font-bold bg-muted/10">{staff.day_off.balance_off}</td>
+                    <td className="border text-center text-xs font-bold bg-muted/10">{staff.day_off.upl}</td>
+                    <td className="border text-center text-xs font-bold bg-muted/10">{staff.day_off.AL}</td>
+                  </tr>
+                );
+              })
             )}
-            <RosterSummary 
-              staffData={staff_shift_data} 
-              daysCount={daysOfMonth.length} 
+            <RosterSummary
+              staffData={staff_shift_data}
+              daysCount={daysOfMonth.length}
               width={staffInfoWidth}
             />
           </tbody>

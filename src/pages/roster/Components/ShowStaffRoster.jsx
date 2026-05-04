@@ -15,7 +15,7 @@ import DropUploadButton from "../../../components/DropUploadButton";
 
 // --- Constants & Helpers ---
 
-const DEFAULT_SHIFT = "7";
+const DEFAULT_SHIFT = null;
 
 const TIME_SHIFT_OPTIONS = [
   { label: "07:00 - 15:00 (8h)", value: "7", color: "#0000FF" },
@@ -118,14 +118,14 @@ const ShiftCell = memo(({ staffId, dayIndex, shiftTime, onMouseDown, onMouseEnte
       onMouseEnter={() => isInteractive && onMouseEnter(staffId, dayIndex)}
       onMouseUp={onMouseUp}
       onContextMenu={onContextMenu}
-      className={`border text-center transition-all duration-150 text-[11px] font-medium ${isDark ? "text-white" : "text-black"
-        } select-none h-10 w-10 ${editMode
+      className={`border text-center transition-all duration-150 text-[11px] font-medium select-none h-10 w-10 ${isDark ? "text-white" : "text-black"
+        } ${!shiftTime ? "bg-background text-muted-foreground" : ""} ${editMode
           ? (isInteractive ? "cursor-pointer hover:brightness-90 active:scale-95" : "cursor-not-allowed opacity-40")
           : "cursor-default"
         }`}
-      style={{ backgroundColor: option?.color || "#ffbb01" }}
+      style={shiftTime ? { backgroundColor: option?.color || "#ffbb01" } : {}}
     >
-      {shiftTime}
+      {shiftTime ?? "-"}
     </td>
   );
 });
@@ -410,6 +410,11 @@ export default function RosterTable({ roster, rosterLoading, fetchRoster, create
   const userDepartmentName = useMemo(() => {
     return roster?.data?.departments?.[0]?.department_name || "Select Department";
   }, [roster]);
+
+  useEffect(() => {
+    console.log(date.getMonth() + 1, date.getFullYear());
+    fetchRoster(date.getMonth() + 1, date.getFullYear());
+  }, [date])
 
   // -------------------- Render --------------------
   return (

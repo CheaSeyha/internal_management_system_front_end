@@ -1,10 +1,10 @@
 "use client";
 import React, { useRef, useState, useEffect, useCallback, useMemo, memo } from "react";
-import { CalendarSync, PencilLine, Save, ChartBarStacked, Loader2 } from "lucide-react";
+import { CalendarSync, PencilLine, Save, ChartBarStacked, Loader2, School2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useAuth } from "../../../auth/AuthContext";
-
+import useDepartment from "../../../pages/staff-manage/hooks/useDepartmenet";
 // UI Components
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -394,6 +394,23 @@ export default function RosterTable({ roster, rosterLoading, fetchRoster, create
     return () => window.removeEventListener("keydown", handleKeys);
   }, [editMode, hoveredCell, handleEditRoster]);
 
+  const {
+    departments,
+    loading,
+    error,
+    fetchDepartments,
+  } = useDepartment();
+
+  useEffect(() => {
+    fetchDepartments();
+  }, []);
+
+  const isSuperAdmin = useMemo(() => Number(user?.role_id) === 1, [user]);
+
+  const userDepartmentName = useMemo(() => {
+    return roster?.data?.departments?.[0]?.department_name || "Select Department";
+  }, [roster]);
+
   // -------------------- Render --------------------
   return (
     <div className="space-y-4">
@@ -402,17 +419,31 @@ export default function RosterTable({ roster, rosterLoading, fetchRoster, create
         <AnimatePresence mode="wait">
           {!editMode ? (
             <motion.div key="view-mode" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="flex gap-3">
-              <Select defaultValue="all-department">
-                <SelectTrigger className="min-w-[180px]">
-                  <ChartBarStacked className="w-4 h-4 mr-2" />
-                  <SelectValue placeholder="Department" />
-                </SelectTrigger>
-                <SelectContent>
-                  {["All Department", "IT", "HR", "Gaming", "F & B", "Security"].map(d => (
-                    <SelectItem key={d} value={d.toLowerCase().replace(/ /g, '-')}>{d}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {isSuperAdmin ? (
+                <Select defaultValue="all-department">
+                  <SelectTrigger className="min-w-[180px]">
+                    <ChartBarStacked className="w-4 h-4 mr-2" />
+                    <SelectValue placeholder="Department" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all-department">Select Department</SelectItem>
+                    {loading ? (
+                      <SelectItem value="loading">Loading...</SelectItem>
+                    ) : error ? (
+                      <SelectItem value="error">Error loading departments</SelectItem>
+                    ) : (
+                      departments.map(d => (
+                        <SelectItem key={d.id} value={d.id}>{d.department}</SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="flex items-center gap-2 px-2 h-[36px] border rounded-xl bg-card shadow-sm w-fit">
+                  <School2 className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-xs font-semibold">{userDepartmentName}</span>
+                </div>
+              )}
               <MonthYearPicker value={date} onChange={setDate} />
             </motion.div>
           ) : (

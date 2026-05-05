@@ -37,6 +37,20 @@ This project is currently under active development.
 
 # 🚀 Current Modules
 
+## 📅 Staff Roster Management
+
+-   Designed and developed a dynamic staff scheduling system
+-   Managed and displayed staff work schedules with flexible editing
+-   Implemented day-off request functionality for employees
+-   Enabled shift managers to create, update, and optimize rosters
+-   
+## 👥 Staff Management
+
+-   Built full CRUD operations for staff accounts
+-   Implemented role-based access control (RBAC) for secure system usage
+-   Managed staff account status (e.g., Active / Inactive / Suspended)
+-   Controlled staff lifecycle including activation, deactivation, and updates
+
 ## 🖨️ Card Generator (Completed Core Functionality)
 
 -   Auto-generate printable card layout
@@ -57,6 +71,13 @@ This is the most stable and functional module in the system.
 -   Delete building entries
 -   View building list
 
+
+## 🏢 Department Management
+-   Developed full CRUD functionality for department management
+-   Assigned and managed multiple staff members within each department
+-   Established relationships between departments and staff for structured organization
+-   Enabled efficient grouping and filtering of staff by department
+
 Core CRUD functionality is implemented.
 
 ------------------------------------------------------------------------
@@ -65,18 +86,6 @@ Core CRUD functionality is implemented.
 
 The following modules are NOT completed yet and are still under
 development:
-
-## 👥 Staff Management (In Progress)
-
--   Staff creation and editing (partial)
--   Role and permission integration (not completed)
--   Data validation improvements pending
-
-## 📅 Staff Roster Management (In Progress)
-
--   Shift scheduling logic under development
--   UI structure created
--   Full workflow not finalized
 
 ## 🌐 ISP Management (In Progress)
 

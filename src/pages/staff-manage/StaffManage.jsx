@@ -23,11 +23,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { UpdateStaffDialog } from "./components/UpdateStaffDialog";
-
+import useDepartment from "./hooks/useDepartmenet";
+import { useDebouncedCallback } from "use-debounce";
 function StaffManage() {
   const [getDeleteStaff, setGetDeleteStaff] = useState(null);
   const [getUpdateStaff, setGetUpdateStaff] = useState(null);
+  const [selectedDepartments, setSelectedDepartments] = useState([]);
+  const [selectedPositions, setSelectedPositions] = useState([]);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [searchStaff, setSerachStaff] = useState("");
   const {
     staffs,
     pagination,
@@ -38,9 +42,27 @@ function StaffManage() {
     updateStaff,
   } = useStaffHook();
 
+  const { fetchDepartments, departments, loading } = useDepartment();
+  const currentFilters = {
+    department: selectedDepartments,
+    position: selectedPositions,
+  };
+
+  const debouncedFetch = useDebouncedCallback((value) => {
+    fetchStaffs(1, {
+      department: selectedDepartments,
+      position: selectedPositions,
+      staff_name: value,
+    });
+  }, 500);
+
   useEffect(() => {
-    fetchStaffs();
+    fetchDepartments();
   }, []);
+
+  useEffect(() => {
+    fetchStaffs(1, currentFilters);
+  }, [selectedDepartments, selectedPositions]);
 
   const handleDeleteStaff = (staff) => {
     setGetDeleteStaff(staff);
@@ -49,8 +71,8 @@ function StaffManage() {
   const confirmDeleteStaff = async () => {
     setDeleteLoading(true);
     try {
-      await deleteStaff(getDeleteStaff.staff_id);
-      await fetchStaffs();
+      await deleteStaff(getDeleteStaff.id);
+      await fetchStaffs(1, currentFilters);
       setGetDeleteStaff(null);
       toast.success("Delete Staff Success");
     } catch (error) {
@@ -106,7 +128,7 @@ function StaffManage() {
             onClick={(e) => {
               e.preventDefault();
               if (item !== current_page) {
-                fetchStaffs(item);
+                fetchStaffs(item, currentFilters);
               }
             }}
           >
@@ -117,15 +139,35 @@ function StaffManage() {
     });
   };
 
+
+  useEffect(() => {
+    console.log(searchStaff)
+  }, [searchStaff])
+
+
+  console.log(staffs)
+
   return (
     <>
       <div className="mb-5">
         <StaffToolbar
+          onSearchChange={(value) => {
+            setSerachStaff(value);
+            debouncedFetch(value);
+          }}
+          departments={departments}
+          fetchDepartments={fetchDepartments}
+          loading={loading}
           fetchStaffs={fetchStaffs}
           addStaff={addStaff}
           staffLoading={staffLoading}
+          selectedDepartments={selectedDepartments}
+          setSelectedDepartments={setSelectedDepartments}
+          selectedPositions={selectedPositions}
+          setSelectedPositions={setSelectedPositions}
         />
       </div>
+      {/* Staff table Data  */}
       <div className="h-[85%] flex flex-col justify-between">
         <StaffTable
           staffs={staffs}
@@ -148,7 +190,7 @@ function StaffManage() {
                     onClick={(e) => {
                       e.preventDefault();
                       if (pagination.current_page > 1) {
-                        fetchStaffs(pagination.current_page - 1);
+                        fetchStaffs(pagination.current_page - 1, currentFilters);
                       }
                     }}
                   />
@@ -167,7 +209,7 @@ function StaffManage() {
                     onClick={(e) => {
                       e.preventDefault();
                       if (pagination.current_page < pagination.last_page) {
-                        fetchStaffs(pagination.current_page + 1);
+                        fetchStaffs(pagination.current_page + 1, currentFilters);
                       }
                     }}
                   />
@@ -177,6 +219,9 @@ function StaffManage() {
           </div>
         )}
       </div>
+
+
+      {/* Update Staff Dialog  */}
       <UpdateStaffDialog
         open={!!getUpdateStaff}
         staff={getUpdateStaff}
@@ -185,7 +230,7 @@ function StaffManage() {
         staffLoading={staffLoading}
         handleOpenChange={handleOpenChange}
       />
-
+      {/* Delete Staff Alert  */}
       <AlertDialog
         open={!!getDeleteStaff}
         onOpenChange={(open) =>

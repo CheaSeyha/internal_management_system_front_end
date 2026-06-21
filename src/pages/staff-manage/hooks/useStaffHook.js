@@ -11,7 +11,7 @@ const useStaffHook = () => {
   const loadProfileImage = async (staff) => {
     try {
       const response = await axios.get(
-        "staff/image_profile/" + staff.staff_id,
+        "staff/image_profile/" + staff.id,
         {
           responseType: "blob",
         },
@@ -23,29 +23,44 @@ const useStaffHook = () => {
     }
   };
 
-  const fetchStaffs = async (page = 1) => {
+  const fetchStaffs = async (
+    page = 1,
+    { department = [], position = [], staff_name = "" } = {}
+  ) => {
     setStaffLoading(true);
     setStaffError(null);
     try {
-      const response = await axios.get(`/staff?page=${page}`);
-      // response.data.data is the paginator, response.data.data.data is the array
+      const params = new URLSearchParams();
+      params.set("page", String(page));
+
+      const departmentArray = Array.isArray(department)
+        ? department
+        : department ? [department] : [];
+      const positionArray = Array.isArray(position)
+        ? position
+        : position ? [position] : [];
+
+      departmentArray.forEach((item) => {
+        if (item) params.append("department[]", String(item));
+      });
+      positionArray.forEach((item) => {
+        if (item) params.append("position[]", String(item));
+      });
+
+      // add staff_name
+      if (staff_name) params.set("staff_name", staff_name);
+
+      const response = await axios.get(`/staff?${params.toString()}`);
       const paginator = response.data.data ?? null;
       const staffList = paginator?.data ?? [];
       setPagination(paginator);
-
-      // Set initial staff list to show data immediately
       setStaffs(staffList);
-      setStaffLoading(false);
+      const updatedStaffList = await Promise.all(
+        staffList.map(async (staff) => await loadProfileImage(staff))
+      );
 
-      // Load images for each staff independently in the background
-      staffList.forEach(async (staff) => {
-        const updatedStaff = await loadProfileImage(staff);
-        setStaffs((prevStaffs) =>
-          prevStaffs.map((s) =>
-            s.staff_id === staff.staff_id ? updatedStaff : s,
-          ),
-        );
-      });
+      setStaffs(updatedStaffList);
+      setStaffLoading(false);
     } catch (error) {
       setStaffError(error);
       setStaffLoading(false);

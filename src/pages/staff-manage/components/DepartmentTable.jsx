@@ -33,7 +33,7 @@ function DepartmentTable({ departments, loading, error, onEdit, onDelete, onPosi
                                   className="px-2 py-1 text-xs rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
                                   onClick={() => onPositionClick?.(row, pos)}
                                 >
-                                  {pos}
+                                  {pos.position_name}
                                 </button>
                               ))}
                             </div>

@@ -138,9 +138,9 @@ function Departmenent() {
         setSelectedPosition({
             department_id: departmentRow.id,
             department_name: departmentRow.department_name,
-            position_name: positionName,
+            position_name: positionName.position_name,
         });
-        setEditPositionName(positionName);
+        setEditPositionName(positionName.position_name);
     };
 
     const submitEditPosition = async () => {
@@ -168,19 +168,40 @@ function Departmenent() {
     const confirmDeletePosition = async () => {
         if (!selectedPosition) return;
 
-        try {
-            await deletePosition({
-                department_id: selectedPosition.department_id,
-                position_name: selectedPosition.position_name,
-            });
-            await fetchDepartments();
-            toast.success("Position deleted successfully");
-            setSelectedPosition(null);
-            setEditPositionName("");
-        } catch (error) {
-            const message = error?.message || "Can't delete position";
-            toast.error(message);
-        }
+        const positionToDelete = selectedPosition;
+        setSelectedPosition(null); // close edit dialog
+
+        toast("Delete Position?", {
+            description: (
+                <span>
+                    Are you sure you want to delete{" "}
+                    <strong>{positionToDelete.position_name}</strong> from{" "}
+                    <strong>{positionToDelete.department_name}</strong>?
+                </span>
+            ),
+            duration: 10000,
+            action: {
+                label: "Delete",
+                onClick: async () => {
+                    try {
+                        await deletePosition({
+                            department_id: positionToDelete.department_id,
+                            position_name: positionToDelete.position_name,
+                        });
+                        await fetchDepartments();
+                        toast.success("Position deleted successfully");
+                        setEditPositionName("");
+                    } catch (error) {
+                        const message = error?.message || "Can't delete position";
+                        toast.error(message);
+                    }
+                },
+            },
+            cancel: {
+                label: "Cancel",
+                onClick: () => { },
+            },
+        });
     };
 
     return (
@@ -270,6 +291,8 @@ function Departmenent() {
                 </AlertDialogContent>
             </AlertDialog>
 
+
+            {/* Edit Or Delete Postion  */}
             <Dialog
                 open={!!selectedPosition}
                 onOpenChange={(open) => {

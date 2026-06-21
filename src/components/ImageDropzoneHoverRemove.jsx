@@ -4,7 +4,7 @@ import { Upload, X, Image as ImageIcon } from "lucide-react";
 
 export default function ImageDropzoneHoverRemove({
   maxSizeMB = 5,
-  value = null, // ✅ NEW: accept external value (File | string)
+  value = null,
   onChange,
 }) {
   const inputRef = useRef(null);
@@ -14,7 +14,7 @@ export default function ImageDropzoneHoverRemove({
 
   const maxBytes = maxSizeMB * 1024 * 1024;
 
-  // ✅ Sync with external value (IMPORTANT)
+
   useEffect(() => {
     if (!value) {
       setFile(null);
@@ -35,7 +35,7 @@ export default function ImageDropzoneHoverRemove({
     }
   }, [value]);
 
-  // ✅ Create preview for File only
+
   useEffect(() => {
     if (!file) return;
 
@@ -61,7 +61,7 @@ export default function ImageDropzoneHoverRemove({
     }
 
     setFile(f);
-    onChange?.(f); // ✅ send File back
+    onChange?.(f);
   };
 
   const onDrop = (e) => {

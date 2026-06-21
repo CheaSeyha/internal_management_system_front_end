@@ -1136,7 +1136,7 @@ export default function CardGenerator() {
           </div>
         </motion.form>
 
-        <Chat onPickText={setNameFromChat} />
+        {/*<Chat onPickText={setNameFromChat} />*/}
       </div>
 
       {/* Preview card layout  */}
